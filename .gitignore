@@ -1,0 +1,12 @@
+**/node_modules/
+**/dist/
+**/.env
+**/.venv/
+**/__pycache__/
+**/.pytest_cache/
+ml-service/models/*
+!ml-service/models/ec-20260820-100203-13d9e2ba/
+!ml-service/models/ec-20260820-100203-13d9e2ba/model.joblib
+executive-cars-backend-main/uploads/
+.DS_Store
+**/.DS_Store

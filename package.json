@@ -1,0 +1,20 @@
+{
+  "name": "executive-cars-fyp",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "npm --prefix executive-cars-frontend-main run dev",
+    "server": "npm --prefix executive-cars-backend-main run dev",
+    "seed:test-users": "npm --prefix executive-cars-backend-main run seed:test-users",
+    "seed:demo": "npm --prefix executive-cars-backend-main run seed:demo",
+    "seed:demo:reset": "npm --prefix executive-cars-backend-main run seed:demo:reset",
+    "ml": "ml-service/.venv/bin/python ml-service/run.py",
+    "ml:train": "cd ml-service && .venv/bin/python -m app.train --input ../pakwheels_used_car_data_v02.csv",
+    "dev:full": "node scripts/dev-full.mjs",
+    "build": "npm --prefix executive-cars-frontend-main run build",
+    "test:ml": "cd ml-service && .venv/bin/python -m pytest tests",
+    "test": "npm --prefix executive-cars-backend-main test && npm --prefix executive-cars-frontend-main test && npm run test:ml",
+    "check": "npm --prefix executive-cars-backend-main run check && npm --prefix executive-cars-frontend-main run build"
+  }
+}
