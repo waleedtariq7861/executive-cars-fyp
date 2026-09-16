@@ -559,6 +559,8 @@ The three suppressed Copilot observations on PR #1 were checked against the inst
 
 Post-fix gates: frontend 23 files / 62 tests passed, backend 36/36 passed using the preserved local MongoDB test binary, ML 11/11 passed, and the production frontend build transformed 1,719 modules. Pytest emitted one cache-provider warning because the pre-existing `.test-cache` path cannot be recreated; it did not affect collection, execution, or application behavior and remains part of the separately proposed local cleanup.
 
+A live Chrome follow-up was attempted after the fix. Frontend and ML started successfully, but the backend could not connect to the configured Atlas cluster because the current IP was rejected by the Atlas allowlist. The protected-document popup change is therefore verified by deterministic regression tests, not claimed as a completed live-browser retest. All processes started for this attempt were stopped, and ports 5173, 5000, and 8000 were confirmed closed.
+
 ### Production-readiness and maintenance risks
 
 #### QA-013 — Browser session hardening
@@ -613,7 +615,7 @@ The stale browser session was subsequently discarded and a fresh Chrome connecti
 The following items remain open and must not be described as completed:
 
 - Upload a non-personal test image through the UI and confirm the resulting Cloudinary URL renders correctly.
-- Upload an entirely synthetic inspection PDF through Chrome and repeat the already-passing automated owner/wrong-owner/admin/signed-link authorization matrix live. This is blocked only by the extension's local-file permission.
+- Upload an entirely synthetic inspection PDF through Chrome and repeat the already-passing automated owner/wrong-owner/admin/signed-link authorization matrix live. This currently requires both Chrome local-file access and restored Atlas connectivity (or an approved controlled local fixture).
 - Decide whether to apply `npm run repair:inspection-reports:apply` to the four legacy Atlas records identified by the successful dry run. The command creates a pre-change backup; no apply was performed during QA.
 - Re-test WebSocket reconnect/resubscribe behavior after a deliberate network interruption; normal two-user live updates and outbid notification already pass.
 - Re-test real SMTP delivery only when a controlled mailbox is available; development-mode request, privacy, mismatch, and invalid-token paths already pass.
@@ -658,6 +660,7 @@ It is not approved for real-money production use. That remaining distinction is 
 | 2026-09-03 | Reconnected Chrome and completed member plus administrator live regression. All eight administrator content routes were reviewed at desktop and mobile widths. The used-car drawer passed dialog naming, focus entry, Escape dismissal, focus restoration, scroll lock, and overflow checks without saving a mutation. |
 | 2026-09-03 | Ran the inspection repair in dry-run mode against the configured 8-product/5-auction Atlas inventory. It identified 3 products and 1 auction; no database changes were made. |
 | 2026-09-16 | Investigated all three suppressed PR-review observations. Rejected the Axios path claim with an executable resolution check, fixed the protected-document popup timing and malformed ML registry metadata lookup, and added four regressions. Full gates passed: frontend 62/62, backend 36/36, ML 11/11, and the 1,719-module production build. |
+| 2026-09-16 | Attempted the post-fix live Chrome document-flow recheck. Frontend and ML started, but backend startup was blocked by the configured Atlas IP allowlist. No live pass was claimed; all agent-started processes were stopped and project ports were verified closed. |
 
 ## 13. Living-report update policy
 
