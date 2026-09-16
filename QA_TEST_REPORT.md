@@ -1,7 +1,7 @@
 # Executive Cars — Comprehensive QA Test Report
 
 **Report status:** Completed for the local FYP/demo scope; production follow-ups remain
-**Last updated:** 2026-09-03 (Asia/Karachi)
+**Last updated:** 2026-09-16 (Asia/Karachi)
 **Test target:** Current implementation in this workspace
 **Tester:** Codex, using the configured Chrome extension plus direct service/test commands
 
@@ -547,6 +547,18 @@ Severity reflects likely project impact, not an external security certification.
 - `qa-evidence/implementation/qa-admin-data-models-mobile.png`
 - `qa-evidence/implementation/qa-010-admin-dashboard-values-desktop.png`
 
+### Pull-request review follow-up — 2026-09-16
+
+The three suppressed Copilot observations on PR #1 were checked against the installed dependencies, route mounts, current registry, and executable tests rather than accepted at face value.
+
+| Observation | Classification | Verification and action |
+|---|---|---|
+| A leading `/documents/...` path could bypass Axios `baseURL: '/api'` | **False positive; no code change** | The installed Axios resolver produced `/api/documents/bookings/123/cnic` for both leading-slash and relative inputs. The Express router is mounted at `/api/documents`, and the backend authorization suite passed. |
+| Opening a protected document only after awaiting its signed-link request can be blocked by the browser | **Confirmed reliability defect; fixed** | The helper now opens a blank window synchronously during the click activation, clears its opener, requests the authorized short-lived URL, navigates the window on success, and closes it on failure. Three regression tests cover ordering, popup blocking, and request failure. |
+| A registry entry without `version` could read root-level `models/metadata.json` | **Confirmed low-severity hardening gap; fixed** | The current registry has 6 entries, all with versions, and no root metadata file, so no current model was affected. Metadata enrichment now occurs only for a non-empty string version. A regression fixture proves unrelated root metadata is ignored. |
+
+Post-fix gates: frontend 23 files / 62 tests passed, backend 36/36 passed using the preserved local MongoDB test binary, ML 11/11 passed, and the production frontend build transformed 1,719 modules. Pytest emitted one cache-provider warning because the pre-existing `.test-cache` path cannot be recreated; it did not affect collection, execution, or application behavior and remains part of the separately proposed local cleanup.
+
 ### Production-readiness and maintenance risks
 
 #### QA-013 — Browser session hardening
@@ -614,7 +626,7 @@ The following items remain open and must not be described as completed:
 
 ## 11. Current overall assessment
 
-The application now meets the stable FYP-demonstration gate and has a much stronger controlled-demo foundation. The complete automated run passed: frontend 59/59, backend 36/36, ML 10/10 with no warnings, backend syntax 78 files, and the production frontend build. Live Chrome verified cookie-session restoration and logout, member/auction/seller data, responsive public and administrator layouts, truthful async states, responsive hero selection, saved cars, AI, and accessible overlay behavior.
+The application now meets the stable FYP-demonstration gate and has a much stronger controlled-demo foundation. The latest post-review automated run passed: frontend 62/62, backend 36/36, ML 11/11, and the production frontend build transformed 1,719 modules. The ML run emitted one non-application warning from the pre-existing pytest cache path; the tests themselves all passed. Live Chrome verified cookie-session restoration and logout, member/auction/seller data, responsive public and administrator layouts, truthful async states, responsive hero selection, saved cars, AI, and accessible overlay behavior.
 
 It is not approved for real-money production use. That remaining distinction is deliberate: Stripe is removed, demo payment is blocked in production, and a Pakistan-supported payment provider has not been selected or implemented. Production release also requires an owner decision on the four-record legacy inspection migration, live synthetic upload/download evidence after Chrome file access is enabled, deployment-level performance/security operations, secret rotation, backups, and final testing against the deployed origin.
 
@@ -645,6 +657,7 @@ It is not approved for real-money production use. That remaining distinction is 
 | 2026-09-03 | Final gates passed: frontend 22 files / 59 tests, backend 36 tests, ML 10 tests with no warnings, backend syntax 78 files, and production build 1,719 modules. Build inspection found no legacy auth keys, demo passwords, Stripe strings, or original hero PNG reference. |
 | 2026-09-03 | Reconnected Chrome and completed member plus administrator live regression. All eight administrator content routes were reviewed at desktop and mobile widths. The used-car drawer passed dialog naming, focus entry, Escape dismissal, focus restoration, scroll lock, and overflow checks without saving a mutation. |
 | 2026-09-03 | Ran the inspection repair in dry-run mode against the configured 8-product/5-auction Atlas inventory. It identified 3 products and 1 auction; no database changes were made. |
+| 2026-09-16 | Investigated all three suppressed PR-review observations. Rejected the Axios path claim with an executable resolution check, fixed the protected-document popup timing and malformed ML registry metadata lookup, and added four regressions. Full gates passed: frontend 62/62, backend 36/36, ML 11/11, and the 1,719-module production build. |
 
 ## 13. Living-report update policy
 
