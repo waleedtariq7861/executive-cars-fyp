@@ -252,6 +252,99 @@
 
 @media (min-width: 640px) { .market-shell { padding-left: 1.5rem; padding-right: 1.5rem; } }
 @media (min-width: 1024px) { .market-shell { padding-left: 2rem; padding-right: 2rem; } }
+
+/* Dense portal tables become readable record cards on phones. The column
+   headings remain available to assistive technology and are repeated visually
+   through each cell's data-label. */
+@media (max-width: 639px) {
+  .responsive-record-table-wrap {
+    overflow: visible;
+  }
+
+  .responsive-record-table,
+  .responsive-record-table tbody,
+  .responsive-record-table tr,
+  .responsive-record-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .responsive-record-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .responsive-record-table tbody {
+    padding: 0.75rem;
+  }
+
+  .responsive-record-table tbody tr {
+    overflow: hidden;
+    margin-bottom: 0.75rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.875rem;
+    background: #ffffff;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  }
+
+  .responsive-record-table tbody tr:last-child {
+    margin-bottom: 0;
+  }
+
+  .responsive-record-table tbody td {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    border-bottom: 1px solid #f1f5f9;
+    padding: 0.75rem 0.875rem;
+    text-align: right;
+    white-space: normal;
+  }
+
+  .responsive-record-table tbody td::before {
+    content: attr(data-label);
+    flex: 0 0 38%;
+    color: #64748b;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.045em;
+    line-height: 1.25rem;
+    text-align: left;
+    text-transform: uppercase;
+  }
+
+  .responsive-record-table tbody td:last-child {
+    border-bottom: 0;
+  }
+
+  .responsive-record-table tbody td > * {
+    min-width: 0;
+  }
+
+  .responsive-record-table tbody td > .flex,
+  .responsive-record-table tbody td > .inline-flex {
+    justify-content: flex-end;
+  }
+
+  .responsive-record-table tbody td.responsive-record-empty {
+    display: block;
+    padding: 3rem 1rem;
+    text-align: center;
+  }
+
+  .responsive-record-table tbody td.responsive-record-empty::before {
+    content: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }

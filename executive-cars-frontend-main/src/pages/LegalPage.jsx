@@ -5,20 +5,20 @@ import Footer from '../components/Footer.jsx'
 const content = {
   privacy: {
     title: 'Privacy Notice',
-    intro: 'Executive Cars uses account, booking, vehicle, and payment-reference information to provide the services you choose.',
+    intro: 'Executive Cars uses account, booking, and vehicle information to provide the services you choose.',
     sections: [
       ['Data use', 'Account information supports sign-in and access to your activity. Vehicle and booking information supports listings, inspections, and managed selling.'],
-      ['Data sharing', 'Payment details are handled by the configured payment provider. Executive Cars does not store card numbers.'],
+      ['Demonstration membership', 'The current FYP build simulates auction-membership activation. It does not collect card details or process a financial transaction.'],
       ['Your account', 'Keep your profile information accurate and protect your sign-in details. Access to account activity is limited to authorised users.'],
     ],
   },
   terms: {
     title: 'Terms of Use',
-    intro: 'These terms explain how listings, valuations, inspections, auctions, and payments are presented on Executive Cars.',
+    intro: 'These terms explain how listings, valuations, inspections, auctions, and demonstration membership are presented on Executive Cars.',
     sections: [
       ['Listings', 'Vehicle details are provided by administrators or sellers. Review the available information and inspect a vehicle before completing a transaction.'],
       ['Valuations', 'Price estimates are indicative and are not guaranteed offers, sale prices, or financial advice.'],
-      ['Auctions and payments', 'A bid is subject to auction rules. A payment is complete only after confirmation by the configured payment gateway.'],
+      ['Auctions and demo access', 'A bid is subject to auction rules. The current membership activation is a demonstration feature only and does not represent a real payment.'],
     ],
   },
 }

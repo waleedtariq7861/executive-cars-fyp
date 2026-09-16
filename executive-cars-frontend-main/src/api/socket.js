@@ -4,20 +4,18 @@ const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || window.location.origin
 
 let socket = null
 
-export const getSocket = (token) => {
+export const getSocket = () => {
   if (!socket) {
     socket = io(SOCKET_URL, {
-      auth: { token },
       autoConnect: false,
+      withCredentials: true,
     })
   }
   return socket
 }
 
-export const connectSocket = (token) => {
-  const s = getSocket(token)
-  if (s.connected && s.auth?.token !== token) s.disconnect()
-  s.auth = { token }
+export const connectSocket = () => {
+  const s = getSocket()
   if (!s.connected) {
     s.connect()
   }

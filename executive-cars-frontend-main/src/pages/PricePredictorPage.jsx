@@ -84,6 +84,7 @@ export default function PricePredictorPage() {
   const variant = variants.find(item => item.name === form.variant)
   const identityReady = Boolean(form.make && form.model && form.year)
   const verifiedVehicle = vehicleOptions?.coverageLevel === 'verified'
+  const variantRequired = verifiedVehicle && variants.length > 0
   const cities = optionValues(catalog?.listingCities, fallbackCities)
   const registrationCities = optionValues(catalog?.registrationCities, fallbackCities)
   const bodyTypes = optionValues(catalog?.bodyTypes, fallbackBodyTypes)
@@ -123,7 +124,7 @@ export default function PricePredictorPage() {
   const handlePredict = async event => {
     event.preventDefault()
     if (loading) return
-    const validation = clientValidate(form, verifiedVehicle)
+    const validation = clientValidate(form, variantRequired)
     if (Object.keys(validation).length) {
       setFieldErrors(validation)
       setError('Please correct the highlighted vehicle details.')
@@ -235,9 +236,9 @@ export default function PricePredictorPage() {
                   <FormField label="Model year" htmlFor="predict-year" required error={fieldErrors.year}>
                     <Select id="predict-year" required value={form.year} error={fieldErrors.year} disabled={!form.model} onChange={event => { setVehicleOptions(null); setForm(current => ({ ...current, year: Number(event.target.value), variant: '', engineCapacity: '', transmission: '', fuelType: '', bodyType: '', assemblyType: '' })) }}><option value="">Select year</option>{years.map(year => <option key={year}>{year}</option>)}</Select>
                   </FormField>
-                  <FormField label={variants.length ? 'Variant' : 'Variant (optional)'} htmlFor="predict-variant" hint={!form.year ? 'Select a model year first.' : (!variants.length ? 'Enter the variant if you know it.' : '')}>
+                  <FormField label={variantRequired ? 'Variant' : 'Variant (optional)'} htmlFor="predict-variant" required={variantRequired} error={fieldErrors.variant} hint={!form.year ? 'Select a model year first.' : (!variants.length ? 'Enter the variant if you know it.' : 'Choose the verified variant that matches the vehicle.')}>
                     {variants.length ? (
-                      <Select id="predict-variant" value={form.variant} disabled={!form.year} onChange={event => { const next = variants.find(item => item.name === event.target.value); setForm(current => ({ ...current, variant: event.target.value, engineCapacity: next?.engineCapacity || '', transmission: next?.transmissions?.[0] || '', fuelType: next?.fuelTypes?.[0] || '', bodyType: next?.bodyType || '', assemblyType: next?.assemblyTypes?.[0] || '' })) }}><option value="">Select variant</option>{variants.map(item => <option key={item.name}>{item.name}</option>)}</Select>
+                      <Select id="predict-variant" required={variantRequired} value={form.variant} error={fieldErrors.variant} disabled={!form.year} onChange={event => { const next = variants.find(item => item.name === event.target.value); setForm(current => ({ ...current, variant: event.target.value, engineCapacity: next?.engineCapacity || '', transmission: next?.transmissions?.[0] || '', fuelType: next?.fuelTypes?.[0] || '', bodyType: next?.bodyType || '', assemblyType: next?.assemblyTypes?.[0] || '' })); setFieldErrors(current => ({ ...current, variant: '' })) }}><option value="">Select variant</option>{variants.map(item => <option key={item.name}>{item.name}</option>)}</Select>
                     ) : (
                       <Input id="predict-variant" value={form.variant} disabled={!identityReady} placeholder="e.g. VXR, VXL, GLi, Oriel" onChange={event => update('variant', event.target.value)} />
                     )}

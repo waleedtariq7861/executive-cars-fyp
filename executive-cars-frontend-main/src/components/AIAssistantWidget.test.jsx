@@ -28,4 +28,23 @@ describe('AIAssistantWidget', () => {
     }))
     expect(await screen.findByText(/having trouble right now/i)).toBeInTheDocument()
   })
+
+  it('behaves as an accessible dialog and restores focus when Escape closes it', async () => {
+    render(<MemoryRouter><AIAssistantWidget /></MemoryRouter>)
+
+    const trigger = screen.getByRole('button', { name: /open ai assistant/i })
+    trigger.focus()
+    fireEvent.click(trigger)
+
+    const dialog = screen.getByRole('dialog', { name: /executive cars ai/i })
+    expect(dialog).toHaveAttribute('aria-modal', 'true')
+    await waitFor(() => expect(screen.getByPlaceholderText(/ask me anything/i)).toHaveFocus())
+    expect(document.body.style.overflow).toBe('hidden')
+
+    fireEvent.keyDown(document, { key: 'Escape' })
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    await waitFor(() => expect(screen.getByRole('button', { name: /open ai assistant/i })).toHaveFocus())
+    expect(document.body.style.overflow).toBe('')
+  })
 })

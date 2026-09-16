@@ -12,7 +12,13 @@ import { EmptyState, ErrorState, Skeleton } from '../components/ui/Feedback.jsx'
 import { SectionHeading } from '../components/ui/Display.jsx'
 import { siteConfig } from '../config/site.js'
 import api from '../api/api.js'
-import heroBackground from '../assets/executive-cars-hero.png'
+import hero640Avif from '../assets/executive-cars-hero-640.avif'
+import hero1280Avif from '../assets/executive-cars-hero-1280.avif'
+import hero1746Avif from '../assets/executive-cars-hero-1746.avif'
+import hero640Webp from '../assets/executive-cars-hero-640.webp'
+import hero1280Webp from '../assets/executive-cars-hero-1280.webp'
+import hero1746Webp from '../assets/executive-cars-hero-1746.webp'
+import { hasInspectionReport } from '../utils/inspectionReport.js'
 
 const makes = ['Toyota', 'Honda', 'Suzuki', 'Kia', 'Hyundai', 'BMW']
 const models = ['Corolla', 'Civic', 'City', 'Alto', 'Cultus', 'Sportage', 'Tucson', 'Yaris']
@@ -50,7 +56,7 @@ export default function HomePage() {
     navigate(`/used-cars${params.toString() ? `?${params}` : ''}`)
   }
   const featured = useMemo(() => {
-    const evidenced = cars.filter(car => car.verificationStatus === 'verified' || car.inspectionStatus === 'report_available' || car.pdfUrl)
+    const evidenced = cars.filter(car => car.verificationStatus === 'verified' || hasInspectionReport(car))
     return (evidenced.length ? evidenced : cars).slice(0, 4)
   }, [cars])
   const recent = cars.slice(0, 4)
@@ -58,7 +64,11 @@ export default function HomePage() {
   return <div className="min-h-screen bg-white">
     <Navbar />
     <section className="relative bg-[#0b1628] pt-[68px] md:pt-[100px] overflow-hidden">
-      <div className="absolute inset-0 bg-cover bg-[position:67%_center] lg:bg-[position:center]" style={{ backgroundImage: `url(${heroBackground})` }} aria-hidden="true" />
+      <picture className="absolute inset-0" aria-hidden="true">
+        <source type="image/avif" srcSet={`${hero640Avif} 640w, ${hero1280Avif} 1280w, ${hero1746Avif} 1746w`} sizes="100vw" />
+        <source type="image/webp" srcSet={`${hero640Webp} 640w, ${hero1280Webp} 1280w, ${hero1746Webp} 1746w`} sizes="100vw" />
+        <img src={hero1746Webp} srcSet={`${hero640Webp} 640w, ${hero1280Webp} 1280w, ${hero1746Webp} 1746w`} sizes="100vw" width="1746" height="901" alt="" fetchpriority="high" decoding="async" className="h-full w-full object-cover object-[67%_center] lg:object-center" />
+      </picture>
       <div className="absolute inset-0 bg-gradient-to-r from-[#061326]/95 via-[#07182bcc] to-[#07182b08]" aria-hidden="true" />
       <div className="relative market-shell py-14 sm:py-16 lg:py-20">
         <div className="max-w-3xl">

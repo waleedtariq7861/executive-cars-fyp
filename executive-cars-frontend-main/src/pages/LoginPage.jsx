@@ -1,15 +1,11 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Car, CheckCircle2, Eye, EyeOff, Gavel, Lock, Search, UserRound } from 'lucide-react'
 import Logo from '../components/Logo.jsx'
 import { useAuth } from '../context/authContext.js'
+import api from '../api/api.js'
 
-const demoAccountsEnabled = import.meta.env.VITE_ENABLE_DEMO_ACCOUNTS === 'true'
-const demoAccounts = [
-  { label: 'Premium member', email: 'member@executivecars.pk', password: 'Member@12345' },
-  { label: 'Regular user', email: 'user@executivecars.pk', password: 'User@12345' },
-  { label: 'Auction bidder', email: 'bidder@executivecars.pk', password: 'Bidder@12345' },
-]
+const demoAccountsEnabled = (import.meta.env.DEV || import.meta.env.VITE_APP_MODE === 'demo') && import.meta.env.VITE_ENABLE_DEMO_ACCOUNTS === 'true'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -19,7 +15,13 @@ export default function LoginPage() {
   const [showPass, setShowPass] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [demoAccounts, setDemoAccounts] = useState([])
   const redirectMessage = location.state?.message
+
+  useEffect(() => {
+    if (!demoAccountsEnabled) return
+    api.get('/demo/accounts').then(response => setDemoAccounts(response.data?.members || [])).catch(() => setDemoAccounts([]))
+  }, [])
 
   const handleSubmit = async (event) => {
     event.preventDefault()
@@ -71,7 +73,7 @@ export default function LoginPage() {
             <button type="submit" disabled={loading} className="btn-primary w-full py-3.5 text-sm gap-2 disabled:opacity-60">{loading ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Lock className="w-4 h-4" />}{loading ? 'Signing in…' : 'Sign In'}</button>
           </form>
 
-          {demoAccountsEnabled && (
+          {demoAccountsEnabled && demoAccounts.length > 0 && (
             <section className="mt-6 rounded-xl border border-blue-200 bg-blue-50 p-4" aria-label="Demo Accounts">
               <h3 className="text-sm font-black text-blue-950">Demo Accounts</h3>
               <p className="mt-1 text-xs leading-5 text-blue-800">Local FYP demonstration accounts. Choose one to fill the form, then press Sign In.</p>

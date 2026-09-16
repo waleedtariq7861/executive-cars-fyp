@@ -5,6 +5,9 @@ import AuctionLayout from '../../components/AuctionLayout.jsx'
 import CountdownTimer from '../../components/CountdownTimer.jsx'
 import { formatPKR } from '../../utils/format.js'
 import api from '../../api/api.js'
+import VehicleImage from '../../components/VehicleImage.jsx'
+import { formatBidCount } from '../../utils/auction.js'
+import { ErrorState, Skeleton } from '../../components/ui/Feedback.jsx'
 
 function timeUntil(isoDate) {
   const diff = Math.max(0, Math.floor((new Date(isoDate) - Date.now()) / 1000))
@@ -18,8 +21,7 @@ const AuctionCard = React.memo(function AuctionCard({ car }) {
     <Link to={`/auction/car/${car._id}`}
       className="bg-white border border-gray-200 rounded-2xl overflow-hidden card-hover group shadow-sm">
       <div className="relative aspect-[16/9] overflow-hidden">
-        <img src={car.images?.[0]} alt={`${car.make} ${car.model}`} loading="lazy"
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+        <VehicleImage src={car.images?.[0]} alt={`${car.make} ${car.model}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" fallbackClassName="w-full h-full" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
         <div className="absolute top-3 left-3 flex gap-2">
           {isHot && (
@@ -43,7 +45,7 @@ const AuctionCard = React.memo(function AuctionCard({ car }) {
             <p className="text-blue-600 font-black text-lg">PKR {formatPKR(car.currentBid)}</p>
           </div>
           <div className="text-right">
-            <p className="text-gray-400 text-xs">{car.bidCount} bids</p>
+            <p className="text-gray-400 text-xs">{formatBidCount(car.bidCount)}</p>
             <button className="btn-primary px-4 py-2 rounded-lg text-xs font-semibold mt-1 flex items-center gap-1">
               <Gavel className="w-3 h-3" /> Bid Now
             </button>
@@ -60,6 +62,7 @@ export default function AuctionDashboardPage() {
   const [profile, setProfile] = useState(null)
   const [filter, setFilter] = useState('All')
   const [loadError, setLoadError] = useState('')
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     Promise.all([api.get('/cars'), api.get('/member/stats'), api.get('/member/profile')])
@@ -69,6 +72,7 @@ export default function AuctionDashboardPage() {
         setProfile(profileResponse.data)
       })
       .catch(err => setLoadError(err.response?.data?.message || 'Could not load auction dashboard.'))
+      .finally(() => setLoading(false))
   }, [])
 
   const daysLeft = profile?.subscriptionExpiry
@@ -93,7 +97,7 @@ export default function AuctionDashboardPage() {
 
   return (
     <AuctionLayout title="Dashboard">
-      {loadError && <div className="mb-5 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">{loadError}</div>}
+      {loading ? <DashboardSkeleton /> : loadError ? <div className="bg-white border border-red-200 rounded-2xl"><ErrorState title="Auction dashboard unavailable" description={loadError} /></div> : <>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {stats.map(s => (
           <div key={s.label} className={`bg-white border ${s.border} rounded-2xl p-5 shadow-sm`}>
@@ -138,6 +142,15 @@ export default function AuctionDashboardPage() {
           {filtered.map(car => <AuctionCard key={car._id} car={car} />)}
         </div>
       )}
+      </>}
     </AuctionLayout>
   )
+}
+
+function DashboardSkeleton() {
+  return <div aria-label="Loading auction dashboard" aria-busy="true">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">{[1, 2, 3, 4].map(item => <div key={item} className="bg-white border border-gray-200 rounded-2xl p-5"><Skeleton className="w-10 h-10" /><Skeleton className="h-8 w-16 mt-3" /><Skeleton className="h-4 w-24 mt-2" /></div>)}</div>
+    <Skeleton className="h-7 w-40 mb-4" />
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">{[1, 2, 3].map(item => <div key={item} className="bg-white border border-gray-200 rounded-2xl p-3"><Skeleton className="aspect-video" /><Skeleton className="h-5 w-2/3 mt-4" /><Skeleton className="h-10 mt-4" /></div>)}</div>
+  </div>
 }

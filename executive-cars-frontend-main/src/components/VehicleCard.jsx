@@ -3,10 +3,11 @@ import { Link } from 'react-router-dom'
 import { Fuel, Gauge, Heart, MapPin, Settings, ShieldCheck } from 'lucide-react'
 import VehicleImage from './VehicleImage.jsx'
 import { formatPKR } from '../utils/format.js'
+import { hasInspectionReport } from '../utils/inspectionReport.js'
 
 export default function VehicleCard({ car, saved = false, onSave, compact = false }) {
   const verified = car.verificationStatus === 'verified'
-  const hasReport = car.inspectionStatus === 'report_available' || Boolean(car.pdfUrl)
+  const hasReport = hasInspectionReport(car)
   return <article className="group bg-white border border-gray-200 rounded-xl overflow-hidden shadow-card hover:shadow-elevated hover:border-blue-200 transition-all">
     <div className={`relative overflow-hidden ${compact ? 'aspect-[16/10]' : 'aspect-[4/3]'}`}>
       <Link to={`/used-cars/${car._id}`} className="block h-full"><VehicleImage src={car.images?.[0]} alt={`${car.make} ${car.model} ${car.year}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" fallbackClassName="w-full h-full" /></Link>

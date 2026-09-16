@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react'
 import { Eye, Check, X, Search, Calendar } from 'lucide-react'
 import AdminLayout from '../../components/AdminLayout.jsx'
 import api from '../../api/api.js'
+import { openProtectedDocument } from '../../utils/documents.js'
 
 export default function AdminBookingsPage() {
   const [bookings, setBookings] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('All')
-  const [preview, setPreview] = useState(null)
   const [error, setError] = useState('')
 
   const fetchBookings = () => {
@@ -39,6 +39,15 @@ export default function AdminBookingsPage() {
       setBookings(prev => prev.map(b => b._id === id ? { ...b, status } : b))
     } catch (err) {
       setError(err.response?.data?.message || 'Could not update booking status.')
+    }
+  }
+
+  const viewDocument = async accessPath => {
+    try {
+      setError('')
+      await openProtectedDocument(accessPath)
+    } catch (err) {
+      setError(err.response?.data?.message || 'Could not open this private document.')
     }
   }
 
@@ -88,8 +97,8 @@ export default function AdminBookingsPage() {
         {loading ? (
           <div className="text-center py-16 text-gray-400">Loading bookings...</div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
+          <div className="overflow-x-auto responsive-record-table-wrap">
+            <table className="w-full responsive-record-table">
               <thead>
                 <tr className="border-b border-gray-200">
                   {['Seller', 'Car', 'Date', 'Branch', 'Documents', 'Status', 'Actions'].map(h => (
@@ -99,40 +108,40 @@ export default function AdminBookingsPage() {
               </thead>
               <tbody>
                 {filtered.length === 0 ? (
-                  <tr><td colSpan={7} className="text-center py-12 text-gray-400">No bookings found</td></tr>
+                  <tr><td colSpan={7} className="responsive-record-empty text-center py-12 text-gray-400">No bookings found</td></tr>
                 ) : filtered.map(b => (
                   <tr key={b._id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-4">
+                    <td data-label="Seller" className="px-4 py-4">
                       <p className="text-gray-900 font-medium text-sm">{b.name}</p>
                       <p className="text-gray-500 text-xs">{b.phone}</p>
                     </td>
-                    <td className="px-4 py-4 text-gray-700 text-sm">{b.carMake} {b.carModel} {b.carYear}</td>
-                    <td className="px-4 py-4 text-gray-500 text-sm whitespace-nowrap">
+                    <td data-label="Vehicle" className="px-4 py-4 text-gray-700 text-sm">{b.carMake} {b.carModel} {b.carYear}</td>
+                    <td data-label="Date" className="px-4 py-4 text-gray-500 text-sm whitespace-nowrap">
                       <div className="flex items-center gap-1"><Calendar className="w-3 h-3" />{b.date}</div>
                     </td>
-                    <td className="px-4 py-4 text-gray-500 text-sm">{b.branch}</td>
-                    <td className="px-4 py-4">
+                    <td data-label="Branch" className="px-4 py-4 text-gray-500 text-sm">{b.branch}</td>
+                    <td data-label="Documents" className="px-4 py-4">
                       <div className="flex gap-2">
-                        {b.cnicImageUrl ? (
-                          <a href={b.cnicImageUrl} target="_blank" rel="noreferrer"
+                        {b.hasCnicDocument ? (
+                          <button type="button" onClick={() => viewDocument(b.cnicDocumentAccessPath)} aria-label={`View ${b.name} CNIC document`}
                             className="flex items-center gap-1 text-xs text-blue-600 hover:underline">
                             <Eye className="w-3 h-3" /> CNIC
-                          </a>
+                          </button>
                         ) : <span className="text-xs text-gray-400">No CNIC</span>}
-                        {b.regDocUrl ? (
-                          <a href={b.regDocUrl} target="_blank" rel="noreferrer"
+                        {b.hasRegistrationDocument ? (
+                          <button type="button" onClick={() => viewDocument(b.registrationDocumentAccessPath)} aria-label={`View ${b.name} registration document`}
                             className="flex items-center gap-1 text-xs text-blue-600 hover:underline">
                             <Eye className="w-3 h-3" /> Reg
-                          </a>
+                          </button>
                         ) : <span className="text-xs text-gray-400">No Reg</span>}
                       </div>
                     </td>
-                    <td className="px-4 py-4">
+                    <td data-label="Status" className="px-4 py-4">
                       <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${statusColor(b.status)}`}>
                         {b.status.charAt(0).toUpperCase() + b.status.slice(1)}
                       </span>
                     </td>
-                    <td className="px-4 py-4">
+                    <td data-label="Actions" className="px-4 py-4">
                       <div className="flex items-center gap-2">
                         {b.status === 'pending' && <>
                           <button onClick={() => updateStatus(b._id, 'approved')}

@@ -12,16 +12,26 @@ import { siteConfig } from '../config/site.js'
 import VehicleImage from '../components/VehicleImage.jsx'
 import VehicleCard from '../components/VehicleCard.jsx'
 import { useToast } from '../context/toastContext.js'
+import { useSavedCars } from '../hooks/useSavedCars.js'
+import { hasInspectionReport } from '../utils/inspectionReport.js'
+import { openProtectedDocument } from '../utils/documents.js'
 
 export default function UsedCarDetailPage() {
   const { id } = useParams()
   const { showToast } = useToast()
+  const {
+    savedIds,
+    syncing: savedCarsSyncing,
+    serverBacked,
+    toggleSaved: toggleSavedCar,
+  } = useSavedCars()
   const [car, setCar] = useState(null)
   const [loading, setLoading] = useState(true)
   const [activeImg, setActiveImg] = useState(0)
-  const [saved, setSaved] = useState(false)
+  const [saveSubmitting, setSaveSubmitting] = useState(false)
   const [loadError, setLoadError] = useState('')
   const [similarCars, setSimilarCars] = useState([])
+  const [reportOpening, setReportOpening] = useState(false)
 
   useEffect(() => {
     let active = true
@@ -41,10 +51,6 @@ export default function UsedCarDetailPage() {
     return () => { active = false }
   }, [car])
 
-  useEffect(() => {
-    try { setSaved(JSON.parse(localStorage.getItem('ec_wishlist') || '[]').includes(id)) } catch { setSaved(false) }
-  }, [id])
-
   const images = useMemo(() => car?.images?.filter(Boolean) || [], [car])
 
   if (loading) return <PageState><div className="text-center"><div className="w-10 h-10 border-4 border-blue-100 border-t-blue-700 rounded-full animate-spin mx-auto" /><p className="text-sm text-gray-500 mt-4">Loading car details…</p></div></PageState>
@@ -58,21 +64,49 @@ export default function UsedCarDetailPage() {
   const engine = String(car.engine || '').toLowerCase().includes('cc') ? car.engine : car.engine ? `${car.engine} cc` : '—'
   const sellerEmail = car.sellerEmail || siteConfig.email
   const verified = car.verificationStatus === 'verified'
-  const hasReport = car.inspectionStatus === 'report_available' || Boolean(car.pdfUrl)
+  const hasReport = hasInspectionReport(car)
+  const saved = savedIds.includes(id)
   const specs = [
     { icon: Calendar, label: 'Model year', value: car.year },
     { icon: Gauge, label: 'Mileage', value: `${Number(car.km || 0).toLocaleString()} km` },
     { icon: Fuel, label: 'Fuel type', value: car.fuel || '—' },
     { icon: Settings, label: 'Transmission', value: car.transmission || '—' },
   ]
-  const toggleSaved = () => {
-    let ids = []
-    try { ids = JSON.parse(localStorage.getItem('ec_wishlist') || '[]') } catch { ids = [] }
-    const nextSaved = !saved
-    const next = nextSaved ? [...new Set([...ids, id])] : ids.filter(item => item !== id)
-    localStorage.setItem('ec_wishlist', JSON.stringify(next))
-    setSaved(nextSaved)
-    showToast({ tone: 'success', title: nextSaved ? 'Car saved' : 'Car removed', message: nextSaved ? 'Added to your browser shortlist.' : 'Removed from your browser shortlist.' })
+  const toggleSaved = async () => {
+    if (savedCarsSyncing || saveSubmitting) return
+    setSaveSubmitting(true)
+    try {
+      const nextSaved = await toggleSavedCar(id)
+      showToast({
+        tone: 'success',
+        title: nextSaved ? 'Car saved' : 'Car removed',
+        message: serverBacked
+          ? (nextSaved ? 'Added to your account shortlist.' : 'Removed from your account shortlist.')
+          : (nextSaved ? 'Added to your browser shortlist.' : 'Removed from your browser shortlist.'),
+      })
+    } catch (error) {
+      showToast({ tone: 'error', title: 'Could not update saved cars', message: error.message })
+    } finally {
+      setSaveSubmitting(false)
+    }
+  }
+
+  const viewReport = async () => {
+    if (reportOpening) return
+    setReportOpening(true)
+    try {
+      await openProtectedDocument(car.inspectionReportAccessPath)
+    } catch (error) {
+      showToast({
+        tone: 'error',
+        title: error.response?.status === 401 ? 'Sign in required' : 'Report unavailable',
+        message: error.response?.status === 401
+          ? 'Sign in with your customer account to view this private report.'
+          : (error.response?.data?.message || 'The inspection report could not be opened.'),
+      })
+    } finally {
+      setReportOpening(false)
+    }
   }
   const share = async () => {
     const data = { title: `${car.make} ${car.model} ${car.year}`, text: `View this ${car.make} ${car.model} on Executive Cars`, url: window.location.href }
@@ -116,7 +150,7 @@ export default function UsedCarDetailPage() {
                 <div className="relative aspect-[16/9] bg-gray-100 overflow-hidden">
                   <VehicleImage src={images[activeImg]} alt={`${car.make} ${car.model} view ${activeImg + 1}`} className="w-full h-full object-cover" fallbackClassName="w-full h-full" />
                   <div className="absolute top-3 right-3 flex gap-2">
-                    <button type="button" onClick={toggleSaved} className="w-10 h-10 rounded-full bg-white/95 shadow flex items-center justify-center" aria-label={saved ? 'Remove from saved cars' : 'Save car'}><Heart className={`w-4 h-4 ${saved ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} /></button>
+                    <button type="button" onClick={toggleSaved} disabled={savedCarsSyncing || saveSubmitting} aria-busy={saveSubmitting} className="w-10 h-10 rounded-full bg-white/95 shadow flex items-center justify-center disabled:opacity-60 disabled:cursor-wait" aria-label={saved ? 'Remove from saved cars' : 'Save car'}><Heart className={`w-4 h-4 ${saved ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} /></button>
                     <button type="button" onClick={share} className="w-10 h-10 rounded-full bg-white/95 shadow flex items-center justify-center" aria-label="Share listing"><Share2 className="w-4 h-4 text-gray-600" /></button>
                   </div>
                 </div>
@@ -168,8 +202,8 @@ export default function UsedCarDetailPage() {
 
               <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-card">
                 <div className="flex items-center gap-2"><FileText className="w-5 h-5 text-blue-700" /><h3 className="font-bold text-gray-900">Inspection report</h3></div>
-                <p className="text-xs text-gray-500 leading-5 mt-2">{car.pdfUrl ? 'A report file is attached to this listing.' : 'No inspection report is attached to this listing.'}</p>
-                {car.pdfUrl ? <a href={car.pdfUrl} target="_blank" rel="noreferrer" className="btn-ghost w-full py-2.5 text-xs mt-4">View report</a> : <a href={`mailto:${sellerEmail}?subject=Inspection report enquiry`} className="btn-ghost w-full py-2.5 text-xs mt-4">Ask about inspection</a>}
+                <p className="text-xs text-gray-500 leading-5 mt-2">{hasReport ? 'A private report file is attached to this listing.' : 'No inspection report is attached to this listing.'}</p>
+                {hasReport ? <button type="button" onClick={viewReport} disabled={reportOpening} className="btn-ghost w-full py-2.5 text-xs mt-4 disabled:opacity-60">{reportOpening ? 'Opening…' : 'View report'}</button> : <a href={`mailto:${sellerEmail}?subject=Inspection report enquiry`} className="btn-ghost w-full py-2.5 text-xs mt-4">Ask about inspection</a>}
               </div>
 
               <div className="bg-amber-50 border border-amber-200 rounded-xl p-4"><div className="flex gap-3"><AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" /><div><p className="text-sm font-bold text-amber-900">Safety reminder</p><p className="text-xs text-amber-800/75 leading-5 mt-1">Never send advance payment before inspecting the car and verifying its documents.</p></div></div></div>

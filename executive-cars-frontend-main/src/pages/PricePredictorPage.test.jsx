@@ -129,6 +129,23 @@ describe('PricePredictorPage', () => {
     expect(screen.getByLabelText(/^Assembly/)).toHaveValue('')
   })
 
+  it('marks a verified variant as required and blocks submission until it is selected', async () => {
+    render(<MemoryRouter><PricePredictorPage /></MemoryRouter>)
+    fireEvent.change(await screen.findByLabelText(/^Make/), { target: { value: 'Suzuki' } })
+    await waitFor(() => expect(screen.getByLabelText(/^Model\s*\*$/)).not.toBeDisabled())
+    fireEvent.change(screen.getByLabelText(/^Model\s*\*$/), { target: { value: 'Cultus' } })
+    await waitFor(() => expect(screen.getByLabelText(/^Model year/)).not.toBeDisabled())
+    fireEvent.change(screen.getByLabelText(/^Model year/), { target: { value: '2021' } })
+
+    const verifiedVariant = await screen.findByLabelText(/^Variant\s*\*$/)
+    expect(verifiedVariant).toBeRequired()
+    fireEvent.click(screen.getByRole('button', { name: /generate valuation/i }))
+
+    expect(await screen.findByText('Select a verified variant for this model year.')).toBeInTheDocument()
+    expect(verifiedVariant).toHaveAttribute('aria-invalid', 'true')
+    expect(api.post).not.toHaveBeenCalled()
+  })
+
   it.each([
     ['Toyota', 'Corolla', '2014', 'XLi 1.3 MT', '1298'],
     ['Honda', 'Civic', '2020', 'RS Turbo 1.5', '1498'],
