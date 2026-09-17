@@ -64,7 +64,7 @@ export default function HomePage() {
   return <div className="min-h-screen bg-white">
     <Navbar />
     <section className="relative bg-[#0b1628] pt-[68px] md:pt-[100px] overflow-hidden">
-      <picture className="absolute inset-0" aria-hidden="true">
+      <picture className="absolute inset-0">
         <source type="image/avif" srcSet={`${hero640Avif} 640w, ${hero1280Avif} 1280w, ${hero1746Avif} 1746w`} sizes="100vw" />
         <source type="image/webp" srcSet={`${hero640Webp} 640w, ${hero1280Webp} 1280w, ${hero1746Webp} 1746w`} sizes="100vw" />
         <img src={hero1746Webp} srcSet={`${hero640Webp} 640w, ${hero1280Webp} 1280w, ${hero1746Webp} 1746w`} sizes="100vw" width="1746" height="901" alt="" fetchpriority="high" decoding="async" className="h-full w-full object-cover object-[67%_center] lg:object-center" />

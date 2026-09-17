@@ -93,10 +93,10 @@ export default function SellerProfilePage() {
               { key: 'address', label: 'Address',      icon: MapPin, type: 'text' },
             ].map(({ key, label, icon: Icon, type }) => (
               <div key={key}>
-                <label className="block text-gray-700 text-sm font-medium mb-1">{label}</label>
+                <label htmlFor={`seller-profile-${key}`} className="block text-gray-700 text-sm font-medium mb-1">{label}</label>
                 <div className="relative">
                   <Icon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <input type={type} value={form[key]} disabled={!editing}
+                  <input id={`seller-profile-${key}`} type={type} value={form[key]} disabled={!editing}
                     onChange={e => update(key, key === 'name' ? sanitizePersonName(e.target.value) : key === 'phone' ? sanitizePhone(e.target.value) : key === 'cnic' ? sanitizeCnic(e.target.value) : e.target.value)}
                     inputMode={key === 'phone' ? 'tel' : key === 'cnic' ? 'numeric' : undefined}
                     pattern={key === 'cnic' ? '[0-9-]*' : undefined}
@@ -106,10 +106,10 @@ export default function SellerProfilePage() {
               </div>
             ))}
             <div>
-              <label className="block text-gray-700 text-sm font-medium mb-1">Email Address</label>
+              <label htmlFor="seller-profile-email" className="block text-gray-700 text-sm font-medium mb-1">Email Address</label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input type="email" value={user?.email || ''} disabled
+                <input id="seller-profile-email" type="email" value={user?.email || ''} disabled
                   className="input-light pl-10 w-full bg-gray-50 text-gray-500 cursor-not-allowed" />
               </div>
               <p className="text-gray-400 text-xs mt-1">Email cannot be changed here.</p>

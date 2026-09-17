@@ -143,6 +143,9 @@ describe('PricePredictorPage', () => {
 
     expect(await screen.findByText('Select a verified variant for this model year.')).toBeInTheDocument()
     expect(verifiedVariant).toHaveAttribute('aria-invalid', 'true')
+    await waitFor(() => expect(verifiedVariant).toHaveFocus())
+    expect(verifiedVariant).toHaveAttribute('aria-describedby', 'predict-variant-error')
+    expect(verifiedVariant).toHaveAttribute('aria-errormessage', 'predict-variant-error')
     expect(api.post).not.toHaveBeenCalled()
   })
 

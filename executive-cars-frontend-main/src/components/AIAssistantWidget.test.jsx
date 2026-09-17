@@ -5,12 +5,24 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import api from '../api/api.js'
 import AIAssistantWidget from './AIAssistantWidget.jsx'
 
-vi.mock('../api/api.js', () => ({ default: { post: vi.fn() } }))
+vi.mock('../api/api.js', () => ({ default: { get: vi.fn(), post: vi.fn() } }))
 
 describe('AIAssistantWidget', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    api.get.mockResolvedValue({ data: { status: 'available', modelUsable: true } })
     Element.prototype.scrollIntoView = vi.fn()
+  })
+
+  it('shows actual capability state and prevents requests while unavailable', async () => {
+    api.get.mockRejectedValue(new Error('health unavailable'))
+    render(<MemoryRouter><AIAssistantWidget /></MemoryRouter>)
+    fireEvent.click(screen.getByRole('button', { name: /open ai assistant/i }))
+
+    expect(await screen.findByText('Temporarily unavailable')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText(/ask me anything/i)).toBeDisabled()
+    expect(screen.getByRole('button', { name: /send assistant message/i })).toBeDisabled()
+    expect(api.post).not.toHaveBeenCalled()
   })
 
   it('does not submit empty assistant messages and shows a graceful API error', async () => {

@@ -1,9 +1,9 @@
 # Executive Cars — Comprehensive QA Test Report
 
 **Report status:** Completed for the local FYP/demo scope; production follow-ups remain
-**Last updated:** 2026-09-16 (Asia/Karachi)
-**Test target:** Current implementation in this workspace
-**Tester:** Codex, using the configured Chrome extension plus direct service/test commands
+**Last updated:** 2026-09-17 (Asia/Karachi)
+**Test target:** Current implementation in this workspace  
+**Tester:** Codex, using the configured Chrome extension plus direct service/test commands  
 
 ## 1. Purpose and scope
 
@@ -381,122 +381,122 @@ Severity reflects likely project impact, not an external security certification.
 
 #### QA-001 — Broken auction images are handled inconsistently
 
-**Observed:** Auction Dashboard and My Bids render broken image elements/alt text for seeded auctions, while Live Auctions correctly renders a designed placeholder.
-**Impact:** Visible production-quality defect and inconsistent fallback behavior. My Bids becomes especially difficult to read on mobile.
+**Observed:** Auction Dashboard and My Bids render broken image elements/alt text for seeded auctions, while Live Auctions correctly renders a designed placeholder.  
+**Impact:** Visible production-quality defect and inconsistent fallback behavior. My Bids becomes especially difficult to read on mobile.  
 **Evidence:** `qa-evidence/desktop/premium/03.png`, `qa-evidence/mobile/premium/01.png`, and `qa-evidence/mobile/premium/03.png`.
 
 #### QA-003 — Mobile My Bids layout truncates and overlaps essential information
 
-**Observed:** Vehicle names, prices, image fallbacks, status badges, and action controls compete for the same narrow row. Text is ellipsized or overlaps.
-**Impact:** Bid identity and state can be ambiguous on mobile.
+**Observed:** Vehicle names, prices, image fallbacks, status badges, and action controls compete for the same narrow row. Text is ellipsized or overlaps.  
+**Impact:** Bid identity and state can be ambiguous on mobile.  
 **Evidence:** `qa-evidence/mobile/premium/03.png`.
 
 #### QA-004 — Auction/API authorization boundary requires production review
 
-**Observed in code review:** Auction-related car data is presented as members-only in the UI, while `/api/cars` data routes are publicly reachable.
-**Impact:** UI gating alone does not enforce data confidentiality.
+**Observed in code review:** Auction-related car data is presented as members-only in the UI, while `/api/cars` data routes are publicly reachable.  
+**Impact:** UI gating alone does not enforce data confidentiality.  
 **Required decision:** Decide which auction/listing fields are public and enforce that boundary in backend authorization.
 
 #### QA-005 — Uploaded-file exposure requires production review
 
-**Observed in code review:** The backend publicly serves `/uploads`. Inspection documents may include CNIC and registration files.
-**Impact:** Sensitive documents could be exposed if stored below a public static path or if URLs are predictable.
+**Observed in code review:** The backend publicly serves `/uploads`. Inspection documents may include CNIC and registration files.  
+**Impact:** Sensitive documents could be exposed if stored below a public static path or if URLs are predictable.  
 **Required fix:** Private object storage, authenticated access, short-lived signed URLs, and explicit document authorization.
 
 #### QA-019 — Used-car detail saves only to browser storage and contradicts the account shortlist
 
-**Observed live:** While signed in as the synthetic customer, selecting **Save car** on a used-car detail page produced a `Car saved` success toast and changed the control to `Remove from saved cars`. Navigating immediately to `/saved-cars` showed `No saved cars yet`. Saving from the marketplace card did persist to the server and appeared on `/saved-cars`, so the defect is isolated to the detail-page implementation.
-**Confirmed source cause:** `UsedCarDetailPage.jsx` directly reads and writes the `localStorage` key `ec_wishlist`. It does not use the server-backed `useSavedCars` hook used by marketplace cards and `SavedCarsPage.jsx`. Signed-in users therefore receive a false success state on the detail page.
-**Impact:** A core customer action silently fails to synchronize across the application and devices.
-**Evidence:** `qa-evidence/functional/saved-car-detail-success.png` and `qa-evidence/functional/saved-cars-empty-after-success.png`.
+**Observed live:** While signed in as the synthetic customer, selecting **Save car** on a used-car detail page produced a `Car saved` success toast and changed the control to `Remove from saved cars`. Navigating immediately to `/saved-cars` showed `No saved cars yet`. Saving from the marketplace card did persist to the server and appeared on `/saved-cars`, so the defect is isolated to the detail-page implementation.  
+**Confirmed source cause:** `UsedCarDetailPage.jsx` directly reads and writes the `localStorage` key `ec_wishlist`. It does not use the server-backed `useSavedCars` hook used by marketplace cards and `SavedCarsPage.jsx`. Signed-in users therefore receive a false success state on the detail page.  
+**Impact:** A core customer action silently fails to synchronize across the application and devices.  
+**Evidence:** `qa-evidence/functional/saved-car-detail-success.png` and `qa-evidence/functional/saved-cars-empty-after-success.png`.  
 **Recommendation:** Use the shared `useSavedCars` hook on the detail page, render its synchronization/error state, and show success only after the API request succeeds.
 
 #### QA-020 — In-app AI assistant is non-functional because the Groq model is unavailable
 
-**Observed live:** Submitting `How do I book a vehicle inspection on Executive Cars?` displayed `Sorry, I'm having trouble right now. Please email info@executivecars.pk for help.`
-**Confirmed provider response:** The backend hard-codes `llama-3.3-70b-versatile`. Groq returned HTTP 404 with `model_not_found`, stating that the model does not exist or the project account cannot access it.
-**Isolation result:** The same project key listed the account's available models, and a minimal completion using `openai/gpt-oss-20b` reached the provider successfully. This rules out a missing key or general Groq-connectivity failure.
-**Impact:** Every production AI-assistant request takes the failure path, so the advertised assistant functionality is unavailable.
-**Evidence:** `qa-evidence/functional/ai-assistant-service-error.png` and `executive-cars-backend-main/src/controllers/chatController.js`.
+**Observed live:** Submitting `How do I book a vehicle inspection on Executive Cars?` displayed `Sorry, I'm having trouble right now. Please email info@executivecars.pk for help.`  
+**Confirmed provider response:** The backend hard-codes `llama-3.3-70b-versatile`. Groq returned HTTP 404 with `model_not_found`, stating that the model does not exist or the project account cannot access it.  
+**Isolation result:** The same project key listed the account's available models, and a minimal completion using `openai/gpt-oss-20b` reached the provider successfully. This rules out a missing key or general Groq-connectivity failure.  
+**Impact:** Every production AI-assistant request takes the failure path, so the advertised assistant functionality is unavailable.  
+**Evidence:** `qa-evidence/functional/ai-assistant-service-error.png` and `executive-cars-backend-main/src/controllers/chatController.js`.  
 **Recommendation:** Move the model ID to validated environment configuration, select a tool-capable model available to the account, add a startup/provider health check for that exact model, and cover `model_not_found` with a clear operational error and monitoring.
 
 #### QA-021 — Auction inspection status can claim a report exists when no document is attached
 
-**Observed live:** The ended Toyota Corolla 2018 auction displayed a green `Report available` badge while the same section disabled the action as `No Report` and warned `No inspection report is attached.`
-**Confirmed source/data cause:** The badge is driven by `car.inspectionStatus === 'report_available'`, while the download and explanatory content are driven independently by `car.pdfUrl`. The data model does not enforce that `report_available` requires a non-empty report URL.
-**Impact:** Contradictory inspection claims undermine a safety-critical trust signal and may mislead bidders about due diligence.
-**Evidence:** `qa-evidence/functional/auction-ended-report-contradiction.png`.
+**Observed live:** The ended Toyota Corolla 2018 auction displayed a green `Report available` badge while the same section disabled the action as `No Report` and warned `No inspection report is attached.`  
+**Confirmed source/data cause:** The badge is driven by `car.inspectionStatus === 'report_available'`, while the download and explanatory content are driven independently by `car.pdfUrl`. The data model does not enforce that `report_available` requires a non-empty report URL.  
+**Impact:** Contradictory inspection claims undermine a safety-critical trust signal and may mislead bidders about due diligence.  
+**Evidence:** `qa-evidence/functional/auction-ended-report-contradiction.png`.  
 **Recommendation:** Enforce a single backend invariant for report availability, validate imported/seeded/admin data, and derive every UI signal from the same verified report object.
 
 #### QA-024 — Administrator used-car overlays do not manage keyboard focus or expose dialog semantics
 
-**Observed live:** Opening the Used Cars edit drawer left focus on the underlying unnamed table button. The overlay exposed zero `dialog`/`role="dialog"` elements, the next Tab remained behind the overlay, and Escape did not dismiss it.
-**Confirmed source:** `AdminUsedCarsListPage.jsx` implements edit/delete overlays as generic fixed-position `<div>` elements without dialog roles, accessible labels, initial focus, focus trapping, Escape handling, or focus restoration.
-**Impact:** Keyboard and screen-reader users can become disoriented, interact with obscured background controls, and may be unable to operate the edit flow reliably.
+**Observed live:** Opening the Used Cars edit drawer left focus on the underlying unnamed table button. The overlay exposed zero `dialog`/`role="dialog"` elements, the next Tab remained behind the overlay, and Escape did not dismiss it.  
+**Confirmed source:** `AdminUsedCarsListPage.jsx` implements edit/delete overlays as generic fixed-position `<div>` elements without dialog roles, accessible labels, initial focus, focus trapping, Escape handling, or focus restoration.  
+**Impact:** Keyboard and screen-reader users can become disoriented, interact with obscured background controls, and may be unable to operate the edit flow reliably.  
 **Recommendation:** Replace both custom overlays with the shared accessible dialog component or implement complete WAI-ARIA modal behavior, including labelled dialog semantics, initial/trapped focus, Escape dismissal, background inertness, and focus restoration.
 
 ### Medium priority
 
 #### QA-006 — Price Predictor calls Variant optional but rejects an otherwise complete form
 
-**Observed:** With Toyota Corolla 2020 and all other required fields selected, leaving Variant empty produced `Please correct the highlighted vehicle details.` Selecting a variant allowed prediction.
-**Impact:** Copy and validation contract disagree; users cannot tell what must be fixed.
+**Observed:** With Toyota Corolla 2020 and all other required fields selected, leaving Variant empty produced `Please correct the highlighted vehicle details.` Selecting a variant allowed prediction.  
+**Impact:** Copy and validation contract disagree; users cannot tell what must be fixed.  
 **Accessibility detail:** No control was exposed as `aria-invalid=true`; only a generic alert appeared.
 
 #### QA-007 — Administrator icon actions lack accessible names
 
-**Observed:** Edit/delete buttons in Used Cars List have no visible label or accessible name. Auction List edit/delete buttons are also unnamed; view and close buttons are named. The Used Cars edit drawer's five text inputs are not programmatically associated with their visible labels, and its close button is unnamed.
+**Observed:** Edit/delete buttons in Used Cars List have no visible label or accessible name. Auction List edit/delete buttons are also unnamed; view and close buttons are named. The Used Cars edit drawer's five text inputs are not programmatically associated with their visible labels, and its close button is unnamed.  
 **Impact:** Screen-reader users cannot determine several actions or edit fields, and keyboard/automated UI testing is unnecessarily brittle.
 
 #### QA-008 — Mobile seller/admin tables rely on horizontal scrolling
 
-**Observed:** Seller Bookings, Seller Auction Status, Admin Customer Accounts, Admin Bookings, Auction List, and Used Cars List use horizontally scrollable tables/cards.
-**Impact:** Status/actions can be off-screen with a subtle scrollbar.
+**Observed:** Seller Bookings, Seller Auction Status, Admin Customer Accounts, Admin Bookings, Auction List, and Used Cars List use horizontally scrollable tables/cards.  
+**Impact:** Status/actions can be off-screen with a subtle scrollbar.  
 **Evidence:** `qa-evidence/mobile/regular/05.png`, `qa-evidence/mobile/regular/07.png`, and multiple `qa-evidence/mobile/admin/` captures.
 
 #### QA-009 — Data & Models desktop layout is cramped
 
-**Observed:** Long model version strings wrap aggressively, model columns are compressed, and Roll back / Train model controls crowd the card header.
-**Impact:** Difficult scanning and increased chance of choosing the wrong model version.
+**Observed:** Long model version strings wrap aggressively, model columns are compressed, and Roll back / Train model controls crowd the card header.  
+**Impact:** Difficult scanning and increased chance of choosing the wrong model version.  
 **Evidence:** `qa-evidence/desktop/admin/04.png`.
 
 #### QA-010 — Loading behavior creates blank or misleading intermediate states
 
-**Observed:** Some routes show a full-page `Loading Executive Cars…` state long enough to be captured after navigation. Used Cars can show skeletons while simultaneously saying `0 cars found`. My Bids briefly showed both loading and empty-state messaging during one pass.
+**Observed:** Some routes show a full-page `Loading Executive Cars…` state long enough to be captured after navigation. Used Cars can show skeletons while simultaneously saying `0 cars found`. My Bids briefly showed both loading and empty-state messaging during one pass.  
 **Impact:** Users may interpret the page as empty or broken on slower devices/networks.
 
 #### QA-002 — Auction dashboard renders false zero/empty data while requests are loading
 
-**Corrected interpretation:** Immediately after demo membership activation, `/auction/dashboard` showed zero active auctions, no active auctions, zeroed member statistics, and an em dash for membership days. A settled-state recheck after the three dashboard requests completed showed one active Honda Civic auction and 365 days remaining, matching `/auction/live`.
-**Confirmed source cause:** `AuctionDashboardPage.jsx` initializes `cars` as an empty array and the other data as `null`, has no loading state, and immediately renders those initial values while `Promise.all([/cars, /member/stats, /member/profile])` is pending.
-**Impact:** Users see authoritative-looking but false account and inventory data during normal loading, especially on first entry after payment.
-**Severity/status:** Downgraded from high-priority data inconsistency to medium-priority loading UX after the settled-state correction. This overlaps the broader QA-010 pattern.
+**Corrected interpretation:** Immediately after demo membership activation, `/auction/dashboard` showed zero active auctions, no active auctions, zeroed member statistics, and an em dash for membership days. A settled-state recheck after the three dashboard requests completed showed one active Honda Civic auction and 365 days remaining, matching `/auction/live`.  
+**Confirmed source cause:** `AuctionDashboardPage.jsx` initializes `cars` as an empty array and the other data as `null`, has no loading state, and immediately renders those initial values while `Promise.all([/cars, /member/stats, /member/profile])` is pending.  
+**Impact:** Users see authoritative-looking but false account and inventory data during normal loading, especially on first entry after payment.  
+**Severity/status:** Downgraded from high-priority data inconsistency to medium-priority loading UX after the settled-state correction. This overlaps the broader QA-010 pattern.  
 **Recommendation:** Add an explicit dashboard loading state or skeletons and do not render numeric/empty-state claims until all required data has settled.
 
 #### QA-011 — Floating AI button overlaps page content
 
-**Observed:** The fixed lower-right chat button overlaps cards, actions, legal-page content, and mobile viewport content. It also appears on authentication, legal, payment, and error pages.
-**Impact:** Obscures content and creates accidental interaction risk.
+**Observed:** The fixed lower-right chat button overlaps cards, actions, legal-page content, and mobile viewport content. It also appears on authentication, legal, payment, and error pages.  
+**Impact:** Obscures content and creates accidental interaction risk.  
 **Evidence:** Repeated across public, payment, detail, and mobile screenshots.
 
 #### QA-012 — Legal-page navigation is inconsistent
 
-**Observed:** Terms includes the normal navigation header, while Privacy can render without the full navigation header.
-**Impact:** Inconsistent route affordance and back-navigation experience.
+**Observed:** Terms includes the normal navigation header, while Privacy can render without the full navigation header.  
+**Impact:** Inconsistent route affordance and back-navigation experience.  
 **Evidence:** `qa-evidence/tablet/guest/12.png` and `qa-evidence/tablet/guest/13.png`.
 
 #### QA-023 — Dataset provenance is ambiguous on the model-administration screen
 
-**Observed:** The summary says `Usable dataset rows: 0`, while every registered model row says it used 72,179 rows. Both can be technically correct—the zero is the MongoDB admin-import corpus and 72,179 is ML registry metadata—but the UI does not explain that distinction.
-**Impact:** An administrator can reasonably conclude that model metadata or dataset state is inconsistent and may not know which corpus retraining will use.
+**Observed:** The summary says `Usable dataset rows: 0`, while every registered model row says it used 72,179 rows. Both can be technically correct—the zero is the MongoDB admin-import corpus and 72,179 is ML registry metadata—but the UI does not explain that distinction.  
+**Impact:** An administrator can reasonably conclude that model metadata or dataset state is inconsistent and may not know which corpus retraining will use.  
 **Recommendation:** Rename the metric to `Admin-imported training rows`, show the active model's immutable training dataset metadata separately, and document which source the Train action will submit.
 
 ### Low priority
 
 #### QA-022 — Singular bid counts use plural copy
 
-**Observed:** Auction list/detail views render `1 bids` instead of `1 bid`.
-**Impact:** Small but visible polish defect in a core auction metric.
+**Observed:** Auction list/detail views render `1 bids` instead of `1 bid`.  
+**Impact:** Small but visible polish defect in a core auction metric.  
 **Confirmed source:** Both `AuctionLiveAuctionsPage.jsx` and `AuctionCarDetailPage.jsx` append the literal word `bids` without singular handling.
 
 ## 8.1 Remediation status snapshot — 2026-09-03 (final integrated pass)
@@ -507,9 +507,9 @@ Severity reflects likely project impact, not an external security certification.
 | QA-002 | **Verified fixed** | Dashboard now renders one mutually exclusive skeleton/error/content state. Delayed-promise and rejected-request component tests prove that false zeroes and premature empty content are not shown. Live settled values remain correct. |
 | QA-003 | **Verified fixed** | My Bids uses a mobile card layout with complete bid, status, car, and action information; responsive live review found no document-level overflow. |
 | QA-004 | **Verified fixed** | Auction inventory/detail APIs enforce authenticated active membership server-side and return an approved DTO. Anonymous, inactive-member, active-member, and admin cases are covered by backend tests. |
-| QA-005 | **Verified fixed in code and automated authorization tests** | Documents are stored outside the static mount, validated by magic bytes, given random names, and served through short-lived signed links with owner/admin authorization. Cloudinary uses authenticated delivery. Live UI file attachment remains blocked by the Chrome extension permission described in section 9. |
-| QA-006 | **Verified fixed** | Verified catalog variants are visibly marked required, expose their field error with `aria-invalid`, and block submission. Live Suzuki Cultus validation failed clearly without a variant and completed an ML valuation after selecting VXR. |
-| QA-007 | **Verified fixed** | Administrator icon actions have accessible names and shared overlays expose named dialog/drawer semantics. |
+| QA-005 | **Verified fixed in code and expanded automated tests** | Documents are stored outside the static mount, validated by magic bytes, given random names, and served through short-lived signed links with owner/admin authorization. Size/count boundaries and cleanup after a later controller rejection are now tested; failed Cloudinary-backed responses invoke provider cleanup through the same lifecycle. Live Cloudinary and UI upload/download proof remains pending. |
+| QA-006 | **Verified fixed** | Verified catalog variants are visibly marked required, expose their field error with `aria-invalid`, block submission, programmatically reference their hint/error text, and receive focus when first invalid. Live Suzuki Cultus validation failed clearly without a variant and completed an ML valuation after selecting VXR. |
+| QA-007 | **Verified fixed** | Administrator icon actions have accessible names and shared overlays expose named dialog/drawer semantics. The remaining native auction-close confirmation was replaced with the shared focus-managed confirmation dialog and is covered for confirm, cancel, and focus restoration. A source-wide ESLint 10 accessibility gate corrected 31 further label/backdrop/selection issues and now passes cleanly. |
 | QA-008 | **Verified fixed** | Seller and administrator record tables convert to labelled mobile cards. Live 390×844 review covered accounts, bookings, auctions, and used cars without document-level horizontal overflow or hidden actions. |
 | QA-009 | **Verified fixed** | Data & Models separates active-model provenance, import corpus, training controls, registry cards, and import history; desktop and mobile layouts were visually verified. |
 | QA-010 | **Verified fixed for all originally reported surfaces** | Auction Dashboard, My Bids, Used Cars, Admin Dashboard, and Seller Dashboard now separate loading, error, empty, and content states. Delayed component tests cover both dashboards; the live admin dashboard showed skeletons during Atlas latency and correct data after settlement, never false empty claims. |
@@ -519,10 +519,10 @@ Severity reflects likely project impact, not an external security certification.
 | QA-014 | **Closed for FYP/demo scope; production payment remains intentionally unavailable** | The current flow is explicitly a no-card/no-charge demonstration. Production mode refuses demo payment; a real Pakistan-supported provider is a separate future release gate. |
 | QA-015 | **Verified fixed** | Stripe routes, dependency, controller paths, and frontend code were removed. Demo completion is authenticated, atomic, and idempotent; replay cannot extend membership or create duplicate payment events. |
 | QA-016 | **Verified fixed** | The 1.78 MB PNG is no longer shipped by the production build. Responsive AVIF/WebP variants are 8.32–69.65 KB, the browser selected 640-pixel and 1746-pixel AVIF assets at the tested viewports, and desktop/mobile crops were visually reviewed. |
-| QA-017 | **Verified fixed** | NumPy compatibility is constrained, dependencies are locked, tests use the supported ASGI transport, all registered model artifacts load, and the final ML run passed 10/10 with no warnings. |
+| QA-017 | **Verified fixed for the reported compatibility defect** | NumPy compatibility is constrained, dependencies are locked, tests use the supported ASGI transport, all registered model artifacts load, activation/rollback invariants use an isolated temporary registry, and the final ML run passed 13/13 with no warnings. Hash-locked dependencies and a live legal training cycle remain production follow-ups. |
 | QA-018 | **Verified fixed** | Explicit `APP_MODE` validation rejects unsafe production combinations; demo credentials/routes, development OTP/reset fields, and demo payment are gated. Production bundle inspection found no demo passwords or legacy auth keys. |
 | QA-019 | **Verified fixed** | Signed-in detail-page save now uses the shared server contract. Live Save changed to Remove, the Suzuki Swift appeared on `/saved-cars`, and removal returned the shortlist to its empty state. Forced-error component coverage confirms no false success. |
-| QA-020 | **Verified fixed** | Model selection uses `GROQ_MODEL` with `openai/gpt-oss-20b` as the working default. Provider error mapping and configured-model tests passed. Two live replies succeeded; the prompt now restricts output to the widget's supported plain-text format. |
+| QA-020 | **Verified fixed and operationally hardened** | Model selection uses `GROQ_MODEL` with `openai/gpt-oss-20b` as the working default. A cached exact-model capability endpoint now drives the widget's availability state. Defensive parsing, safe correlation/category logging, demo-only no-key fallback, production missing-key behavior, used-car and membership-safe auction tools, malformed JSON/empty choices, timeout, 429, 5xx, and unavailable-model paths are covered. Two earlier live replies succeeded; the prompt restricts output to supported plain text. |
 | QA-021 | **Code/UI verified; legacy repair reviewed but not applied** | Model validation and public serialization normalize impossible metadata; report UI derives only from an attached private asset. The corrected dry run reached the same 8-product/5-auction Atlas inventory and identified exactly 3 products plus 1 auction for repair. It made no changes. The apply command is backup-first and remains an explicit operational decision. |
 | QA-022 | **Verified fixed** | One shared formatter covers zero, singular, and plural counts. Unit tests pass and the ended Toyota Corolla with one bid renders `1 bid`, never `1 bids`. |
 | QA-023 | **Verified fixed** | Active-model immutable provenance is presented separately from the 0 currently imported MongoDB rows, and training copy states exactly which corpus Train will use. Live desktop/mobile review passed. |
@@ -559,7 +559,7 @@ The three suppressed Copilot observations on PR #1 were checked against the inst
 
 Post-fix gates: frontend 23 files / 62 tests passed, backend 36/36 passed using the preserved local MongoDB test binary, ML 11/11 passed, and the production frontend build transformed 1,719 modules. Pytest emitted one cache-provider warning because the pre-existing `.test-cache` path cannot be recreated; it did not affect collection, execution, or application behavior and remains part of the separately proposed local cleanup.
 
-A live Chrome follow-up was attempted after the fix. Frontend and ML started successfully, but the backend could not connect to the configured Atlas cluster because the current IP was rejected by the Atlas allowlist. The protected-document popup change is therefore verified by deterministic regression tests, not claimed as a completed live-browser retest. All processes started for this attempt were stopped, and ports 5173, 5000, and 8000 were confirmed closed.
+A live Chrome follow-up was attempted after the fix. A restricted backend launch first failed with generic Atlas connectivity guidance, but an unrestricted launch subsequently connected to the configured Atlas cluster, started on port 5082, and loaded the current 8-product inventory. Atlas connectivity and allowlist settings were therefore not the blocker. The protected-document popup change remains verified by deterministic regression tests rather than a completed live-browser document retest because the public inventory had no attached private inspection report and the configured demo-admin credentials did not match the current Atlas admin record. No hosted data was changed. All processes started for this attempt were stopped, and ports 5173, 5082, and 8000 were confirmed closed.
 
 ### Production-readiness and maintenance risks
 
@@ -615,7 +615,7 @@ The stale browser session was subsequently discarded and a fresh Chrome connecti
 The following items remain open and must not be described as completed:
 
 - Upload a non-personal test image through the UI and confirm the resulting Cloudinary URL renders correctly.
-- Upload an entirely synthetic inspection PDF through Chrome and repeat the already-passing automated owner/wrong-owner/admin/signed-link authorization matrix live. This currently requires both Chrome local-file access and restored Atlas connectivity (or an approved controlled local fixture).
+- Upload an entirely synthetic inspection PDF through Chrome and repeat the already-passing automated owner/wrong-owner/admin/signed-link authorization matrix live. Atlas connectivity has been verified; this still requires Chrome local-file access, a valid authorized test account/session, and an approved controlled synthetic private-document fixture.
 - Decide whether to apply `npm run repair:inspection-reports:apply` to the four legacy Atlas records identified by the successful dry run. The command creates a pre-change backup; no apply was performed during QA.
 - Re-test WebSocket reconnect/resubscribe behavior after a deliberate network interruption; normal two-user live updates and outbid notification already pass.
 - Re-test real SMTP delivery only when a controlled mailbox is available; development-mode request, privacy, mismatch, and invalid-token paths already pass.
@@ -628,7 +628,7 @@ The following items remain open and must not be described as completed:
 
 ## 11. Current overall assessment
 
-The application now meets the stable FYP-demonstration gate and has a much stronger controlled-demo foundation. The latest post-review automated run passed: frontend 62/62, backend 36/36, ML 11/11, and the production frontend build transformed 1,719 modules. The ML run emitted one non-application warning from the pre-existing pytest cache path; the tests themselves all passed. Live Chrome verified cookie-session restoration and logout, member/auction/seller data, responsive public and administrator layouts, truthful async states, responsive hero selection, saved cars, AI, and accessible overlay behavior.
+The application now meets the stable FYP-demonstration gate and has a much stronger controlled-demo foundation. The latest automated run passed: frontend 24 files / 65 tests, backend 45/45, ML 13/13 with no warnings, backend syntax across 78 files, the source-wide accessibility lint gate, and a 1,723-module production build. React Router was upgraded to 7.18.4 and the production dependency audit now reports zero vulnerabilities. The main JavaScript gzip size increased from approximately 42 KB to 101 KB after the router upgrade and remains recorded for future performance measurement. Live Chrome previously verified cookie-session restoration and logout, member/auction/seller data, responsive public and administrator layouts, truthful async states, responsive hero selection, saved cars, AI, and accessible overlay behavior.
 
 It is not approved for real-money production use. That remaining distinction is deliberate: Stripe is removed, demo payment is blocked in production, and a Pakistan-supported payment provider has not been selected or implemented. Production release also requires an owner decision on the four-record legacy inspection migration, live synthetic upload/download evidence after Chrome file access is enabled, deployment-level performance/security operations, secret rotation, backups, and final testing against the deployed origin.
 
@@ -660,7 +660,10 @@ It is not approved for real-money production use. That remaining distinction is 
 | 2026-09-03 | Reconnected Chrome and completed member plus administrator live regression. All eight administrator content routes were reviewed at desktop and mobile widths. The used-car drawer passed dialog naming, focus entry, Escape dismissal, focus restoration, scroll lock, and overflow checks without saving a mutation. |
 | 2026-09-03 | Ran the inspection repair in dry-run mode against the configured 8-product/5-auction Atlas inventory. It identified 3 products and 1 auction; no database changes were made. |
 | 2026-09-16 | Investigated all three suppressed PR-review observations. Rejected the Axios path claim with an executable resolution check, fixed the protected-document popup timing and malformed ML registry metadata lookup, and added four regressions. Full gates passed: frontend 62/62, backend 36/36, ML 11/11, and the 1,719-module production build. |
-| 2026-09-16 | Attempted the post-fix live Chrome document-flow recheck. Frontend and ML started, but backend startup was blocked by the configured Atlas IP allowlist. No live pass was claimed; all agent-started processes were stopped and project ports were verified closed. |
+| 2026-09-16 | Attempted the post-fix live Chrome document-flow recheck. After a restricted-network failure, the unrestricted backend connected to Atlas on port 5082 and loaded 8 products. The live protected-document matrix remained blocked by the absence of an attached private report and by demo-admin credential drift, not by the Atlas allowlist. No hosted data was changed; all agent-started processes were stopped and ports 5173, 5082, and 8000 were verified closed. |
+| 2026-09-17 | Audited the complete QA report, remediation plan, current source, tests, build, ML registry, and referenced evidence. Recorded the strict work-package and release-gate verdict in `QA_IMPLEMENTATION_COMPLETENESS_AUDIT.md`: the core FYP remediation is extensive and stable, but the plan is not complete against its full Definition of Done, hosted-demo gate, or production gate. |
+| 2026-09-17 | Completed the first post-audit remediation slice. Corrected the Atlas/port record, replaced the auction-close native confirmation, linked shared form hints/errors to controls, focused the first invalid Predictor field, and completed AI capability/error hardening. Full gates passed: frontend 24 files / 65 tests, backend 44/44, backend syntax 78 files, and production build 1,719 modules. No hosted data was changed. |
+| 2026-09-17 | Completed the remaining isolated Priority-1 work: upload size/count/orphan cleanup, temporary ML activation/rollback safeguards, warning-free pytest cache configuration, modern ESLint 10 accessibility enforcement and 31 resulting semantic fixes. React Router was upgraded from vulnerable 6.30.3 to 7.18.4; production npm audit is now zero. Final gates passed: frontend 65/65, backend 45/45, ML 13/13 warning-free, accessibility lint, syntax, and the 1,723-module build. No hosted data was changed. |
 
 ## 13. Living-report update policy
 

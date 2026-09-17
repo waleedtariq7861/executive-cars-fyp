@@ -61,6 +61,7 @@ export default function AIAssistantWidget() {
   const [messages, setMessages] = useState([WELCOME])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
+  const [serviceStatus, setServiceStatus] = useState('unknown')
   const bottomRef = useRef(null)
   const inputRef = useRef(null)
   const dialogRef = useRef(null)
@@ -79,6 +80,18 @@ export default function AIAssistantWidget() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, loading])
+
+  useEffect(() => {
+    if (!open || serviceStatus !== 'unknown') return
+    let active = true
+    api.get('/chat/health')
+      .then(({ data }) => {
+        if (!active) return
+        setServiceStatus(data?.status === 'available' ? (data.demoFallback ? 'demo' : 'available') : 'unavailable')
+      })
+      .catch(() => { if (active) setServiceStatus('unavailable') })
+    return () => { active = false }
+  }, [open, serviceStatus])
 
   const send = async () => {
     const text = input.trim()
@@ -139,7 +152,7 @@ export default function AIAssistantWidget() {
               </div>
               <div>
                 <p id="ai-assistant-title" className="text-white font-semibold text-sm leading-tight">Executive Cars AI</p>
-                <p className="text-blue-200 text-xs mt-0.5">Ask about cars and services</p>
+                <p className="text-blue-200 text-xs mt-0.5" role="status">{{ unknown: 'Checking availability...', available: 'Available', demo: 'Demo assistance', unavailable: 'Temporarily unavailable' }[serviceStatus]}</p>
               </div>
             </div>
             <button
@@ -168,12 +181,12 @@ export default function AIAssistantWidget() {
               onChange={e => setInput(e.target.value)}
               onKeyDown={onKey}
               placeholder="Ask me anything…"
-              disabled={loading}
+              disabled={loading || serviceStatus === 'unavailable'}
               className="flex-1 text-sm border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-blue-400 disabled:opacity-50 bg-gray-50 placeholder-gray-400"
             />
             <button
               onClick={send}
-              disabled={!input.trim() || loading}
+              disabled={!input.trim() || loading || serviceStatus === 'unavailable'}
               aria-label="Send assistant message"
               className="w-9 h-9 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white rounded-xl flex items-center justify-center transition-colors shrink-0"
             >

@@ -54,7 +54,7 @@ export default function AdminLayout({ children, title }) {
         </div>
       </aside>
 
-      {mobileOpen && <div className="fixed inset-0 z-30 bg-black/30 lg:hidden" onClick={() => setMobileOpen(false)} />}
+      {mobileOpen && <button type="button" aria-label="Close navigation" tabIndex={-1} className="fixed inset-0 z-30 bg-black/30 lg:hidden" onClick={() => setMobileOpen(false)} />}
 
       {/* Main */}
       <div className="flex-1 flex flex-col min-w-0">

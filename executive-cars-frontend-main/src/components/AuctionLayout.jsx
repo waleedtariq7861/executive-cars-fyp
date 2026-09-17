@@ -77,7 +77,7 @@ export default function AuctionLayout({ children, title }) {
 
       {/* Mobile overlay */}
       {mobileOpen && (
-        <div className="fixed inset-0 z-30 bg-black/30 lg:hidden" onClick={() => setMobileOpen(false)} />
+        <button type="button" aria-label="Close navigation" tabIndex={-1} className="fixed inset-0 z-30 bg-black/30 lg:hidden" onClick={() => setMobileOpen(false)} />
       )}
 
       {/* Main content */}

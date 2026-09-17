@@ -21,6 +21,7 @@ export default function AdminAuctionListPage() {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('All')
   const [deleteTarget, setDeleteTarget] = useState(null)
+  const [closeTarget, setCloseTarget] = useState(null)
   const [editTarget, setEditTarget] = useState(null)
   const [error, setError] = useState('')
   const [results, setResults] = useState(null)
@@ -84,12 +85,13 @@ export default function AdminAuctionListPage() {
     } finally { setResultsLoading(false) }
   }
 
-  const closeAuction = async (auction) => {
-    if (!window.confirm(`Close the auction for ${auction.make} ${auction.model}? This stops further bids.`)) return
+  const closeAuction = async () => {
+    if (!closeTarget) return
     try {
       setError('')
-      const { data } = await api.post(`/admin/cars/${auction._id}/close`)
-      setAuctions(prev => prev.map(item => item._id === auction._id ? data.auction : item))
+      const { data } = await api.post(`/admin/cars/${closeTarget._id}/close`)
+      setAuctions(prev => prev.map(item => item._id === closeTarget._id ? data.auction : item))
+      setCloseTarget(null)
     } catch (err) {
       setError(err.response?.data?.message || 'Could not close auction.')
     }
@@ -169,7 +171,7 @@ export default function AdminAuctionListPage() {
                       <td data-label="Actions" className="px-4 py-4">
                         <div className="flex gap-2">
                           <button aria-label={`View results for ${a.make} ${a.model}`} onClick={() => viewResults(a)} className="w-7 h-7 rounded-lg bg-violet-500/10 text-violet-600 hover:bg-violet-500/20 flex items-center justify-center transition-all"><Eye className="w-3.5 h-3.5" /></button>
-                          {a.status === 'active' && <button aria-label={`Close ${a.make} ${a.model} auction`} onClick={() => closeAuction(a)} className="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 flex items-center justify-center transition-all"><Lock className="w-3.5 h-3.5" /></button>}
+                          {a.status === 'active' && <button aria-label={`Close ${a.make} ${a.model} auction`} onClick={() => setCloseTarget(a)} className="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 flex items-center justify-center transition-all"><Lock className="w-3.5 h-3.5" /></button>}
                           <button type="button" onClick={() => setEditTarget(a)} aria-label={`Edit ${a.make} ${a.model} auction`} className="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 flex items-center justify-center transition-all">
                             <Pencil className="w-3.5 h-3.5" />
                           </button>
@@ -194,6 +196,16 @@ export default function AdminAuctionListPage() {
         title="Delete auction?"
         description={deleteTarget ? `Remove ${deleteTarget.make} ${deleteTarget.model} from auctions? This cannot be undone.` : ''}
         confirmLabel="Delete"
+        dangerous
+      />
+
+      <ConfirmationDialog
+        open={Boolean(closeTarget)}
+        onClose={() => setCloseTarget(null)}
+        onConfirm={closeAuction}
+        title="Close auction?"
+        description={closeTarget ? `Close the auction for ${closeTarget.make} ${closeTarget.model}? This stops further bids.` : ''}
+        confirmLabel="Close auction"
         dangerous
       />
 

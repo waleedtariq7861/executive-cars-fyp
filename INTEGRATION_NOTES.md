@@ -71,6 +71,19 @@ Before repository integration, the newer implementation passed:
 
 The integrated application source is mechanically copied from that verified implementation. Repository-specific packaging changes are limited to documentation, ignore rules, the portable active-model registry, and backend example-port alignment. Full results and remediation details are recorded in `QA_TEST_REPORT.md` and `QA_REMEDIATION_IMPLEMENTATION_PLAN.md`.
 
+### Post-audit remediation verification — 2026-09-17
+
+The follow-up completeness audit and isolated remediation pass are recorded in `QA_IMPLEMENTATION_COMPLETENESS_AUDIT.md`. The integration branch now passes:
+
+- frontend: 65/65 tests across 24 files;
+- backend: 45/45 tests and syntax validation across 78 files;
+- ML service: 13/13 tests with no warnings, using the verified existing active model binary;
+- source-wide accessibility lint with ESLint 10.10.0 and `eslint-plugin-jsx-a11y-x` 0.2.0;
+- frontend production build across 1,723 transformed modules; and
+- production frontend dependency audit with zero reported vulnerabilities.
+
+This local integration worktree intentionally retains the active model as a Git LFS pointer. Hydrate it with `git lfs pull` before starting or testing the ML service on a fresh clone. Historical rollback binaries remain excluded as described above.
+
 ## Recommended Git workflow
 
 1. Review the staged file list and secret scan.

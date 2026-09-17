@@ -256,15 +256,15 @@ export default function BecomeSellerPage() {
                         { label: 'Mileage (km)', key: 'mileage', placeholder: '45000', numeric: true, maxLength: 7 },
                       ].map(f => (
                         <div key={f.key}>
-                          <label className="block text-sm font-medium text-gray-700 mb-1.5">{f.label}</label>
-                          <input type="text" inputMode={f.numeric ? 'numeric' : undefined} pattern={f.numeric ? '[0-9]*' : undefined} maxLength={f.maxLength} value={form[f.key]} onChange={e => update(f.key, f.numeric ? digitsOnly(e.target.value, f.maxLength) : e.target.value)} placeholder={f.placeholder} required className={`input-light ${fieldErrors[f.key] ? 'border-red-400' : ''}`} />
+                          <label htmlFor={`seller-vehicle-${f.key}`} className="block text-sm font-medium text-gray-700 mb-1.5">{f.label}</label>
+                          <input id={`seller-vehicle-${f.key}`} type="text" inputMode={f.numeric ? 'numeric' : undefined} pattern={f.numeric ? '[0-9]*' : undefined} maxLength={f.maxLength} value={form[f.key]} onChange={e => update(f.key, f.numeric ? digitsOnly(e.target.value, f.maxLength) : e.target.value)} placeholder={f.placeholder} required className={`input-light ${fieldErrors[f.key] ? 'border-red-400' : ''}`} />
                           {fieldErrors[f.key] && <p className="text-red-600 text-xs mt-1">{fieldErrors[f.key]}</p>}
                         </div>
                       ))}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1.5">Engine CC</label>
-                      <input type="text" inputMode="numeric" pattern="[0-9]*" maxLength={5} value={form.engine} onChange={e => update('engine', digitsOnly(e.target.value, 5))} placeholder="1800" required className={`input-light ${fieldErrors.engine ? 'border-red-400' : ''}`} />
+                      <label htmlFor="seller-vehicle-engine" className="block text-sm font-medium text-gray-700 mb-1.5">Engine CC</label>
+                      <input id="seller-vehicle-engine" type="text" inputMode="numeric" pattern="[0-9]*" maxLength={5} value={form.engine} onChange={e => update('engine', digitsOnly(e.target.value, 5))} placeholder="1800" required className={`input-light ${fieldErrors.engine ? 'border-red-400' : ''}`} />
                       {fieldErrors.engine && <p className="text-red-600 text-xs mt-1">{fieldErrors.engine}</p>}
                     </div>
                   </>
@@ -274,7 +274,7 @@ export default function BecomeSellerPage() {
                   <>
                     <h3 className="text-gray-900 font-bold text-xl mb-5">Documents & Verification</h3>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1.5">Upload CNIC Image</label>
+                      <p className="block text-sm font-medium text-gray-700 mb-1.5">Upload CNIC Image</p>
                       <label className="block w-full border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors group">
                         <Upload className="w-8 h-8 text-gray-400 group-hover:text-blue-500 mx-auto mb-2 transition-colors" />
                         <span className="text-gray-500 text-sm">{form.cnicFile ? form.cnicFile.name : 'Drag & drop or click to upload CNIC'}</span>
@@ -282,7 +282,7 @@ export default function BecomeSellerPage() {
                       </label>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1.5">Vehicle Registration Document</label>
+                      <p className="block text-sm font-medium text-gray-700 mb-1.5">Vehicle Registration Document</p>
                       <label className="block w-full border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors group">
                         <FileText className="w-8 h-8 text-gray-400 group-hover:text-blue-500 mx-auto mb-2 transition-colors" />
                         <span className="text-gray-500 text-sm">{form.regFile ? form.regFile.name : 'Drag & drop or click to upload Registration'}</span>
@@ -290,13 +290,13 @@ export default function BecomeSellerPage() {
                       </label>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1.5">Preferred Inspection Date</label>
-                      <input type="date" min={today} value={form.date} onChange={e => update('date', e.target.value)} required className={`input-light ${fieldErrors.date ? 'border-red-400' : ''}`} />
+                      <label htmlFor="seller-inspection-date" className="block text-sm font-medium text-gray-700 mb-1.5">Preferred Inspection Date</label>
+                      <input id="seller-inspection-date" type="date" min={today} value={form.date} onChange={e => update('date', e.target.value)} required className={`input-light ${fieldErrors.date ? 'border-red-400' : ''}`} />
                       {fieldErrors.date && <p className="text-red-600 text-xs mt-1">{fieldErrors.date}</p>}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1.5">Preferred Time</label>
-                      <select value={form.time} onChange={e => update('time', e.target.value)} required className={`input-light ${fieldErrors.time ? 'border-red-400' : ''}`}>
+                      <label htmlFor="seller-inspection-time" className="block text-sm font-medium text-gray-700 mb-1.5">Preferred Time</label>
+                      <select id="seller-inspection-time" value={form.time} onChange={e => update('time', e.target.value)} required className={`input-light ${fieldErrors.time ? 'border-red-400' : ''}`}>
                         <option value="">Choose a time slot...</option>
                         <option value="10:00 AM - 12:00 PM">10:00 AM – 12:00 PM</option>
                         <option value="12:00 PM - 02:00 PM">12:00 PM – 02:00 PM</option>
@@ -306,8 +306,8 @@ export default function BecomeSellerPage() {
                       {fieldErrors.time && <p className="text-red-600 text-xs mt-1">{fieldErrors.time}</p>}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1.5">Select Branch</label>
-                      <select value={form.branch} onChange={e => update('branch', e.target.value)} required className={`input-light ${fieldErrors.branch ? 'border-red-400' : ''}`}>
+                      <label htmlFor="seller-inspection-branch" className="block text-sm font-medium text-gray-700 mb-1.5">Select Branch</label>
+                      <select id="seller-inspection-branch" value={form.branch} onChange={e => update('branch', e.target.value)} required className={`input-light ${fieldErrors.branch ? 'border-red-400' : ''}`}>
                         <option value="">Choose a verification branch...</option>
                         {branches.map(b => <option key={b} value={b}>{b}</option>)}
                       </select>
@@ -337,14 +337,14 @@ export default function BecomeSellerPage() {
       {/* OTP Modal */}
       {showOTP && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowOTP(false)} />
-          <div className="relative bg-white rounded-2xl p-8 w-full max-w-sm shadow-2xl animate-scaleIn">
-            <button onClick={() => setShowOTP(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
+          <button type="button" aria-label="Close verification dialog" tabIndex={-1} className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowOTP(false)} />
+          <div role="dialog" aria-modal="true" aria-labelledby="seller-otp-title" className="relative bg-white rounded-2xl p-8 w-full max-w-sm shadow-2xl animate-scaleIn">
+            <button type="button" aria-label="Close verification dialog" onClick={() => setShowOTP(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
             <div className="text-center mb-6">
               <div className="w-14 h-14 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CheckCircle className="w-7 h-7 text-white" />
               </div>
-              <h3 className="text-gray-900 font-bold text-xl">Verify Your Email</h3>
+              <h3 id="seller-otp-title" className="text-gray-900 font-bold text-xl">Verify Your Email</h3>
               <p className="text-gray-500 text-sm mt-2">Enter the 6-digit OTP sent to {form.email}</p>
             </div>
             <div className="flex gap-2 justify-center mb-4">

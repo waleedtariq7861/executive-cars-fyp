@@ -47,6 +47,18 @@ const clientValidate = (form, requiresVerifiedVariant = false) => {
   return errors
 }
 
+const fieldIds = {
+  make: 'predict-make', model: 'predict-model', year: 'predict-year', variant: 'predict-variant',
+  mileage: 'predict-mileage', engineCapacity: 'predict-engine', transmission: 'predict-transmission',
+  fuelType: 'predict-fuel', bodyType: 'predict-body', assemblyType: 'predict-assembly',
+  city: 'predict-city', registrationCity: 'predict-registration', condition: 'predict-condition',
+}
+
+const focusFirstInvalidField = errors => {
+  const id = fieldIds[Object.keys(errors || {})[0]]
+  if (id) window.requestAnimationFrame(() => document.getElementById(id)?.focus())
+}
+
 export default function PricePredictorPage() {
   const [form, setForm] = useState(initialForm)
   const [result, setResult] = useState(null)
@@ -128,6 +140,7 @@ export default function PricePredictorPage() {
     if (Object.keys(validation).length) {
       setFieldErrors(validation)
       setError('Please correct the highlighted vehicle details.')
+      focusFirstInvalidField(validation)
       return
     }
     setLoading(true)
@@ -143,12 +156,14 @@ export default function PricePredictorPage() {
       }, { timeout: 12_000 })
       setResult(data)
     } catch (requestError) {
-      setFieldErrors(requestError.response?.data?.errors || {})
+      const responseErrors = requestError.response?.data?.errors || {}
+      setFieldErrors(responseErrors)
       setError(
         requestError.code === 'ECONNABORTED'
           ? 'The valuation request timed out. Your details are still here; please try again.'
           : requestError.response?.data?.message || 'The valuation service is unavailable. Please try again later.',
       )
+      focusFirstInvalidField(responseErrors)
     } finally {
       setLoading(false)
     }
