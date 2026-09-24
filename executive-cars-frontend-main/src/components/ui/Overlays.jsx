@@ -7,6 +7,13 @@ const focusableSelector = [
   'a[href]', 'button:not([disabled])', 'input:not([disabled])', 'select:not([disabled])',
   'textarea:not([disabled])', '[tabindex]:not([tabindex="-1"])',
 ].join(',')
+const isVisibleForFocus = element => {
+  for (let node = element; node instanceof HTMLElement; node = node.parentElement) {
+    const style = window.getComputedStyle(node)
+    if (style.display === 'none' || style.visibility === 'hidden') return false
+  }
+  return true
+}
 
 export function useDialogLifecycle(open, onClose, dialogRef, initialFocusRef, restoreFocusRef) {
   const onCloseRef = useRef(onClose)
@@ -71,7 +78,10 @@ export function useDialogLifecycle(open, onClose, dialogRef, initialFocusRef, re
         if (ariaHidden === null) element.removeAttribute('aria-hidden')
         else element.setAttribute('aria-hidden', ariaHidden)
       })
-      const restoreTarget = restoreFocusRef?.current || previousFocus
+      const preferredTarget = restoreFocusRef?.current
+      const restoreTarget = preferredTarget?.isConnected && isVisibleForFocus(preferredTarget)
+        ? preferredTarget
+        : previousFocus
       if (restoreTarget instanceof HTMLElement) window.requestAnimationFrame(() => restoreTarget.focus())
     }
   }, [open, dialogRef, initialFocusRef, restoreFocusRef])

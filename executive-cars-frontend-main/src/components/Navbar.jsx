@@ -27,6 +27,10 @@ export default function Navbar() {
   const location = useLocation()
   const { user, logout } = useAuth()
   const accountPath = user?.role === 'admin' ? '/admin/dashboard' : '/account'
+  const assistantEnabled = ['/', '/used-cars', '/price-predictor', '/sell-car'].includes(location.pathname)
+  const assistantParams = new URLSearchParams(location.search)
+  assistantParams.set('assistant', 'open')
+  const assistantTo = { pathname: location.pathname, search: `?${assistantParams.toString()}` }
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12)
@@ -49,7 +53,8 @@ export default function Navbar() {
             <Link to={sellLink.to} aria-current={isActive(sellLink.to) ? 'page' : undefined} className="btn-primary min-h-10 px-4 text-sm gap-2"><Car className="w-4 h-4" />Sell Your Car</Link>
             {user ? <Dropdown label={<span className="inline-flex items-center gap-2"><span className="w-7 h-7 rounded-full bg-blue-700 text-white inline-flex items-center justify-center text-xs font-black">{user.name?.charAt(0)?.toUpperCase() || 'U'}</span><span className="max-w-28 truncate">{user.name?.split(' ')[0]}</span></span>}><DropdownItem to={accountPath} icon={user.role === 'admin' ? LayoutDashboard : UserRound}>{user.role === 'admin' ? 'Admin Dashboard' : 'My Account'}</DropdownItem><button type="button" onClick={logout} className="w-full flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50"><LogOut className="w-4 h-4" />Sign out</button></Dropdown> : <Link to="/login" className="btn-ghost min-h-10 px-4 text-sm gap-2 inline-flex items-center justify-center"><UserRound className="w-4 h-4" /> Sign In</Link>}
           </div>
-          <button type="button" onClick={() => setMobileOpen(open => !open)} className="ml-auto lg:hidden w-10 h-10 rounded-lg bg-gray-100 text-gray-700 flex items-center justify-center" aria-label={mobileOpen ? 'Close menu' : 'Open menu'} aria-expanded={mobileOpen}>{mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}</button>
+          {assistantEnabled && <Link to={assistantTo} data-ai-assistant-nav-trigger className="ml-auto sm:hidden w-10 h-10 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center" aria-label="Open AI Assistant"><Bot className="w-5 h-5" /></Link>}
+          <button type="button" onClick={() => setMobileOpen(open => !open)} className={`${assistantEnabled ? 'ml-2 sm:ml-auto' : 'ml-auto'} lg:hidden w-10 h-10 rounded-lg bg-gray-100 text-gray-700 flex items-center justify-center`} aria-label={mobileOpen ? 'Close menu' : 'Open menu'} aria-expanded={mobileOpen}>{mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}</button>
         </div>
       </nav>
     </header>

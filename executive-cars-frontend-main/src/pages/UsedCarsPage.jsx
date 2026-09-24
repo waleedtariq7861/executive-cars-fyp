@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import {
   Bell, CheckCircle2, Fuel, Gauge, Heart, LayoutGrid, List, MapPin,
-  Search, Settings, ShieldCheck, SlidersHorizontal, X,
+  Search, Settings, ShieldCheck, SlidersHorizontal,
 } from 'lucide-react'
 import Navbar from '../components/Navbar.jsx'
 import Footer from '../components/Footer.jsx'
@@ -11,6 +11,7 @@ import api from '../api/api.js'
 import VehicleCard from '../components/VehicleCard.jsx'
 import VehicleImage from '../components/VehicleImage.jsx'
 import { Pagination } from '../components/ui/Navigation.jsx'
+import { Drawer } from '../components/ui/Overlays.jsx'
 import { useToast } from '../context/toastContext.js'
 import { useSavedCars } from '../hooks/useSavedCars.js'
 import { hasInspectionReport } from '../utils/inspectionReport.js'
@@ -247,15 +248,9 @@ export default function UsedCarsPage() {
         </div>
       </div>
 
-      {sidebarOpen && (
-        <div className="fixed inset-0 z-[60] lg:hidden">
-          <button className="absolute inset-0 bg-[#061b2f]/70" onClick={() => setSidebarOpen(false)} aria-label="Close filters" />
-          <aside className="absolute right-0 top-0 h-full w-[min(90vw,360px)] bg-white overflow-y-auto shadow-2xl p-5">
-            <div className="flex items-center justify-between mb-6"><h2 className="font-black text-lg text-gray-900">Search filters</h2><button onClick={() => setSidebarOpen(false)} className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center" aria-label="Close filters"><X className="w-4 h-4" /></button></div>
-            <FilterPanel filters={filters} actions={actions} onDone={() => setSidebarOpen(false)} />
-          </aside>
-        </div>
-      )}
+      <Drawer open={sidebarOpen} onClose={() => setSidebarOpen(false)} title="Search filters">
+        <FilterPanel filters={filters} actions={actions} onDone={() => setSidebarOpen(false)} />
+      </Drawer>
       <Footer />
     </div>
   )

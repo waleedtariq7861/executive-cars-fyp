@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { MessageCircle, X, Send, Bot } from 'lucide-react'
 import api from '../api/api.js'
@@ -66,8 +66,15 @@ export default function AIAssistantWidget() {
   const inputRef = useRef(null)
   const dialogRef = useRef(null)
   const triggerRef = useRef(null)
+  const restoreFocusRef = useMemo(() => ({
+    get current() {
+      return window.innerWidth < 640
+        ? document.querySelector('[data-ai-assistant-nav-trigger]')
+        : triggerRef.current
+    },
+  }), [])
 
-  useDialogLifecycle(open, () => setOpen(false), dialogRef, inputRef, triggerRef)
+  useDialogLifecycle(open, () => setOpen(false), dialogRef, inputRef, restoreFocusRef)
 
   useEffect(() => {
     if (searchParams.get('assistant') !== 'open') return
@@ -200,7 +207,7 @@ export default function AIAssistantWidget() {
 
   return <>
       {panel}
-      {!open && <div className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] right-4 z-50 sm:bottom-6 sm:right-6">
+      {!open && <div className="hidden sm:flex fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] right-4 z-50 sm:bottom-6 sm:right-6">
       <button
         ref={triggerRef}
         onClick={() => setOpen(o => !o)}

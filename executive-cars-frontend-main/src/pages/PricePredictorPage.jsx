@@ -36,6 +36,13 @@ const optionValues = (items, fallback) => {
   return values.length ? values : fallback
 }
 
+const factorLabelFor = (factor, referenceYear) => {
+  const label = typeof factor === 'string' ? factor : `${factor.label}: ${factor.value}`
+  return referenceYear && /^Vehicle age:/i.test(label)
+    ? label.replace(/^Vehicle age:/i, `Age at dataset year (${referenceYear}):`)
+    : label
+}
+
 const clientValidate = (form, requiresVerifiedVariant = false) => {
   const errors = {}
   if (!form.make) errors.make = 'Select a vehicle make.'
@@ -67,7 +74,7 @@ export default function PricePredictorPage() {
   const [loading, setLoading] = useState(false)
   const [saved, setSaved] = useState(false)
   const [metadata, setMetadata] = useState(null)
-  const [vehicleOptions, setVehicleOptions] = useState(null)
+  const [optionResponse, setOptionResponse] = useState(null)
   const [metadataLoading, setMetadataLoading] = useState(true)
 
   useEffect(() => {
@@ -80,14 +87,20 @@ export default function PricePredictorPage() {
       .finally(() => { if (active) setMetadataLoading(false) })
     return () => { active = false }
   }, [])
+  const optionKey = JSON.stringify([form.make, form.model, form.year])
   useEffect(() => {
+    let active = true
     const params = {}
     if (form.make) params.make = form.make
     if (form.model) params.model = form.model
     if (form.year) params.year = form.year
-    api.get('/vehicle-options', { params }).then(({ data }) => setVehicleOptions(data)).catch(() => {})
-  }, [form.make, form.model, form.year])
+    api.get('/vehicle-options', { params })
+      .then(({ data }) => { if (active) setOptionResponse({ key: optionKey, data }) })
+      .catch(() => {})
+    return () => { active = false }
+  }, [form.make, form.model, form.year, optionKey])
 
+  const vehicleOptions = optionResponse?.key === optionKey ? optionResponse.data : null
   const catalog = metadata?.inputCatalog
   const makes = vehicleOptions?.makes?.length ? vehicleOptions.makes : (catalog?.makes?.map(item => item.make) || [])
   const models = vehicleOptions?.models || []
@@ -110,7 +123,7 @@ export default function PricePredictorPage() {
   const assemblyOptions = variant?.assemblyTypes?.length ? variant.assemblyTypes : (vehicleOptions?.assemblies?.length ? vehicleOptions.assemblies : assemblies)
 
   useEffect(() => {
-    if (!identityReady || variant) return
+    if (!identityReady || verifiedVehicle || variant) return
     const only = values => values?.length === 1 ? values[0] : ''
     const engine = only(vehicleOptions?.engines)
     const transmission = only(vehicleOptions?.transmissions)
@@ -118,15 +131,18 @@ export default function PricePredictorPage() {
     const bodyType = only(vehicleOptions?.bodyTypes)
     const assemblyType = only(vehicleOptions?.assemblies)
     if (!(engine || transmission || fuelType || bodyType || assemblyType)) return
-    setForm(current => ({
-      ...current,
-      engineCapacity: engine || current.engineCapacity,
-      transmission: transmission || current.transmission,
-      fuelType: fuelType || current.fuelType,
-      bodyType: bodyType || current.bodyType,
-      assemblyType: assemblyType || current.assemblyType,
-    }))
-  }, [identityReady, variant, vehicleOptions])
+    setForm(current => {
+      if (current.variant || JSON.stringify([current.make, current.model, current.year]) !== optionKey) return current
+      return {
+        ...current,
+        engineCapacity: engine || current.engineCapacity,
+        transmission: transmission || current.transmission,
+        fuelType: fuelType || current.fuelType,
+        bodyType: bodyType || current.bodyType,
+        assemblyType: assemblyType || current.assemblyType,
+      }
+    })
+  }, [identityReady, verifiedVehicle, variant, vehicleOptions, optionKey])
 
   const update = (key, value) => {
     setForm(current => ({ ...current, [key]: value }))
@@ -229,7 +245,7 @@ export default function PricePredictorPage() {
                   <FormField label="Make" htmlFor="predict-make" required error={fieldErrors.make}>
                     <Select id="predict-make" value={form.make} error={fieldErrors.make} onChange={event => {
                       const make = event.target.value
-                      setVehicleOptions(null)
+                      setOptionResponse(null)
                       setForm(current => ({ ...current, make, model: '', year: '', variant: '', engineCapacity: '', transmission: '', fuelType: '', bodyType: '', assemblyType: '' }))
                       setFieldErrors(current => ({ ...current, make: '' }))
                     }}>
@@ -240,7 +256,7 @@ export default function PricePredictorPage() {
                   <FormField label="Model" htmlFor="predict-model" required error={fieldErrors.model} hint={!form.make ? 'Select a make first.' : models.length ? 'Choose the exact model.' : 'No models are available for this make.'}>
                     <Select id="predict-model" value={form.model} error={fieldErrors.model} disabled={!form.make || !models.length} onChange={event => {
                       const model = event.target.value
-                      setVehicleOptions(null)
+                      setOptionResponse(null)
                       setForm(current => ({ ...current, model, year: '', variant: '', engineCapacity: '', transmission: '', fuelType: '', bodyType: '', assemblyType: '' }))
                       setFieldErrors(current => ({ ...current, model: '' }))
                     }}>
@@ -249,7 +265,7 @@ export default function PricePredictorPage() {
                     </Select>
                   </FormField>
                   <FormField label="Model year" htmlFor="predict-year" required error={fieldErrors.year}>
-                    <Select id="predict-year" required value={form.year} error={fieldErrors.year} disabled={!form.model} onChange={event => { setVehicleOptions(null); setForm(current => ({ ...current, year: Number(event.target.value), variant: '', engineCapacity: '', transmission: '', fuelType: '', bodyType: '', assemblyType: '' })) }}><option value="">Select year</option>{years.map(year => <option key={year}>{year}</option>)}</Select>
+                    <Select id="predict-year" required value={form.year} error={fieldErrors.year} disabled={!form.model} onChange={event => { setOptionResponse(null); setForm(current => ({ ...current, year: Number(event.target.value), variant: '', engineCapacity: '', transmission: '', fuelType: '', bodyType: '', assemblyType: '' })) }}><option value="">Select year</option>{years.map(year => <option key={year}>{year}</option>)}</Select>
                   </FormField>
                   <FormField label={variantRequired ? 'Variant' : 'Variant (optional)'} htmlFor="predict-variant" required={variantRequired} error={fieldErrors.variant} hint={!form.year ? 'Select a model year first.' : (!variants.length ? 'Enter the variant if you know it.' : 'Choose the verified variant that matches the vehicle.')}>
                     {variants.length ? (
@@ -272,17 +288,17 @@ export default function PricePredictorPage() {
                       <Input id="predict-engine" {...numericInputProps(5)} required disabled={!identityReady} value={form.engineCapacity} error={fieldErrors.engineCapacity} placeholder="e.g. 1300" onChange={event => update('engineCapacity', digitsOnly(event.target.value, 5))} />
                     )}
                   </FormField>
-                  <FormField label="Transmission" htmlFor="predict-transmission">
-                    <Select id="predict-transmission" value={form.transmission} disabled={!identityReady || Boolean(variant?.transmissions?.length)} onChange={event => update('transmission', event.target.value)}><option value="">Not specified</option>{transmissionOptions.map(item => <option key={item}>{item}</option>)}</Select>
+                  <FormField label="Transmission" htmlFor="predict-transmission" error={fieldErrors.transmission}>
+                    <Select id="predict-transmission" value={form.transmission} error={fieldErrors.transmission} disabled={!identityReady || Boolean(variant?.transmissions?.length)} onChange={event => update('transmission', event.target.value)}><option value="">Not specified</option>{transmissionOptions.map(item => <option key={item}>{item}</option>)}</Select>
                   </FormField>
-                  <FormField label="Fuel type" htmlFor="predict-fuel">
-                    <Select id="predict-fuel" value={form.fuelType} disabled={!identityReady || Boolean(variant?.fuelTypes?.length)} onChange={event => update('fuelType', event.target.value)}><option value="">Not specified</option>{fuelOptions.map(item => <option key={item}>{item}</option>)}</Select>
+                  <FormField label="Fuel type" htmlFor="predict-fuel" error={fieldErrors.fuelType}>
+                    <Select id="predict-fuel" value={form.fuelType} error={fieldErrors.fuelType} disabled={!identityReady || Boolean(variant?.fuelTypes?.length)} onChange={event => update('fuelType', event.target.value)}><option value="">Not specified</option>{fuelOptions.map(item => <option key={item}>{item}</option>)}</Select>
                   </FormField>
-                  <FormField label="Body type" htmlFor="predict-body">
-                    <Select id="predict-body" value={form.bodyType} disabled={!identityReady || Boolean(variant?.bodyType)} onChange={event => update('bodyType', event.target.value)}><option value="">Not specified</option>{bodyOptions.map(item => <option key={item}>{item}</option>)}</Select>
+                  <FormField label="Body type" htmlFor="predict-body" error={fieldErrors.bodyType}>
+                    <Select id="predict-body" value={form.bodyType} error={fieldErrors.bodyType} disabled={!identityReady || Boolean(variant?.bodyType)} onChange={event => update('bodyType', event.target.value)}><option value="">Not specified</option>{bodyOptions.map(item => <option key={item}>{item}</option>)}</Select>
                   </FormField>
-                  <FormField label="Assembly" htmlFor="predict-assembly">
-                    <Select id="predict-assembly" value={form.assemblyType} disabled={!identityReady || Boolean(variant?.assemblyTypes?.length)} onChange={event => update('assemblyType', event.target.value)}><option value="">Not specified</option>{assemblyOptions.map(item => <option key={item}>{item}</option>)}</Select>
+                  <FormField label="Assembly" htmlFor="predict-assembly" error={fieldErrors.assemblyType}>
+                    <Select id="predict-assembly" value={form.assemblyType} error={fieldErrors.assemblyType} disabled={!identityReady || Boolean(variant?.assemblyTypes?.length)} onChange={event => update('assemblyType', event.target.value)}><option value="">Not specified</option>{assemblyOptions.map(item => <option key={item}>{item}</option>)}</Select>
                   </FormField>
                 </div>
               </fieldset>
@@ -322,13 +338,14 @@ export default function PricePredictorPage() {
                 <div className="p-5">
                   <p className="text-xs font-bold uppercase tracking-[0.12em] text-gray-500">Estimated midpoint</p>
                   <p className="font-black text-gray-900 mt-1">{formatPkr(estimate)}</p>
+                  {result.datasetReferenceYear && !result.isFallback && <p className="text-xs text-gray-500 mt-2">Model reference year: {result.datasetReferenceYear}. Age factors reflect that historical dataset, not today.</p>}
 
                   {result.extrapolationWarnings?.length > 0 && <Alert tone="warning" className="mt-5">Some of these vehicle details are less common, so the final market value may vary more than usual.</Alert>}
 
                   {factors.length > 0 && <div className="mt-5">
                     <p className="text-xs font-bold uppercase tracking-[0.12em] text-gray-500">Important Price Factors</p>
                     <ul className="space-y-2 mt-2">{factors.slice(0, 5).map((factor, index) => {
-                      const label = typeof factor === 'string' ? factor : `${factor.label}: ${factor.value}`
+                      const label = factorLabelFor(factor, result.datasetReferenceYear)
                       return <li key={`${typeof factor === 'string' ? factor : factor.feature}-${index}`} className="flex gap-2 text-xs text-gray-600 leading-5"><CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />{label}</li>
                     })}</ul>
                   </div>}

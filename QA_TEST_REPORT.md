@@ -587,6 +587,33 @@ Closed. The final reproducible run passed 10/10 tests with no warnings, and ever
 
 Closed in code and tests. Explicit application-mode validation prevents unsafe production combinations, while demo credentials, OTP/reset helpers, fixture endpoints, and demo payment remain development/demo-only.
 
+## 8.2 Live Chrome follow-up — 2026-09-19
+
+Chrome testing resumed against frontend 5173, Atlas-connected backend 5082, and ML service 8000 using the existing synthetic account. No hosted record, payment, booking, model, or document was changed. The temporary 390×844 viewport was reset after testing.
+
+| Scenario | Result |
+|---|---|
+| Desktop home, Used Cars, Yaris detail | Loaded; eight cars and detail data rendered, with designed image fallbacks and no measured document overflow. |
+| Predictor empty form | Specific validation and ARIA references appeared; focus moved to Make. |
+| Predictor valid form | Corolla 2020 failed (QA-025); Cultus 2022 VXR returned a valuation (QA-028). |
+| AI assistant | Capability changed to Available and an ordinary inspection question received a reply (QA-027). |
+| Auction entry | Membership CTA and signed-in state rendered; payment was not invoked. |
+| Seller booking | Step 1 rendered; empty Next Step focused required CNIC without creating a booking. |
+| 390px layouts | Used Cars, Book Inspection, and Price Predictor had no measured document overflow; QA-011 and QA-026 remain. |
+| Signed-in read-only routes | Saved Cars, account, seller dashboard, and seller bookings loaded without visible alerts or measured horizontal overflow. The synthetic account had an empty saved-car list and zero seller bookings/listings, shown as explicit empty states. |
+
+**QA-025 — Verified predictor choice rejected without actionable field feedback (medium).** On fresh desktop and mobile loads, Toyota → Corolla → 2020 → `1.6 Gasoline` auto-filled 1598 cc, Manual, Petrol, and Sedan. With 30,000 km and Rawalpindi cities, Submit returned `Please correct the vehicle configuration.` No field-specific reason or `aria-invalid=true` control appeared. Suzuki Cultus 2022 VXR succeeded. The same explicit Corolla values passed both backend pure validators and a non-mutating direct POST to the local backend returned a PKR 5,237,000 estimate, narrowing the discrepancy to the browser form/request boundary rather than general ML availability. Capture the actual serialized browser payload and returned field errors, reconcile form state with emitted options, and show the rejected field and reason.
+
+**QA-026 — Mobile marketplace filter drawer lacks modal keyboard behavior (medium).** At 390px, Filters opened a full-height overlay with no dialog role. Focus stayed on the underlying Filters button; Escape did not close it; Close worked but did not restore trigger focus. Apply the shared focus-managed drawer/dialog behavior.
+
+**QA-027 — AI booking answer has unsupported process claims (medium).** The assistant claimed an OTP-verified scheduling email link and separate seller credentials within 1–2 business days. The live Book Inspection page instead presents date/branch selection in the unified-account portal, document upload, email OTP confirmation, admin approval, and My Bookings status tracking. Ground process answers in current application content.
+
+**QA-028 — Valuation factor labels dataset-relative age as vehicle age (medium).** A successful Cultus 2022 prediction on 2026-09-19 displayed `Vehicle age: 0 years`. ML source derives this feature from the bundle's `datasetReferenceYear`, not the present calendar year. The UI gives no such qualification beside the PKR estimate. Explain the reference year or display a separate present-day age without silently changing model features.
+
+**QA-011 reopened for mobile overlap.** At 390px on `/used-cars`, the floating assistant launcher occupied x=318–374, y=772–828 and first Save car button x=322–358, y=759–795; the rectangles intersect. Prior route and sheet improvements remain, but the broad `Verified fixed` status does not cover this action obstruction. The launcher also covered part of the predictor form at the tested scroll position.
+
+**Unconfirmed transient:** The first predictor request returned `Invalid CSRF token` before a fresh authenticated page load. It did not recur on two valid-form retries. Deliberate expired-cookie/cold-start testing is needed before calling it a recurring defect.
+
 ## 9. Environment/tool limitations found during testing
 
 ### Chrome file upload permission
@@ -664,6 +691,8 @@ It is not approved for real-money production use. That remaining distinction is 
 | 2026-09-17 | Audited the complete QA report, remediation plan, current source, tests, build, ML registry, and referenced evidence. Recorded the strict work-package and release-gate verdict in `QA_IMPLEMENTATION_COMPLETENESS_AUDIT.md`: the core FYP remediation is extensive and stable, but the plan is not complete against its full Definition of Done, hosted-demo gate, or production gate. |
 | 2026-09-17 | Completed the first post-audit remediation slice. Corrected the Atlas/port record, replaced the auction-close native confirmation, linked shared form hints/errors to controls, focused the first invalid Predictor field, and completed AI capability/error hardening. Full gates passed: frontend 24 files / 65 tests, backend 44/44, backend syntax 78 files, and production build 1,719 modules. No hosted data was changed. |
 | 2026-09-17 | Completed the remaining isolated Priority-1 work: upload size/count/orphan cleanup, temporary ML activation/rollback safeguards, warning-free pytest cache configuration, modern ESLint 10 accessibility enforcement and 31 resulting semantic fixes. React Router was upgraded from vulnerable 6.30.3 to 7.18.4; production npm audit is now zero. Final gates passed: frontend 65/65, backend 45/45, ML 13/13 warning-free, accessibility lint, syntax, and the 1,723-module build. No hosted data was changed. |
+| 2026-09-19 | Connected-Chrome follow-up: desktop marketplace/detail, predictor validation and control result, auction entry, AI reply, booking validation, and 390px layouts. Added QA-025–028 and reopened QA-011 for measured mobile overlap; one CSRF response remains unconfirmed pending cold-start reproduction. No hosted data was changed. |
+| 2026-09-19 | Continued the same read-only browser batch across Saved Cars, account, seller dashboard, and seller bookings. All settled without visible alerts or document overflow; empty-state data was not altered. Direct local backend valuation with the same Corolla values returned an estimate, narrowing QA-025 to the browser form/request boundary. |
 
 ## 13. Living-report update policy
 

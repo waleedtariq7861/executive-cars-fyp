@@ -8,7 +8,7 @@ Executive Cars is a three-service Final Year Project for used-car discovery, auc
 - `executive-cars-backend-main` — Express, MongoDB/Mongoose, and Socket.IO API
 - `ml-service` — FastAPI and scikit-learn price-prediction service
 
-The frontend uses the Vite proxy for `/api`, `/uploads`, and Socket.IO during local development. The backend calls the ML service over HTTP.
+The frontend uses the Vite proxy for `/api` and Socket.IO during local development. The backend calls the ML service over HTTP.
 
 ## Prerequisites
 
