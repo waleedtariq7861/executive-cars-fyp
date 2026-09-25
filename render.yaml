@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: executive-cars-api
+    runtime: node
+    plan: free
+    buildCommand: npm --prefix executive-cars-backend-main ci --omit=dev
+    startCommand: npm --prefix executive-cars-backend-main start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: APP_MODE
+        value: production
+      - key: PAYMENT_MODE
+        value: disabled
+      - key: ENABLE_DEMO_SEED
+        value: 'false'
+      - key: REQUIRE_CLOUDINARY
+        value: 'true'
+      - key: JWT_SECRET
+        generateValue: true
+      - key: MONGO_URI
+        sync: false
+      - key: CLIENT_URL
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false

@@ -9,6 +9,8 @@ export const getSocket = () => {
     socket = io(SOCKET_URL, {
       autoConnect: false,
       withCredentials: true,
+      // External Vercel rewrites forward HTTP polling; WebSocket upgrade support is unverified.
+      ...(import.meta.env.PROD && !import.meta.env.VITE_SOCKET_URL ? { transports: ['polling'] } : {}),
     })
   }
   return socket
