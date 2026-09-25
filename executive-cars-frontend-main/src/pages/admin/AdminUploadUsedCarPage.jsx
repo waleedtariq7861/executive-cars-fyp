@@ -103,9 +103,9 @@ export default function AdminUploadUsedCarPage() {
               </h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm text-gray-600 font-medium mb-1.5">Car Make</label>
+                  <label htmlFor="used-upload-make" className="block text-sm text-gray-600 font-medium mb-1.5">Car Make</label>
                   <div className="relative">
-                    <select
+                    <select id="used-upload-make"
                       value={form.make}
                       onChange={e => { update('make', e.target.value); update('model', '') }}
                       required
@@ -118,9 +118,9 @@ export default function AdminUploadUsedCarPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-600 font-medium mb-1.5">Model</label>
+                  <label htmlFor="used-upload-model" className="block text-sm text-gray-600 font-medium mb-1.5">Model</label>
                   <div className="relative">
-                    <select
+                    <select id="used-upload-model"
                       value={form.model}
                       onChange={e => update('model', e.target.value)}
                       required
@@ -134,8 +134,8 @@ export default function AdminUploadUsedCarPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-600 font-medium mb-1.5">Year</label>
-                  <select
+                  <label htmlFor="used-upload-year" className="block text-sm text-gray-600 font-medium mb-1.5">Year</label>
+                  <select id="used-upload-year"
                     value={form.year}
                     onChange={e => update('year', e.target.value)}
                     required
@@ -146,8 +146,8 @@ export default function AdminUploadUsedCarPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-600 font-medium mb-1.5">Mileage (km)</label>
-                  <input
+                  <label htmlFor="used-upload-mileage" className="block text-sm text-gray-600 font-medium mb-1.5">Mileage (km)</label>
+                  <input id="used-upload-mileage"
                     type="text"
                     inputMode="numeric"
                     pattern="[0-9]*"
@@ -161,8 +161,8 @@ export default function AdminUploadUsedCarPage() {
                   {errors.mileage && <p className="text-red-600 text-xs mt-1">{errors.mileage}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-600 font-medium mb-1.5">Engine CC</label>
-                  <input
+                  <label htmlFor="used-upload-engine" className="block text-sm text-gray-600 font-medium mb-1.5">Engine CC</label>
+                  <input id="used-upload-engine"
                     type="text"
                     inputMode="numeric"
                     pattern="[0-9]*"
@@ -176,9 +176,9 @@ export default function AdminUploadUsedCarPage() {
                   {errors.engine && <p className="text-red-600 text-xs mt-1">{errors.engine}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-600 font-medium mb-1.5">Color</label>
+                  <label htmlFor="used-upload-color" className="block text-sm text-gray-600 font-medium mb-1.5">Color</label>
                   <div className="relative">
-                    <select
+                    <select id="used-upload-color"
                       value={form.color}
                       onChange={e => update('color', e.target.value)}
                       required
@@ -193,10 +193,10 @@ export default function AdminUploadUsedCarPage() {
               </div>
 
               <div className="mt-4">
-                <label className="block text-sm text-gray-600 font-medium mb-2">Transmission</label>
+                <p className="block text-sm text-gray-600 font-medium mb-2">Transmission</p>
                 <div className="flex gap-2">
                   {['Auto', 'Manual'].map(t => (
-                    <button key={t} type="button" onClick={() => update('transmission', t)}
+                    <button key={t} type="button" aria-pressed={form.transmission === t} onClick={() => update('transmission', t)}
                       className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${form.transmission === t ? 'btn-primary' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'}`}>
                       {t}
                     </button>
@@ -205,10 +205,10 @@ export default function AdminUploadUsedCarPage() {
               </div>
 
               <div className="mt-4">
-                <label className="block text-sm text-gray-600 font-medium mb-2">Fuel Type</label>
+                <p className="block text-sm text-gray-600 font-medium mb-2">Fuel Type</p>
                 <div className="flex flex-wrap gap-2">
                   {['Petrol', 'Diesel', 'CNG', 'Hybrid'].map(f => (
-                    <button key={f} type="button" onClick={() => update('fuel', f)}
+                    <button key={f} type="button" aria-pressed={form.fuel === f} onClick={() => update('fuel', f)}
                       className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${form.fuel === f ? 'btn-primary' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'}`}>
                       {f}
                     </button>
@@ -223,8 +223,8 @@ export default function AdminUploadUsedCarPage() {
               <div className="space-y-4">
                 <AdminOwnerSelect value={form.ownerId} onChange={value => update('ownerId', value)} owners={owners} loading={loadingOwners} />
                 <div>
-                  <label className="block text-sm text-gray-600 font-medium mb-1.5">Selling Price (PKR)</label>
-                  <input
+                  <label htmlFor="used-upload-price" className="block text-sm text-gray-600 font-medium mb-1.5">Selling Price (PKR)</label>
+                  <input id="used-upload-price"
                     type="text"
                     inputMode="numeric"
                     pattern="[0-9]*"
@@ -238,10 +238,10 @@ export default function AdminUploadUsedCarPage() {
                   {errors.price && <p className="text-red-600 text-xs mt-1">{errors.price}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-600 font-medium mb-2">Condition</label>
+                  <p className="block text-sm text-gray-600 font-medium mb-2">Condition</p>
                   <div className="flex gap-2">
                     {['Excellent', 'Good', 'Fair'].map(c => (
-                      <button key={c} type="button" onClick={() => update('condition', c)}
+                      <button key={c} type="button" aria-pressed={form.condition === c} onClick={() => update('condition', c)}
                         className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${form.condition === c ? 'btn-primary' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'}`}>
                         {c}
                       </button>
@@ -249,8 +249,8 @@ export default function AdminUploadUsedCarPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-600 font-medium mb-1.5">Notes / Description</label>
-                  <textarea
+                  <label htmlFor="used-upload-notes" className="block text-sm text-gray-600 font-medium mb-1.5">Notes / Description</label>
+                  <textarea id="used-upload-notes"
                     value={form.notes}
                     onChange={e => update('notes', e.target.value)}
                     rows={3}

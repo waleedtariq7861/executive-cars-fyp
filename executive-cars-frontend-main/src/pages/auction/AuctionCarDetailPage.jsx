@@ -9,11 +9,13 @@ import { useAuth } from '../../context/authContext.js'
 import CountdownTimer from '../../components/CountdownTimer.jsx'
 import { formatPKR } from '../../utils/format.js'
 import api from '../../api/api.js'
+import { hasInspectionReport } from '../../utils/inspectionReport.js'
 import { connectSocket } from '../../api/socket.js'
 import VehicleImage from '../../components/VehicleImage.jsx'
 import { ConfirmationDialog } from '../../components/ui/Overlays.jsx'
-import { bidValidationError } from '../../utils/auction.js'
+import { bidValidationError, formatBidCount } from '../../utils/auction.js'
 import { digitsOnly } from '../../utils/inputValidation.js'
+import { openProtectedDocument } from '../../utils/documents.js'
 
 function timeUntilWithDays(isoDate) {
   const diff = Math.max(0, Math.floor((new Date(isoDate) - Date.now()) / 1000))
@@ -50,6 +52,8 @@ export default function AuctionCarDetailPage() {
   const [wonResult, setWonResult] = useState(null)
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [bidSubmitting, setBidSubmitting] = useState(false)
+  const [reportOpening, setReportOpening] = useState(false)
+  const [reportError, setReportError] = useState('')
   const bidListRef = useRef(null)
 
   useEffect(() => {
@@ -72,9 +76,8 @@ export default function AuctionCarDetailPage() {
   }, [id])
 
   useEffect(() => {
-    const token = localStorage.getItem('ec_token')
-    if (!token) return
-    const socket = connectSocket(token)
+    if (!user) return
+    const socket = connectSocket()
 
     socket.emit('join-auction', id)
 
@@ -146,6 +149,19 @@ export default function AuctionCarDetailPage() {
       setConfirmOpen(false)
     } finally {
       setBidSubmitting(false)
+    }
+  }
+
+  const viewInspectionReport = async () => {
+    if (reportOpening) return
+    setReportError('')
+    setReportOpening(true)
+    try {
+      await openProtectedDocument(car.inspectionReportAccessPath)
+    } catch (error) {
+      setReportError(error.response?.data?.message || 'The inspection report could not be opened.')
+    } finally {
+      setReportOpening(false)
     }
   }
 
@@ -223,7 +239,7 @@ export default function AuctionCarDetailPage() {
                   {car.images.map((img, i) => (
                     <button key={i} onClick={() => setActiveImg(i)}
                       className={`w-16 h-12 rounded-lg overflow-hidden border-2 transition-all ${activeImg === i ? 'border-blue-500 shadow-md' : 'border-transparent opacity-60 hover:opacity-100'}`}>
-                      <img src={img} alt="" className="w-full h-full object-cover" />
+                      <VehicleImage src={img} alt={`${car.make} ${car.model} view ${i + 1}`} className="w-full h-full object-cover" fallbackClassName="w-full h-full" />
                     </button>
                   ))}
                 </div>
@@ -260,20 +276,21 @@ export default function AuctionCarDetailPage() {
                 <div className="flex items-center gap-2">
                   <FileText className="w-5 h-5 text-blue-600" />
                   <h3 className="text-gray-900 font-bold">Inspection Report</h3>
-                  {car.inspectionStatus === 'report_available' && <span className="badge-green text-xs px-2 py-0.5 rounded-full font-medium">Report available</span>}
+                  {hasInspectionReport(car) && <span className="badge-green text-xs px-2 py-0.5 rounded-full font-medium">Report available</span>}
                 </div>
-                {car.pdfUrl ? (
-                  <a href={car.pdfUrl} target="_blank" rel="noreferrer"
-                    className="btn-primary px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-1">
-                    <Download className="w-3 h-3" /> Download PDF
-                  </a>
+                {hasInspectionReport(car) ? (
+                  <button type="button" onClick={viewInspectionReport} disabled={reportOpening}
+                    className="btn-primary px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-1 disabled:opacity-60">
+                    <Download className="w-3 h-3" /> {reportOpening ? 'Opening…' : 'Download PDF'}
+                  </button>
                 ) : (
                   <button disabled className="btn-primary px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-1 opacity-50 cursor-not-allowed">
                     <Download className="w-3 h-3" /> No Report
                   </button>
                 )}
               </div>
-              {car.pdfUrl ? <div className="bg-green-50 border border-green-200 rounded-xl p-4"><p className="text-green-900 text-sm font-bold">An inspection document is attached to this auction.</p><p className="text-green-800 text-xs mt-1">Review the full report before bidding. An attached report is not a guarantee of vehicle condition.</p>{Number.isFinite(car.inspectionScore) && <p className="text-green-900 text-sm mt-3">Recorded inspection score: <strong>{car.inspectionScore}/100</strong></p>}</div> : <div className="bg-amber-50 border border-amber-200 rounded-xl p-4"><p className="text-amber-900 text-sm font-bold">No inspection report is attached.</p><p className="text-amber-800 text-xs mt-1">Do not assume this vehicle has been inspected or verified.</p></div>}
+              {reportError && <p role="alert" className="text-xs text-red-600 mb-3">{reportError}</p>}
+              {hasInspectionReport(car) ? <div className="bg-green-50 border border-green-200 rounded-xl p-4"><p className="text-green-900 text-sm font-bold">An inspection document is attached to this auction.</p><p className="text-green-800 text-xs mt-1">Review the full report before bidding. An attached report is not a guarantee of vehicle condition.</p>{Number.isFinite(car.inspectionScore) && <p className="text-green-900 text-sm mt-3">Recorded inspection score: <strong>{car.inspectionScore}/100</strong></p>}</div> : <div className="bg-amber-50 border border-amber-200 rounded-xl p-4"><p className="text-amber-900 text-sm font-bold">No inspection report is attached.</p><p className="text-amber-800 text-xs mt-1">Do not assume this vehicle has been inspected or verified.</p></div>}
             </div>
 
             {/* Description */}
@@ -296,7 +313,7 @@ export default function AuctionCarDetailPage() {
                 <div className="flex items-center gap-3 mt-2">
                   <div className="flex items-center gap-1.5 text-gray-500 text-sm">
                     <Users className="w-4 h-4" />
-                    <span>{totalBidders} bids</span>
+                    <span>{formatBidCount(totalBidders)}</span>
                   </div>
                   {currentBid > car.basePrice && (
                     <div className="flex items-center gap-1.5 text-green-600 text-sm">

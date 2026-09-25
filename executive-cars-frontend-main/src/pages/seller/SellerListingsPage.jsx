@@ -3,6 +3,7 @@ import SellerLayout from '../../components/SellerLayout.jsx'
 import { formatPKR } from '../../utils/format.js'
 import api from '../../api/api.js'
 import { EmptyState, Skeleton } from '../../components/ui/Feedback.jsx'
+import { formatBidCount } from '../../utils/auction.js'
 
 const statusClass = { active: 'badge-green', available: 'badge-blue', sold: 'badge-yellow', ended: 'bg-gray-100 text-gray-600 border border-gray-200' }
 
@@ -55,7 +56,7 @@ export default function SellerListingsPage() {
                       </p>
                     </div>
                     {isAuction && listing.bidCount > 0 && (
-                      <p className="text-gray-400 text-xs">{listing.bidCount} bids</p>
+                      <p className="text-gray-400 text-xs">{formatBidCount(listing.bidCount)}</p>
                     )}
                   </div>
                 </div>

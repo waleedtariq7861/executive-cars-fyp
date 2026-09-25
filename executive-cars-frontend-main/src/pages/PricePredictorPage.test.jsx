@@ -1,5 +1,5 @@
 import React from 'react'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import api from '../api/api.js'
@@ -19,6 +19,10 @@ describe('PricePredictorPage', () => {
       { name: 'XLi 1.3 MT', engineCapacity: 1298, transmissions: ['Manual'], fuelTypes: ['Petrol'], bodyType: 'Sedan', assemblyTypes: ['Local'] },
     ],
   }, {
+    make: 'Toyota', model: 'Corolla', years: [2020], variants: [
+      { name: '1.6 Gasoline', engineCapacity: 1598, transmissions: ['Manual', 'Auto'], fuelTypes: ['Petrol'], bodyType: 'Sedan', assemblyTypes: ['Local'] },
+    ],
+  }, {
     make: 'Honda', model: 'Civic', years: [2020], variants: [
       { name: 'RS Turbo 1.5', engineCapacity: 1498, transmissions: ['Auto'], fuelTypes: ['Petrol'], bodyType: 'Sedan', assemblyTypes: ['Local'] },
     ],
@@ -34,6 +38,7 @@ describe('PricePredictorPage', () => {
   const datasetOnly = [
     { make: 'Hyundai', model: 'Tucson', years: [2021], engines: [1999], transmissions: ['Auto'], fuels: ['Petrol'], bodyTypes: ['Suv'], assemblies: ['Imported'] },
     { make: 'Suzuki', model: 'Cultus', years: [2017], engines: [998], transmissions: ['Manual'], fuels: ['Petrol'], bodyTypes: ['Hatchback'], assemblies: ['Local'] },
+    { make: 'Toyota', model: 'Corolla', years: [2020], engines: [1600], transmissions: ['Manual'], fuels: ['Petrol'], bodyTypes: ['Sedan'], assemblies: ['Imported'] },
   ]
 
   const optionsFor = params => {
@@ -77,7 +82,8 @@ describe('PricePredictorPage', () => {
       confidenceDetails: { level: 'medium', explanation: 'Based on comparable coverage.' },
       comparableVehicleCount: 8,
       marketDemand: 'moderate listing activity',
-      mainPricingFactors: ['Same-model comparables'],
+      mainPricingFactors: ['Vehicle age: 0 years'],
+      datasetReferenceYear: 2022,
       modelVersion: 'trained-test-model', isFallback: false,
     } })
     render(<MemoryRouter><PricePredictorPage /></MemoryRouter>)
@@ -92,12 +98,60 @@ describe('PricePredictorPage', () => {
     expect(screen.getByText('PKR 42.0 Lacs – PKR 48.0 Lacs')).toBeInTheDocument()
     expect(screen.getByText('Estimated midpoint')).toBeInTheDocument()
     expect(screen.getByText('PKR 4,500,000')).toBeInTheDocument()
+    expect(screen.getByText(/Model reference year: 2022/)).toBeInTheDocument()
+    expect(screen.getByText('Age at dataset year (2022): 0 years')).toBeInTheDocument()
     expect(screen.queryByText('Comparable fallback')).not.toBeInTheDocument()
     expect(screen.queryByText(/cleaned records/i)).not.toBeInTheDocument()
   })
 
+  it('ignores a late options response for an earlier vehicle selection', async () => {
+    let resolveInitialOptions
+    api.get.mockImplementation((url, config) => {
+      if (url !== '/vehicle-options') return Promise.resolve({ data: { available: true, inputCatalog: { makes: [{ make: 'Toyota' }] } } })
+      if (!config?.params?.make) return new Promise(resolve => { resolveInitialOptions = resolve })
+      return Promise.resolve({ data: optionsFor(config.params) })
+    })
+    api.post.mockResolvedValue({ data: { estimatedPrice: 6092000, recommendedRange: { low: 5600000, high: 6600000 } } })
+    render(<MemoryRouter><PricePredictorPage /></MemoryRouter>)
+
+    await waitFor(() => expect(screen.getByLabelText(/^Make/)).toHaveValue(''))
+    await waitFor(() => expect(screen.getByRole('option', { name: 'Toyota' })).toBeInTheDocument())
+    fireEvent.change(screen.getByLabelText(/^Make/), { target: { value: 'Toyota' } })
+    await waitFor(() => expect(screen.getByLabelText(/^Model\s*\*$/)).not.toBeDisabled())
+    fireEvent.change(screen.getByLabelText(/^Model\s*\*$/), { target: { value: 'Corolla' } })
+    await waitFor(() => expect(screen.getByLabelText(/^Model year/)).not.toBeDisabled())
+    fireEvent.change(screen.getByLabelText(/^Model year/), { target: { value: '2020' } })
+    const variant = await screen.findByLabelText(/^Variant\s*\*$/)
+    fireEvent.change(variant, { target: { value: '1.6 Gasoline' } })
+
+    await act(async () => { resolveInitialOptions({ data: optionsFor({}) }) })
+    expect(screen.getByLabelText(/^Variant\s*\*$/)).toHaveValue('1.6 Gasoline')
+    expect(screen.getByLabelText(/^Engine/)).toHaveValue('1598')
+    expect(screen.getByLabelText(/^Assembly/)).toHaveValue('Local')
+    fireEvent.click(screen.getByRole('button', { name: /generate valuation/i }))
+    await waitFor(() => expect(api.post).toHaveBeenCalledWith(
+      '/predict-price',
+      expect.objectContaining({ make: 'Toyota', model: 'Corolla', year: 2020, variant: '1.6 Gasoline', engineCapacity: 1598, transmission: 'Manual', fuelType: 'Petrol', bodyType: 'Sedan', assemblyType: 'Local' }),
+      expect.anything(),
+    ))
+  })
+
+  it('does not apply dataset-only specifications over a verified Corolla variant', async () => {
+    render(<MemoryRouter><PricePredictorPage /></MemoryRouter>)
+    fireEvent.change(await screen.findByLabelText(/^Make/), { target: { value: 'Toyota' } })
+    await waitFor(() => expect(screen.getByLabelText(/^Model\s*\*$/)).not.toBeDisabled())
+    fireEvent.change(screen.getByLabelText(/^Model\s*\*$/), { target: { value: 'Corolla' } })
+    await waitFor(() => expect(screen.getByLabelText(/^Model year/)).not.toBeDisabled())
+    fireEvent.change(screen.getByLabelText(/^Model year/), { target: { value: '2020' } })
+    const verifiedVariant = await screen.findByLabelText(/^Variant\s*\*$/)
+    expect(screen.getByLabelText(/^Assembly/)).toHaveValue('')
+    fireEvent.change(verifiedVariant, { target: { value: '1.6 Gasoline' } })
+    expect(screen.getByLabelText(/^Engine/)).toHaveValue('1598')
+    expect(screen.getByLabelText(/^Assembly/)).toHaveValue('Local')
+  })
+
   it('cascades verified selections, refreshes specifications, and renders backend validation errors', async () => {
-    api.post.mockRejectedValue({ response: { data: { message: 'Please correct the vehicle configuration.', errors: { engineCapacity: 'Verified Suzuki Cultus VXR uses 998 cc.' } } } })
+    api.post.mockRejectedValue({ response: { data: { message: 'Please correct the vehicle configuration.', errors: { engineCapacity: 'Verified Suzuki Cultus VXR uses 998 cc.', transmission: 'Transmission is not valid for this verified configuration.' } } } })
     render(<MemoryRouter><PricePredictorPage /></MemoryRouter>)
     expect(screen.getByLabelText(/^Model\s*\*$/)).toBeDisabled()
     await selectCultus('VXL AGS')
@@ -108,6 +162,8 @@ describe('PricePredictorPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /generate valuation/i }))
     expect(await screen.findByText('Please correct the vehicle configuration.')).toBeInTheDocument()
     expect(screen.getByText('Verified Suzuki Cultus VXR uses 998 cc.')).toBeInTheDocument()
+    expect(screen.getByText('Transmission is not valid for this verified configuration.')).toBeInTheDocument()
+    expect(screen.getByLabelText(/^Transmission/)).toHaveAttribute('aria-invalid', 'true')
   })
 
   it('clears dependent vehicle data when identity selections change', async () => {
@@ -115,18 +171,42 @@ describe('PricePredictorPage', () => {
     await selectCultus('VXL AGS')
     expect(screen.getByLabelText(/^Engine/)).toHaveValue('998')
 
-    fireEvent.change(screen.getByLabelText(/^Model year/), { target: { value: '2022' } })
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText(/^Model year/), { target: { value: '2022' } })
+    })
     expect(screen.getByLabelText(/^Variant/)).toHaveValue('')
     expect(screen.getByLabelText(/^Engine/)).toHaveValue('')
     expect(screen.getByLabelText(/^Transmission/)).toHaveValue('')
 
-    fireEvent.change(screen.getByLabelText(/^Make/), { target: { value: '' } })
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText(/^Make/), { target: { value: '' } })
+    })
     expect(screen.getByLabelText(/^Model\s*\*$/)).toHaveValue('')
     expect(screen.getByLabelText(/^Model year/)).toHaveValue('')
     expect(screen.getByLabelText(/^Variant/)).toHaveValue('')
     expect(screen.getByLabelText(/^Fuel type/)).toHaveValue('')
     expect(screen.getByLabelText(/^Body type/)).toHaveValue('')
     expect(screen.getByLabelText(/^Assembly/)).toHaveValue('')
+  })
+
+  it('marks a verified variant as required and blocks submission until it is selected', async () => {
+    render(<MemoryRouter><PricePredictorPage /></MemoryRouter>)
+    fireEvent.change(await screen.findByLabelText(/^Make/), { target: { value: 'Suzuki' } })
+    await waitFor(() => expect(screen.getByLabelText(/^Model\s*\*$/)).not.toBeDisabled())
+    fireEvent.change(screen.getByLabelText(/^Model\s*\*$/), { target: { value: 'Cultus' } })
+    await waitFor(() => expect(screen.getByLabelText(/^Model year/)).not.toBeDisabled())
+    fireEvent.change(screen.getByLabelText(/^Model year/), { target: { value: '2021' } })
+
+    const verifiedVariant = await screen.findByLabelText(/^Variant\s*\*$/)
+    expect(verifiedVariant).toBeRequired()
+    fireEvent.click(screen.getByRole('button', { name: /generate valuation/i }))
+
+    expect(await screen.findByText('Select a verified variant for this model year.')).toBeInTheDocument()
+    expect(verifiedVariant).toHaveAttribute('aria-invalid', 'true')
+    await waitFor(() => expect(verifiedVariant).toHaveFocus())
+    expect(verifiedVariant).toHaveAttribute('aria-describedby', 'predict-variant-error')
+    expect(verifiedVariant).toHaveAttribute('aria-errormessage', 'predict-variant-error')
+    expect(api.post).not.toHaveBeenCalled()
   })
 
   it.each([

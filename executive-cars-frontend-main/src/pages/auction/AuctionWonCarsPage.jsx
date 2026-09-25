@@ -3,6 +3,7 @@ import { Trophy, Phone, CheckCircle, Calendar } from 'lucide-react'
 import AuctionLayout from '../../components/AuctionLayout.jsx'
 import { formatPKR } from '../../utils/format.js'
 import api from '../../api/api.js'
+import VehicleImage from '../../components/VehicleImage.jsx'
 
 export default function AuctionWonCarsPage() {
   const [wonCars, setWonCars] = useState([])
@@ -44,7 +45,7 @@ export default function AuctionWonCarsPage() {
           {wonCars.map(car => (
             <div key={car._id} className="bg-white border border-green-200 rounded-2xl overflow-hidden shadow-sm">
               <div className="flex flex-col sm:flex-row">
-                {car.images?.[0] && <img src={car.images[0]} alt={`${car.make} ${car.model}`} className="w-full sm:w-48 h-36 object-cover shrink-0" />}
+                <VehicleImage src={car.images?.[0]} alt={`${car.make} ${car.model}`} className="w-full sm:w-48 h-36 object-cover shrink-0" fallbackClassName="w-full sm:w-48 h-36 shrink-0" />
                 <div className="flex-1 p-5">
                   <div className="flex items-start justify-between mb-3">
                     <div>

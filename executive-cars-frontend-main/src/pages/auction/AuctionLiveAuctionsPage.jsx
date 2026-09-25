@@ -7,6 +7,8 @@ import VehicleImage from '../../components/VehicleImage.jsx'
 import { EmptyState, ErrorState, Skeleton } from '../../components/ui/Feedback.jsx'
 import { formatPKR } from '../../utils/format.js'
 import api from '../../api/api.js'
+import { hasInspectionReport } from '../../utils/inspectionReport.js'
+import { formatBidCount } from '../../utils/auction.js'
 
 function timeUntil(isoDate) {
   const diff = Math.max(0, Math.floor((new Date(isoDate) - Date.now()) / 1000))
@@ -44,8 +46,8 @@ function AuctionCard({ car, phase }) {
         <div className="absolute bottom-3 left-3"><p className="text-white/75 text-[11px] font-semibold mb-1">{phase === 'upcoming' ? 'Starts in' : phase === 'live' ? 'Ends in' : 'Ended'}</p>{phase !== 'ended' && <CountdownTimer endsIn={timeUntil(countTo)} showDays />}</div>
       </Link>
       <div className="p-4">
-        <div className="flex justify-between gap-3"><div><h3 className="text-gray-950 font-black">{car.make} {car.model} {car.year}</h3><p className="text-gray-500 text-xs mt-1">{car.km?.toLocaleString('en-PK')} km · {car.transmission} · {car.engine} cc</p></div>{car.inspectionStatus === 'report_available' && <span className="badge-blue text-xs self-start px-2 py-1 rounded-full font-bold">Report</span>}</div>
-        <div className="flex items-end justify-between gap-3 mt-4"><div><p className="text-gray-400 text-xs">{phase === 'upcoming' ? 'Starting bid' : phase === 'ended' ? 'Final bid' : 'Current bid'}</p><p className="text-blue-700 font-black text-lg">PKR {formatPKR(phase === 'upcoming' ? car.basePrice : car.currentBid)}</p><p className="text-gray-400 text-xs mt-0.5">{car.bidCount || 0} bids{reserveText ? ` · ${reserveText}` : ''}</p></div><Link to={`/auction/car/${car._id}`} className="btn-primary px-4 py-2 rounded-lg text-xs font-semibold gap-1"><Gavel className="w-3.5 h-3.5" /> {phase === 'live' ? 'Bid now' : 'View details'}</Link></div>
+        <div className="flex justify-between gap-3"><div><h3 className="text-gray-950 font-black">{car.make} {car.model} {car.year}</h3><p className="text-gray-500 text-xs mt-1">{car.km?.toLocaleString('en-PK')} km · {car.transmission} · {car.engine} cc</p></div>{hasInspectionReport(car) && <span className="badge-blue text-xs self-start px-2 py-1 rounded-full font-bold">Report</span>}</div>
+        <div className="flex items-end justify-between gap-3 mt-4"><div><p className="text-gray-400 text-xs">{phase === 'upcoming' ? 'Starting bid' : phase === 'ended' ? 'Final bid' : 'Current bid'}</p><p className="text-blue-700 font-black text-lg">PKR {formatPKR(phase === 'upcoming' ? car.basePrice : car.currentBid)}</p><p className="text-gray-400 text-xs mt-0.5">{formatBidCount(car.bidCount)}{reserveText ? ` · ${reserveText}` : ''}</p></div><Link to={`/auction/car/${car._id}`} className="btn-primary px-4 py-2 rounded-lg text-xs font-semibold gap-1"><Gavel className="w-3.5 h-3.5" /> {phase === 'live' ? 'Bid now' : 'View details'}</Link></div>
       </div>
     </article>
   )

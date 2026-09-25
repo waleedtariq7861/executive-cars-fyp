@@ -6,6 +6,7 @@ import {
 import AdminLayout from '../../components/AdminLayout.jsx'
 import { formatPKR } from '../../utils/format.js'
 import api from '../../api/api.js'
+import { formatBidCount } from '../../utils/auction.js'
 
 export default function AdminDashboardPage() {
   const [data, setData] = useState(null)
@@ -95,7 +96,11 @@ export default function AdminDashboardPage() {
             </Link>
           </div>
           <div className="divide-y divide-gray-100">
-            {recentBookings.length === 0 ? (
+            {loading ? (
+              <div role="status" aria-label="Loading recent bookings" className="space-y-3 px-5 py-5 animate-pulse">{[1, 2, 3].map(item => <div key={item} className="h-10 rounded-lg bg-gray-100" />)}</div>
+            ) : !data ? (
+              <p className="text-red-600 text-sm text-center py-8">Bookings are unavailable.</p>
+            ) : recentBookings.length === 0 ? (
               <p className="text-gray-400 text-sm text-center py-8">No bookings yet</p>
             ) : recentBookings.map((b) => (
               <div key={b._id} className="flex items-center justify-between px-5 py-3.5">
@@ -132,14 +137,18 @@ export default function AdminDashboardPage() {
             </Link>
           </div>
           <div className="divide-y divide-gray-100">
-            {liveAuctionList.length === 0 ? (
+            {loading ? (
+              <div role="status" aria-label="Loading live auctions" className="space-y-3 px-5 py-5 animate-pulse">{[1, 2, 3].map(item => <div key={item} className="h-10 rounded-lg bg-gray-100" />)}</div>
+            ) : !data ? (
+              <p className="text-red-600 text-sm text-center py-8">Auctions are unavailable.</p>
+            ) : liveAuctionList.length === 0 ? (
               <p className="text-gray-400 text-sm text-center py-8">No active auctions</p>
             ) : liveAuctionList.map((a) => (
               <div key={a._id} className="flex items-center gap-3 px-5 py-3.5">
                 {a.images?.[0] && <img src={a.images[0]} alt={a.make} className="w-14 h-10 rounded-lg object-cover shrink-0" />}
                 <div className="flex-1 min-w-0">
                   <p className="text-gray-900 font-medium text-sm">{a.make} {a.model} {a.year}</p>
-                  <p className="text-gray-500 text-xs">{a.bidCount} bids</p>
+                  <p className="text-gray-500 text-xs">{formatBidCount(a.bidCount)}</p>
                   {a.highestBidder && <p className="text-purple-600 text-xs font-medium mt-0.5">Top: {a.highestBidder.name}</p>}
                 </div>
                 <div className="text-right shrink-0">

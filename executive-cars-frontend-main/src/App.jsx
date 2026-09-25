@@ -4,6 +4,7 @@ import { AuthProvider } from './context/AuthContext.jsx'
 import { useAuth } from './context/authContext.js'
 import AIAssistantWidget from './components/AIAssistantWidget.jsx'
 import RouteEffects from './components/RouteEffects.jsx'
+import DemoBanner from './components/DemoBanner.jsx'
 
 import ProtectedRoute from './components/ProtectedRoute.jsx'
 
@@ -50,20 +51,18 @@ const SellerListingsPage = lazy(() => import('./pages/seller/SellerListingsPage.
 const SellerAuctionStatusPage = lazy(() => import('./pages/seller/SellerAuctionStatusPage.jsx'))
 const SellerProfilePage = lazy(() => import('./pages/seller/SellerProfilePage.jsx'))
 
-const PORTAL_PATHS = [
-  '/auction/dashboard', '/auction/live', '/auction/my-bids',
-  '/auction/won-cars', '/auction/profile', '/auction/car',
-  '/admin/', '/seller/',
-]
+const AI_ASSISTANT_PATHS = new Set(['/', '/used-cars', '/price-predictor', '/sell-car'])
+
+export const shouldShowAIWidget = pathname => AI_ASSISTANT_PATHS.has(pathname)
 
 function AIWidgetWrapper() {
   const location = useLocation()
-  const hide = PORTAL_PATHS.some(p => location.pathname.startsWith(p))
-  return hide ? null : <AIAssistantWidget />
+  return shouldShowAIWidget(location.pathname) ? <AIAssistantWidget /> : null
 }
 
 function AdminGate() {
-  const { user } = useAuth()
+  const { user, initializing } = useAuth()
+  if (initializing) return <PageLoader />
   if (user?.role === 'admin') return <Navigate to="/admin/dashboard" replace />
   return <Navigate to="/admin/login" replace />
 }
@@ -84,6 +83,7 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <RouteEffects />
+        <DemoBanner />
         <AIWidgetWrapper />
         <Suspense fallback={<PageLoader />}>
         <Routes>

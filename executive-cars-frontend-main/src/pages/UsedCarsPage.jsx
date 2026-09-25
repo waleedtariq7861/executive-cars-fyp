@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import {
   Bell, CheckCircle2, Fuel, Gauge, Heart, LayoutGrid, List, MapPin,
-  Search, Settings, ShieldCheck, SlidersHorizontal, X,
+  Search, Settings, ShieldCheck, SlidersHorizontal,
 } from 'lucide-react'
 import Navbar from '../components/Navbar.jsx'
 import Footer from '../components/Footer.jsx'
@@ -11,8 +11,10 @@ import api from '../api/api.js'
 import VehicleCard from '../components/VehicleCard.jsx'
 import VehicleImage from '../components/VehicleImage.jsx'
 import { Pagination } from '../components/ui/Navigation.jsx'
+import { Drawer } from '../components/ui/Overlays.jsx'
 import { useToast } from '../context/toastContext.js'
 import { useSavedCars } from '../hooks/useSavedCars.js'
+import { hasInspectionReport } from '../utils/inspectionReport.js'
 
 const brands = ['All', 'Toyota', 'Honda', 'Suzuki', 'Kia', 'Hyundai']
 const fuelTypes = ['Petrol', 'Diesel', 'CNG', 'Hybrid']
@@ -213,7 +215,7 @@ export default function UsedCarsPage() {
 
           <div className="flex items-center justify-between gap-3 mb-4">
             <button type="button" onClick={() => setSidebarOpen(true)} className="lg:hidden btn-ghost px-3 py-2.5 text-sm gap-2"><SlidersHorizontal className="w-4 h-4" /> Filters {filterCount > 0 && <span className="w-5 h-5 rounded-full bg-red-600 text-white text-[10px] flex items-center justify-center">{filterCount}</span>}</button>
-            <p className="text-sm text-gray-500"><strong className="text-gray-900">{filtered.length}</strong> cars found</p>
+            <p className="text-sm text-gray-500" aria-live="polite">{loading ? 'Loading cars…' : <><strong className="text-gray-900">{filtered.length}</strong> cars found</>}</p>
             <div className="flex items-center gap-2 ml-auto">
               <div className="hidden sm:flex rounded-lg border border-gray-200 bg-white p-1"><button type="button" onClick={() => setView('grid')} aria-label="Grid view" aria-pressed={view === 'grid'} className={`w-8 h-8 rounded-md inline-flex items-center justify-center ${view === 'grid' ? 'bg-blue-50 text-blue-700' : 'text-gray-400'}`}><LayoutGrid className="w-4 h-4" /></button><button type="button" onClick={() => setView('list')} aria-label="List view" aria-pressed={view === 'list'} className={`w-8 h-8 rounded-md inline-flex items-center justify-center ${view === 'list' ? 'bg-blue-50 text-blue-700' : 'text-gray-400'}`}><List className="w-4 h-4" /></button></div>
               <button type="button" onClick={createAlert} className="hidden md:inline-flex btn-ghost px-3 py-2.5 text-xs gap-1.5"><Bell className="w-3.5 h-3.5" /> Save search</button>
@@ -246,15 +248,9 @@ export default function UsedCarsPage() {
         </div>
       </div>
 
-      {sidebarOpen && (
-        <div className="fixed inset-0 z-[60] lg:hidden">
-          <button className="absolute inset-0 bg-[#061b2f]/70" onClick={() => setSidebarOpen(false)} aria-label="Close filters" />
-          <aside className="absolute right-0 top-0 h-full w-[min(90vw,360px)] bg-white overflow-y-auto shadow-2xl p-5">
-            <div className="flex items-center justify-between mb-6"><h2 className="font-black text-lg text-gray-900">Search filters</h2><button onClick={() => setSidebarOpen(false)} className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center" aria-label="Close filters"><X className="w-4 h-4" /></button></div>
-            <FilterPanel filters={filters} actions={actions} onDone={() => setSidebarOpen(false)} />
-          </aside>
-        </div>
-      )}
+      <Drawer open={sidebarOpen} onClose={() => setSidebarOpen(false)} title="Search filters">
+        <FilterPanel filters={filters} actions={actions} onDone={() => setSidebarOpen(false)} />
+      </Drawer>
       <Footer />
     </div>
   )
@@ -265,7 +261,7 @@ function ListingCard({ car, saved, onSave }) {
   const image = car.images?.[0]
   const isSaved = saved.includes(id)
   const verified = car.verificationStatus === 'verified'
-  const hasReport = car.inspectionStatus === 'report_available' || Boolean(car.pdfUrl)
+  const hasReport = hasInspectionReport(car)
   return (
     <article className="group bg-white border border-gray-200 rounded-xl overflow-hidden shadow-card hover:border-blue-200 hover:shadow-elevated transition-all">
       <div className="grid sm:grid-cols-[230px_1fr] lg:grid-cols-[250px_1fr]">

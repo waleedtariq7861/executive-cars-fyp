@@ -112,9 +112,9 @@ export default function AdminUploadAuctionPage() {
               <div className="grid grid-cols-2 gap-4">
                 {/* Make */}
                 <div>
-                  <label className="block text-sm text-gray-600 font-medium mb-1.5">Car Make</label>
+                  <label htmlFor="auction-upload-make" className="block text-sm text-gray-600 font-medium mb-1.5">Car Make</label>
                   <div className="relative">
-                    <select
+                    <select id="auction-upload-make"
                       value={form.make}
                       onChange={e => { update('make', e.target.value); update('model', '') }}
                       required
@@ -128,9 +128,9 @@ export default function AdminUploadAuctionPage() {
                 </div>
                 {/* Model */}
                 <div>
-                  <label className="block text-sm text-gray-600 font-medium mb-1.5">Model</label>
+                  <label htmlFor="auction-upload-model" className="block text-sm text-gray-600 font-medium mb-1.5">Model</label>
                   <div className="relative">
-                    <select
+                    <select id="auction-upload-model"
                       value={form.model}
                       onChange={e => update('model', e.target.value)}
                       required
@@ -145,8 +145,8 @@ export default function AdminUploadAuctionPage() {
                 </div>
                 {/* Year */}
                 <div>
-                  <label className="block text-sm text-gray-600 font-medium mb-1.5">Year</label>
-                  <select
+                  <label htmlFor="auction-upload-year" className="block text-sm text-gray-600 font-medium mb-1.5">Year</label>
+                  <select id="auction-upload-year"
                     value={form.year}
                     onChange={e => update('year', e.target.value)}
                     required
@@ -158,8 +158,8 @@ export default function AdminUploadAuctionPage() {
                 </div>
                 {/* Mileage */}
                 <div>
-                  <label className="block text-sm text-gray-600 font-medium mb-1.5">Mileage (km)</label>
-                  <input
+                  <label htmlFor="auction-upload-mileage" className="block text-sm text-gray-600 font-medium mb-1.5">Mileage (km)</label>
+                  <input id="auction-upload-mileage"
                     type="text"
                     inputMode="numeric"
                     pattern="[0-9]*"
@@ -174,8 +174,8 @@ export default function AdminUploadAuctionPage() {
                 </div>
                 {/* Engine */}
                 <div>
-                  <label className="block text-sm text-gray-600 font-medium mb-1.5">Engine CC</label>
-                  <input
+                  <label htmlFor="auction-upload-engine" className="block text-sm text-gray-600 font-medium mb-1.5">Engine CC</label>
+                  <input id="auction-upload-engine"
                     type="text"
                     inputMode="numeric"
                     pattern="[0-9]*"
@@ -190,9 +190,9 @@ export default function AdminUploadAuctionPage() {
                 </div>
                 {/* Color */}
                 <div>
-                  <label className="block text-sm text-gray-600 font-medium mb-1.5">Color</label>
+                  <label htmlFor="auction-upload-color" className="block text-sm text-gray-600 font-medium mb-1.5">Color</label>
                   <div className="relative">
-                    <select
+                    <select id="auction-upload-color"
                       value={form.color}
                       onChange={e => update('color', e.target.value)}
                       required
@@ -208,10 +208,10 @@ export default function AdminUploadAuctionPage() {
 
               {/* Transmission */}
               <div className="mt-4">
-                <label className="block text-sm text-gray-600 font-medium mb-2">Transmission</label>
+                <p className="block text-sm text-gray-600 font-medium mb-2">Transmission</p>
                 <div className="flex gap-2">
                   {['Auto', 'Manual'].map(t => (
-                    <button key={t} type="button" onClick={() => update('transmission', t)}
+                    <button key={t} type="button" aria-pressed={form.transmission === t} onClick={() => update('transmission', t)}
                       className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${form.transmission === t ? 'btn-primary' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'}`}>
                       {t}
                     </button>
@@ -221,10 +221,10 @@ export default function AdminUploadAuctionPage() {
 
               {/* Fuel */}
               <div className="mt-4">
-                <label className="block text-sm text-gray-600 font-medium mb-2">Fuel Type</label>
+                <p className="block text-sm text-gray-600 font-medium mb-2">Fuel Type</p>
                 <div className="flex flex-wrap gap-2">
                   {['Petrol', 'Diesel', 'CNG', 'Hybrid'].map(f => (
-                    <button key={f} type="button" onClick={() => update('fuel', f)}
+                    <button key={f} type="button" aria-pressed={form.fuel === f} onClick={() => update('fuel', f)}
                       className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${form.fuel === f ? 'btn-primary' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'}`}>
                       {f}
                     </button>
@@ -239,8 +239,8 @@ export default function AdminUploadAuctionPage() {
               <div className="space-y-4">
                 <AdminOwnerSelect value={form.ownerId} onChange={value => update('ownerId', value)} owners={owners} loading={loadingOwners} />
                 <div>
-                  <label className="block text-sm text-gray-600 font-medium mb-1.5">Base Price (PKR)</label>
-                  <input
+                  <label htmlFor="auction-upload-base-price" className="block text-sm text-gray-600 font-medium mb-1.5">Base Price (PKR)</label>
+                  <input id="auction-upload-base-price"
                     type="text"
                     inputMode="numeric"
                     pattern="[0-9]*"
@@ -255,8 +255,8 @@ export default function AdminUploadAuctionPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm text-gray-600 font-medium mb-1.5">Start Date & Time</label>
-                    <input
+                    <label htmlFor="auction-upload-start" className="block text-sm text-gray-600 font-medium mb-1.5">Start Date & Time</label>
+                    <input id="auction-upload-start"
                       type="datetime-local"
                       value={form.startDate}
                       onChange={e => update('startDate', e.target.value)}
@@ -266,8 +266,8 @@ export default function AdminUploadAuctionPage() {
                     {errors.startDate && <p className="text-red-600 text-xs mt-1">{errors.startDate}</p>}
                   </div>
                   <div>
-                    <label className="block text-sm text-gray-600 font-medium mb-1.5">End Date & Time</label>
-                    <input
+                    <label htmlFor="auction-upload-end" className="block text-sm text-gray-600 font-medium mb-1.5">End Date & Time</label>
+                    <input id="auction-upload-end"
                       type="datetime-local"
                       value={form.endDate}
                       onChange={e => update('endDate', e.target.value)}
@@ -278,8 +278,8 @@ export default function AdminUploadAuctionPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-600 font-medium mb-1.5">Notes / Description</label>
-                  <textarea
+                  <label htmlFor="auction-upload-notes" className="block text-sm text-gray-600 font-medium mb-1.5">Notes / Description</label>
+                  <textarea id="auction-upload-notes"
                     value={form.notes}
                     onChange={e => update('notes', e.target.value)}
                     rows={3}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { UserRound } from 'lucide-react'
 import api from '../api/api.js'
 
@@ -25,13 +25,16 @@ export function ownerValue(ownerId) {
   return typeof ownerId === 'object' ? ownerId._id || '' : ownerId
 }
 
-export default function AdminOwnerSelect({ value, onChange, owners, loading = false }) {
+export default function AdminOwnerSelect({ id, value, onChange, owners, loading = false }) {
+  const generatedId = useId()
+  const selectId = id || `admin-owner-${generatedId.replace(/:/g, '')}`
   return (
     <div>
-      <label className="block text-sm text-gray-600 font-medium mb-1.5">Listing Owner</label>
+      <label htmlFor={selectId} className="block text-sm text-gray-600 font-medium mb-1.5">Listing Owner</label>
       <div className="relative">
         <UserRound className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
         <select
+          id={selectId}
           value={ownerValue(value)}
           onChange={event => onChange(event.target.value)}
           disabled={loading}

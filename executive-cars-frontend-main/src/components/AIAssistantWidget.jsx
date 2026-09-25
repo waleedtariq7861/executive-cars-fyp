@@ -1,7 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import { MessageCircle, X, Send, Bot } from 'lucide-react'
 import api from '../api/api.js'
 import { useSearchParams } from 'react-router-dom'
+import { useDialogLifecycle } from './ui/Overlays.jsx'
 
 const WELCOME_ID = 'welcome'
 const WELCOME = {
@@ -59,12 +61,20 @@ export default function AIAssistantWidget() {
   const [messages, setMessages] = useState([WELCOME])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
+  const [serviceStatus, setServiceStatus] = useState('unknown')
   const bottomRef = useRef(null)
   const inputRef = useRef(null)
+  const dialogRef = useRef(null)
+  const triggerRef = useRef(null)
+  const restoreFocusRef = useMemo(() => ({
+    get current() {
+      return window.innerWidth < 640
+        ? document.querySelector('[data-ai-assistant-nav-trigger]')
+        : triggerRef.current
+    },
+  }), [])
 
-  useEffect(() => {
-    if (open) setTimeout(() => inputRef.current?.focus(), 150)
-  }, [open])
+  useDialogLifecycle(open, () => setOpen(false), dialogRef, inputRef, restoreFocusRef)
 
   useEffect(() => {
     if (searchParams.get('assistant') !== 'open') return
@@ -77,6 +87,18 @@ export default function AIAssistantWidget() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, loading])
+
+  useEffect(() => {
+    if (!open || serviceStatus !== 'unknown') return
+    let active = true
+    api.get('/chat/health')
+      .then(({ data }) => {
+        if (!active) return
+        setServiceStatus(data?.status === 'available' ? (data.demoFallback ? 'demo' : 'available') : 'unavailable')
+      })
+      .catch(() => { if (active) setServiceStatus('unavailable') })
+    return () => { active = false }
+  }, [open, serviceStatus])
 
   const send = async () => {
     const text = input.trim()
@@ -119,12 +141,15 @@ export default function AIAssistantWidget() {
     }
   }
 
-  return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
-      {open && (
+  const panel = open ? createPortal(
+    <div className="fixed inset-0 z-[70] pointer-events-none bg-slate-950/20 sm:bg-transparent">
         <div
-          className="bg-white border border-gray-200 rounded-2xl shadow-2xl w-80 flex flex-col overflow-hidden"
-          style={{ height: '480px' }}
+          ref={dialogRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="ai-assistant-title"
+          tabIndex={-1}
+          className="pointer-events-auto absolute inset-x-0 bottom-0 h-[min(80dvh,620px)] bg-white border border-gray-200 rounded-t-2xl shadow-2xl flex flex-col overflow-hidden sm:inset-auto sm:right-6 sm:bottom-6 sm:h-[min(70dvh,480px)] sm:w-80 sm:rounded-2xl"
         >
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 bg-blue-600 shrink-0">
@@ -133,11 +158,8 @@ export default function AIAssistantWidget() {
                 <Bot className="w-4 h-4 text-white" />
               </div>
               <div>
-                <p className="text-white font-semibold text-sm leading-tight">Executive Cars AI</p>
-                <div className="flex items-center gap-1 mt-0.5">
-                  <span className="w-1.5 h-1.5 bg-green-400 rounded-full" />
-                  <span className="text-blue-200 text-xs">Online</span>
-                </div>
+                <p id="ai-assistant-title" className="text-white font-semibold text-sm leading-tight">Executive Cars AI</p>
+                <p className="text-blue-200 text-xs mt-0.5" role="status">{{ unknown: 'Checking availability...', available: 'Available', demo: 'Demo assistance', unavailable: 'Temporarily unavailable' }[serviceStatus]}</p>
               </div>
             </div>
             <button
@@ -150,7 +172,7 @@ export default function AIAssistantWidget() {
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto px-4 py-4">
+          <div className="flex-1 overflow-y-auto px-4 py-4" aria-live="polite" aria-busy={loading}>
             {messages.map(msg => (
               <Message key={msg.id} msg={msg} />
             ))}
@@ -159,19 +181,19 @@ export default function AIAssistantWidget() {
           </div>
 
           {/* Input */}
-          <div className="shrink-0 border-t border-gray-100 px-3 py-3 flex gap-2 items-center">
+          <div className="shrink-0 border-t border-gray-100 px-3 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] flex gap-2 items-center sm:pb-3">
             <input
               ref={inputRef}
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={onKey}
               placeholder="Ask me anything…"
-              disabled={loading}
+              disabled={loading || serviceStatus === 'unavailable'}
               className="flex-1 text-sm border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-blue-400 disabled:opacity-50 bg-gray-50 placeholder-gray-400"
             />
             <button
               onClick={send}
-              disabled={!input.trim() || loading}
+              disabled={!input.trim() || loading || serviceStatus === 'unavailable'}
               aria-label="Send assistant message"
               className="w-9 h-9 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white rounded-xl flex items-center justify-center transition-colors shrink-0"
             >
@@ -179,16 +201,21 @@ export default function AIAssistantWidget() {
             </button>
           </div>
         </div>
-      )}
+    </div>,
+    document.body,
+  ) : null
 
-      {/* Trigger button */}
+  return <>
+      {panel}
+      {!open && <div className="hidden sm:flex fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] right-4 z-50 sm:bottom-6 sm:right-6">
       <button
+        ref={triggerRef}
         onClick={() => setOpen(o => !o)}
         className="w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg shadow-blue-300 flex items-center justify-center transition-all hover:scale-105 active:scale-95"
         aria-label="Open AI Assistant"
       >
-        {open ? <X className="w-6 h-6" /> : <MessageCircle className="w-6 h-6" />}
+        <MessageCircle className="w-6 h-6" />
       </button>
-    </div>
-  )
+      </div>}
+    </>
 }

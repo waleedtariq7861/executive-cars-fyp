@@ -48,8 +48,8 @@ export default function SellerBookingsPage() {
             <PlusCircle className="w-4 h-4" /> Book Inspection
           </Link>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+        <div className="overflow-x-auto responsive-record-table-wrap">
+          <table className="w-full text-sm responsive-record-table">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
                 {['Car', 'Inspection Date', 'Branch', 'Submitted On', 'Status'].map(h => (
@@ -59,18 +59,18 @@ export default function SellerBookingsPage() {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {loading ? (
-                <tr><td colSpan={5} className="text-center py-12 text-gray-400">Loading bookings...</td></tr>
+                <tr><td colSpan={5} className="responsive-record-empty text-center py-12 text-gray-400">Loading bookings...</td></tr>
               ) : bookings.length === 0 ? (
-                <tr><td colSpan={5} className="text-center py-12 text-gray-400">No bookings yet</td></tr>
+                <tr><td colSpan={5} className="responsive-record-empty text-center py-12 text-gray-400">No bookings yet</td></tr>
               ) : bookings.map(b => {
                 const { icon: Icon, class: cls } = statusConfig[b.status] || statusConfig.pending
                 return (
                   <tr key={b._id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-5 py-4 text-gray-900 font-medium">{b.carMake} {b.carModel} {b.carYear}</td>
-                    <td className="px-5 py-4 text-gray-600">{b.date}{b.time ? <span className="block text-xs text-gray-400 mt-1">{b.time}</span> : null}</td>
-                    <td className="px-5 py-4 text-gray-600">{b.branch}</td>
-                    <td className="px-5 py-4 text-gray-600">{new Date(b.createdAt).toLocaleDateString()}</td>
-                    <td className="px-5 py-4">
+                    <td data-label="Vehicle" className="px-5 py-4 text-gray-900 font-medium">{b.carMake} {b.carModel} {b.carYear}</td>
+                    <td data-label="Inspection date" className="px-5 py-4 text-gray-600">{b.date}{b.time ? <span className="block text-xs text-gray-400 mt-1">{b.time}</span> : null}</td>
+                    <td data-label="Branch" className="px-5 py-4 text-gray-600">{b.branch}</td>
+                    <td data-label="Booked on" className="px-5 py-4 text-gray-600">{new Date(b.createdAt).toLocaleDateString()}</td>
+                    <td data-label="Status" className="px-5 py-4">
                       <span className={`inline-flex items-center gap-1 ${cls} text-xs px-2.5 py-1 rounded-full font-medium`}>
                         <Icon className="w-3 h-3" /> {b.status.charAt(0).toUpperCase() + b.status.slice(1)}
                       </span>

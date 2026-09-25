@@ -1,13 +1,21 @@
-import React, { forwardRef, useId } from 'react'
+import React, { createContext, forwardRef, useContext, useId } from 'react'
+
+const FormFieldContext = createContext(null)
 
 export function FormField({ label, htmlFor, hint, error, required, children, className = '' }) {
-  return <div className={className}><label htmlFor={htmlFor} className="block text-xs font-bold text-gray-700 mb-2">{label}{required && <span className="text-red-600 ml-1" aria-hidden="true">*</span>}</label>{children}{hint && !error && <p className="text-xs text-gray-500 mt-1.5">{hint}</p>}{error && <p className="text-xs text-red-600 mt-1.5" role="alert">{error}</p>}</div>
+  const hintId = hint && !error ? `${htmlFor}-hint` : undefined
+  const errorId = error ? `${htmlFor}-error` : undefined
+  return <FormFieldContext.Provider value={{ describedBy: errorId || hintId, errorMessage: errorId }}><div className={className}><label htmlFor={htmlFor} className="block text-xs font-bold text-gray-700 mb-2">{label}{required && <span className="text-red-600 ml-1" aria-hidden="true">*</span>}</label>{children}{hintId && <p id={hintId} className="text-xs text-gray-500 mt-1.5">{hint}</p>}{errorId && <p id={errorId} className="text-xs text-red-600 mt-1.5" role="alert">{error}</p>}</div></FormFieldContext.Provider>
 }
 
 const controlClass = 'w-full min-h-11 rounded-lg border border-gray-300 bg-white px-3.5 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-100 disabled:bg-gray-100 disabled:text-gray-400'
-export const Input = forwardRef(function Input({ error, className = '', ...props }, ref) { return <input ref={ref} aria-invalid={Boolean(error)} className={`${controlClass} ${error ? 'border-red-400 focus:border-red-500 focus:ring-red-100' : ''} ${className}`} {...props} /> })
-export const Select = forwardRef(function Select({ error, className = '', children, ...props }, ref) { return <select ref={ref} aria-invalid={Boolean(error)} className={`${controlClass} ${error ? 'border-red-400 focus:border-red-500 focus:ring-red-100' : ''} ${className}`} {...props}>{children}</select> })
-export const Textarea = forwardRef(function Textarea({ error, className = '', ...props }, ref) { return <textarea ref={ref} aria-invalid={Boolean(error)} className={`${controlClass} min-h-28 py-3 resize-y ${error ? 'border-red-400 focus:border-red-500 focus:ring-red-100' : ''} ${className}`} {...props} /> })
+const describedByProps = (field, describedBy, errorMessage) => ({
+  'aria-describedby': [describedBy, field?.describedBy].filter(Boolean).join(' ') || undefined,
+  'aria-errormessage': errorMessage || field?.errorMessage || undefined,
+})
+export const Input = forwardRef(function Input({ error, className = '', 'aria-describedby': describedBy, 'aria-errormessage': errorMessage, ...props }, ref) { const field = useContext(FormFieldContext); return <input ref={ref} aria-invalid={Boolean(error)} {...describedByProps(field, describedBy, errorMessage)} className={`${controlClass} ${error ? 'border-red-400 focus:border-red-500 focus:ring-red-100' : ''} ${className}`} {...props} /> })
+export const Select = forwardRef(function Select({ error, className = '', children, 'aria-describedby': describedBy, 'aria-errormessage': errorMessage, ...props }, ref) { const field = useContext(FormFieldContext); return <select ref={ref} aria-invalid={Boolean(error)} {...describedByProps(field, describedBy, errorMessage)} className={`${controlClass} ${error ? 'border-red-400 focus:border-red-500 focus:ring-red-100' : ''} ${className}`} {...props}>{children}</select> })
+export const Textarea = forwardRef(function Textarea({ error, className = '', 'aria-describedby': describedBy, 'aria-errormessage': errorMessage, ...props }, ref) { const field = useContext(FormFieldContext); return <textarea ref={ref} aria-invalid={Boolean(error)} {...describedByProps(field, describedBy, errorMessage)} className={`${controlClass} min-h-28 py-3 resize-y ${error ? 'border-red-400 focus:border-red-500 focus:ring-red-100' : ''} ${className}`} {...props} /> })
 
 export function Checkbox({ label, description, className = '', ...props }) {
   const id = useId()

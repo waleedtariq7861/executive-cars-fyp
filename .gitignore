@@ -4,9 +4,15 @@
 **/.venv/
 **/__pycache__/
 **/.pytest_cache/
+**/.pytest-cache-clean/
+**/.test-cache/
+**/.mongodb-binaries/
 ml-service/models/*
+!ml-service/models/registry.json
 !ml-service/models/ec-20260820-100203-13d9e2ba/
 !ml-service/models/ec-20260820-100203-13d9e2ba/model.joblib
 executive-cars-backend-main/uploads/
+executive-cars-backend-main/private-uploads/
+qa-evidence/
 .DS_Store
 **/.DS_Store

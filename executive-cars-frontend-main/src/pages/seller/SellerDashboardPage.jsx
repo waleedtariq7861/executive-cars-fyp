@@ -8,11 +8,13 @@ import { useAuth } from '../../context/authContext.js'
 import { formatPKR } from '../../utils/format.js'
 import SellerLayout from '../../components/SellerLayout.jsx'
 import api from '../../api/api.js'
+import { formatBidCount } from '../../utils/auction.js'
 
 export default function SellerDashboardPage() {
   const { user } = useAuth()
   const [bookings, setBookings] = useState([])
   const [listings, setListings] = useState([])
+  const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
 
   useEffect(() => {
@@ -22,6 +24,7 @@ export default function SellerDashboardPage() {
         setListings([...listingRes.data.auctionCars, ...listingRes.data.usedCars])
       })
       .catch(err => setLoadError(err.response?.data?.message || 'Could not load dashboard data.'))
+      .finally(() => setLoading(false))
   }, [])
 
   const activeAuction = listings
@@ -41,7 +44,7 @@ export default function SellerDashboardPage() {
             </h2>
             <p className="text-blue-100 text-sm">
               {activeAuction
-                ? `${activeAuction.make} ${activeAuction.model} ${activeAuction.year} has ${activeAuction.bidCount || 0} bids. Current bid: PKR ${formatPKR(activeAuction.currentBid || activeAuction.basePrice)}`
+                ? `${activeAuction.make} ${activeAuction.model} ${activeAuction.year} has ${formatBidCount(activeAuction.bidCount)}. Current bid: PKR ${formatPKR(activeAuction.currentBid || activeAuction.basePrice)}`
                 : 'Book an inspection to get your car approved and listed.'}
             </p>
           </div>
@@ -51,8 +54,11 @@ export default function SellerDashboardPage() {
         </div>
       </div>
 
+      {loading ? <SellerDashboardSkeleton /> : loadError ? (
+        <div className="bg-white border border-red-200 rounded-2xl p-10 text-center text-sm text-red-700">Dashboard figures and recent activity are unavailable.</div>
+      ) : <>
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8" aria-busy="false">
         {[
           { label: 'My Bookings',        value: bookings.length,  icon: ClipboardCheck, color: 'text-blue-600',   bg: 'bg-blue-50',   border: 'border-blue-200'   },
           { label: 'Active Listings',    value: listings.length,  icon: Car,            color: 'text-green-600',  bg: 'bg-green-50',  border: 'border-green-200'  },
@@ -147,13 +153,14 @@ export default function SellerDashboardPage() {
                 </div>
                 <div className="text-right shrink-0">
                   <p className="text-blue-600 font-bold text-sm">PKR {formatPKR(l.currentBid || l.basePrice || l.price)}</p>
-                  {l.bidCount > 0 && <p className="text-gray-400 text-xs">{l.bidCount} bids</p>}
+                  {l.bidCount > 0 && <p className="text-gray-400 text-xs">{formatBidCount(l.bidCount)}</p>}
                 </div>
               </div>
             ))}
           </div>
         </div>
       </div>
+      </>}
 
       {/* Quick Actions */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
@@ -172,4 +179,11 @@ export default function SellerDashboardPage() {
       </div>
     </SellerLayout>
   )
+}
+
+function SellerDashboardSkeleton() {
+  return <div role="status" aria-label="Loading seller dashboard" aria-busy="true" className="animate-pulse">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">{[1, 2, 3, 4].map(item => <div key={item} className="h-32 rounded-2xl bg-gray-100 border border-gray-200" />)}</div>
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">{[1, 2].map(item => <div key={item} className="h-64 rounded-2xl bg-gray-100 border border-gray-200" />)}</div>
+  </div>
 }

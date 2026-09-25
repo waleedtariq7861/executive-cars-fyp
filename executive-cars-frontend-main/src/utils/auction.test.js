@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { bidValidationError } from './auction.js'
+import { bidValidationError, formatBidCount } from './auction.js'
 
 describe('bid validation', () => {
   it('rejects closed, negative, and low bids', () => {
@@ -10,5 +10,13 @@ describe('bid validation', () => {
 
   it('accepts a bid at the minimum', () => {
     expect(bidValidationError({ amount: 4500000, minimumBid: 4500000 })).toBe('')
+  })
+})
+
+describe('bid count copy', () => {
+  it('uses correct singular and plural copy', () => {
+    expect(formatBidCount(0)).toBe('0 bids')
+    expect(formatBidCount(1)).toBe('1 bid')
+    expect(formatBidCount(2)).toBe('2 bids')
   })
 })

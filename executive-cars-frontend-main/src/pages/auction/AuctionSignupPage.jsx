@@ -125,17 +125,17 @@ export default function AuctionSignupPage() {
               { label: 'Phone Number', key: 'phone', type: 'tel', placeholder: '+92 300 1234567' },
             ].map(f => (
               <div key={f.key}>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">{f.label}</label>
-                <input type={f.type} value={form[f.key]} onChange={e => update(f.key, f.key === 'name' ? sanitizePersonName(e.target.value) : f.key === 'phone' ? sanitizePhone(e.target.value) : e.target.value)}
+                <label htmlFor={`auction-signup-${f.key}`} className="block text-sm font-medium text-gray-700 mb-1.5">{f.label}</label>
+                <input id={`auction-signup-${f.key}`} type={f.type} value={form[f.key]} onChange={e => update(f.key, f.key === 'name' ? sanitizePersonName(e.target.value) : f.key === 'phone' ? sanitizePhone(e.target.value) : e.target.value)}
                   placeholder={f.placeholder} required inputMode={f.key === 'phone' ? 'tel' : undefined} maxLength={f.key === 'name' ? 80 : f.key === 'phone' ? 16 : undefined} className={`input-light ${errors[f.key] ? 'border-red-400' : ''}`} />
                 {errors[f.key] && <p className="text-red-600 text-xs mt-1">{errors[f.key]}</p>}
               </div>
             ))}
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
+              <label htmlFor="auction-signup-password" className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
               <div className="relative">
-                <input type={showPass ? 'text' : 'password'} value={form.password} onChange={e => update('password', e.target.value)}
+                <input id="auction-signup-password" type={showPass ? 'text' : 'password'} value={form.password} onChange={e => update('password', e.target.value)}
                   placeholder="Min. 8 characters" required className={`input-light pr-10 ${errors.password ? 'border-red-400' : ''}`} />
                 <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                   {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -145,9 +145,9 @@ export default function AuctionSignupPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Confirm Password</label>
+              <label htmlFor="auction-signup-confirm" className="block text-sm font-medium text-gray-700 mb-1.5">Confirm Password</label>
               <div className="relative">
-                <input type={showConfirm ? 'text' : 'password'} value={form.confirm} onChange={e => update('confirm', e.target.value)}
+                <input id="auction-signup-confirm" type={showConfirm ? 'text' : 'password'} value={form.confirm} onChange={e => update('confirm', e.target.value)}
                   placeholder="Repeat password" required className={`input-light pr-10 ${errors.confirm ? 'border-red-400' : ''}`} />
                 <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                   {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}

@@ -3,11 +3,20 @@ import axios from 'axios'
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api',
   timeout: 15000,
+  withCredentials: true,
 })
 
+let csrfToken = ''
+
+export const setCsrfToken = token => {
+  csrfToken = String(token || '')
+}
+
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('ec_token')
-  if (token) config.headers.Authorization = `Bearer ${token}`
+  const method = String(config.method || 'get').toLowerCase()
+  if (csrfToken && !['get', 'head', 'options'].includes(method)) {
+    config.headers['X-CSRF-Token'] = csrfToken
+  }
   return config
 })
 
@@ -15,8 +24,7 @@ api.interceptors.response.use(
   (res) => res,
   (err) => {
     if (err.response?.status === 401) {
-      localStorage.removeItem('ec_token')
-      localStorage.removeItem('ec_user')
+      setCsrfToken('')
       window.dispatchEvent(new Event('ec:unauthorized'))
     }
     return Promise.reject(err)
