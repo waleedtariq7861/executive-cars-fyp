@@ -1,0 +1,9 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "https://executive-cars-backend.onrender.com/api/:path*" },
+    { "source": "/socket.io/:path*", "destination": "https://executive-cars-backend.onrender.com/socket.io/:path*" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

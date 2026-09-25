@@ -21,20 +21,20 @@ The Blueprint intentionally runs from the repository root: `executive-cars-backe
 ## 3. Create the Vercel frontend
 
 1. Import the same GitHub repository into Vercel. Set **Root Directory** to `executive-cars-frontend-main`, framework **Vite**, build command `npm run build`, and output directory `dist`. Vercel can use the committed package lock for installation.
-2. Set `BACKEND_ORIGIN` to the Render API's HTTPS origin, without a trailing slash or `/api`. Set `VITE_APP_MODE=production` and `VITE_ENABLE_DEMO_ACCOUNTS=false` (or leave the latter unset). Leave `VITE_API_URL` and `VITE_SOCKET_URL` unset so the browser uses Vercel's same-origin `/api` and `/socket.io` rewrites. `BACKEND_ORIGIN` is a build-time routing value; it is not a secret.
-3. Deploy. Copy Vercel's actual production origin into Render's `CLIENT_URL` if it differs from the value entered earlier, then redeploy the Render service. If you change `BACKEND_ORIGIN` in Vercel, redeploy Vercel because environment changes do not alter earlier deployments.
+2. Confirm the Render API origin is `https://executive-cars-backend.onrender.com`, the target committed in `executive-cars-frontend-main/vercel.json`. If the Render hostname changes, update that file before deploying. Set `VITE_APP_MODE=production` and `VITE_ENABLE_DEMO_ACCOUNTS=false` (or leave the latter unset). Leave `VITE_API_URL` and `VITE_SOCKET_URL` unset so the browser uses Vercel's same-origin `/api` and `/socket.io` rewrites. `BACKEND_ORIGIN` is no longer used.
+3. Deploy. Copy Vercel's actual production origin into Render's `CLIENT_URL` if it differs from the value entered earlier, then redeploy the Render service. Changes to the rewrite target require a commit and a new Vercel deployment.
 4. For authenticated preview domains, add each exact HTTPS origin to Render's comma-separated `CLIENT_URLS`. Otherwise, use only the production domain for login and mutations. The backend checks request origin and CSRF token.
 
 ## 4. Create the first administrator
 
 On your own computer, allowlist that computer's current IP in Atlas and use the ignored `executive-cars-backend-main/.env` file with `MONGO_URI` pointing to the intended Atlas database. Temporarily add `BOOTSTRAP_ADMIN_CONFIRM=create-first-admin`, `BOOTSTRAP_ADMIN_NAME`, `BOOTSTRAP_ADMIN_EMAIL`, and a unique `BOOTSTRAP_ADMIN_PASSWORD` of at least 12 characters. Run `npm --prefix executive-cars-backend-main run bootstrap:admin` from the repository root. The command refuses to create another admin if one already exists. Remove the four bootstrap variables from the local file after success. Never commit the password or put it in a shell command. Render Free does not provide an interactive service shell.
 
-The frontend's `vercel.mjs` forwards HTTP `/api/*` and Socket.IO `/socket.io/*` requests to Render, then serves `index.html` for application routes. This keeps the HttpOnly session cookie on the Vercel origin. The client uses HTTP polling for this same-origin production route because WebSocket upgrades through Vercel external rewrites are **UNVERIFIED**. Polling still needs a live browser smoke test.
+The frontend's `vercel.json` forwards HTTP `/api/*` and Socket.IO `/socket.io/*` requests to Render, then serves `index.html` for application routes. This keeps the HttpOnly session cookie on the Vercel origin. The client uses HTTP polling for this same-origin production route because WebSocket upgrades through Vercel external rewrites are **UNVERIFIED**. Polling still needs a live browser smoke test.
 
 ## 5. Verify the deployed app
 
 1. Open the Vercel URL and a deep link such as `/used-cars`; both should load the app.
-2. Open `https://YOUR-VERCEL-HOST/api/health`; it should show `database: connected`. A 404 or HTML response means the Vercel rewrite or `BACKEND_ORIGIN` is wrong.
+2. Open `https://YOUR-VERCEL-HOST/api/health`; it should show `database: connected`. A 404 or HTML response means the Vercel rewrite target is wrong.
 3. Register a fresh account, sign out, sign in, and refresh `/account`. If session or mutation requests fail with 403, check Render `CLIENT_URL` against the address bar's exact origin.
 4. After an email delivery approach is chosen and implemented, verify an inspection booking OTP and a password reset message end to end. These flows are not operational on the current Render Free setup.
 5. Upload a test listing image/document through the intended app workflow and verify it survives a Render redeploy. If it disappears, check the three Cloudinary settings.
@@ -48,4 +48,4 @@ The frontend's `vercel.mjs` forwards HTTP `/api/*` and Socket.IO `/socket.io/*` 
 - The Git LFS model artifact may be fetched during Render's Git build despite the ML service being omitted. Render's LFS checkout behavior for this Blueprint is **UNVERIFIED**; inspect the first build's size and logs.
 - Render describes its Free service as suitable for evaluation and hobby use rather than a reliable production service. These constraints should be resolved before taking real payments or promising continuous auctions. [Render Free limits](https://render.com/docs/free)
 
-Sources: [Vercel programmatic configuration](https://vercel.com/docs/project-configuration/vercel-ts), [Vercel external rewrites](https://vercel.com/docs/routing/rewrites), [Render Blueprints](https://render.com/docs/infrastructure-as-code), [Render monorepo root directory](https://render.com/docs/monorepo-support).
+Sources: [Vercel static configuration](https://vercel.com/docs/project-configuration/vercel-json), [Vercel external rewrites](https://vercel.com/docs/routing/rewrites), [Render Blueprints](https://render.com/docs/infrastructure-as-code), [Render monorepo root directory](https://render.com/docs/monorepo-support).
