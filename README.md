@@ -95,6 +95,8 @@ Open <http://localhost:5173>.
 
 For a real deployment, set `APP_MODE=production`, `NODE_ENV=production`, and `PAYMENT_MODE=disabled`; use HTTPS client origins, production email delivery, a strong secret, and keep `ENABLE_DEMO_SEED=false`. The backend validates these boundaries at startup.
 
+For the GitHub + Vercel + Render Free setup, follow [DEPLOYMENT_FREE_TIER.md](DEPLOYMENT_FREE_TIER.md). It lists dashboard steps, required secrets, verification, and features that cannot run on the free hosting plan.
+
 To deliberately create tagged local demo accounts/data:
 
 ```powershell
