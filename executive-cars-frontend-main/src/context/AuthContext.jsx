@@ -79,6 +79,13 @@ export function AuthProvider({ children }) {
     })
   }, [])
 
+  const refreshUser = useCallback(async () => {
+    const { data } = await api.get('/auth/session')
+    setCsrfToken(data.csrfToken)
+    setUser(data.user)
+    return data.user
+  }, [])
+
   return (
     <AuthContext.Provider value={{
       user,
@@ -89,6 +96,7 @@ export function AuthProvider({ children }) {
       registerMember: registerAccount,
       logout,
       updateUser,
+      refreshUser,
     }}>
       {children}
     </AuthContext.Provider>

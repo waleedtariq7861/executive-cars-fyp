@@ -5,11 +5,14 @@ import Navbar from '../components/Navbar.jsx'
 import Footer from '../components/Footer.jsx'
 import { useAuth } from '../context/authContext.js'
 import { hasActiveMembership } from '../utils/membership.js'
+import useMembershipCapabilities from '../hooks/useMembershipCapabilities.js'
+import MembershipAvailability from '../components/MembershipAvailability.jsx'
 
 export default function AccountPage() {
   const navigate = useNavigate()
   const { user, logout } = useAuth()
   const auctionActive = hasActiveMembership(user)
+  const capability = useMembershipCapabilities(!auctionActive)
   const signOut = () => { logout(); navigate('/') }
 
   return (
@@ -24,7 +27,7 @@ export default function AccountPage() {
           <div className="grid md:grid-cols-3 gap-5">
             <AccountAction icon={Search} title="Buy a Car" description="Search verified used cars and view inspection-led listings." to="/used-cars" action="Browse cars" />
             <AccountAction icon={Car} title="Sell a Car" description="Submit a car, track verification bookings, listings, and auction status." to="/seller/dashboard" action="Selling dashboard" />
-            <AccountAction icon={Gavel} title="Car Auctions" description={auctionActive ? 'Your auction membership is active. View live cars and your bids.' : 'Activate annual membership to access live bidding.'} to={auctionActive ? '/auction/dashboard' : '/auction/payment'} action={auctionActive ? 'Open auctions' : 'Activate membership'} status={auctionActive ? 'Active' : 'Not active'} />
+            <AccountAction icon={Gavel} title="Car Auctions" description={auctionActive ? 'Your auction membership is active. View live cars and your bids.' : 'Annual membership provides access to auction listings and live bidding.'} to={auctionActive ? '/auction/dashboard' : '/auction/payment'} action={auctionActive ? 'Open auctions' : capability.available ? 'Activate demo membership' : 'Membership details'} status={auctionActive ? 'Active' : 'Not active'} notice={!auctionActive && <MembershipAvailability capability={capability} />} />
           </div>
 
           <div className="grid lg:grid-cols-[1fr_340px] gap-6 mt-8">
@@ -38,6 +41,6 @@ export default function AccountPage() {
   )
 }
 
-function AccountAction({ icon: Icon, title, description, to, action, status }) {
-  return <article className="bg-white border border-gray-200 rounded-xl p-6 shadow-card flex flex-col"><div className="flex items-start justify-between"><div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center"><Icon className="w-6 h-6 text-blue-600" /></div>{status && <span className={`text-[10px] font-bold rounded-full px-2.5 py-1 ${status === 'Active' ? 'badge-green' : 'badge-yellow'}`}>{status}</span>}</div><h2 className="text-xl font-black text-gray-900 mt-5">{title}</h2><p className="text-sm text-gray-500 leading-6 mt-2 mb-6">{description}</p><Link to={to} className="btn-ghost mt-auto py-3 text-sm gap-2">{action}<ArrowRight className="w-4 h-4" /></Link></article>
+function AccountAction({ icon: Icon, title, description, to, action, status, notice }) {
+  return <article className="bg-white border border-gray-200 rounded-xl p-6 shadow-card flex flex-col"><div className="flex items-start justify-between"><div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center"><Icon className="w-6 h-6 text-blue-600" /></div>{status && <span className={`text-[10px] font-bold rounded-full px-2.5 py-1 ${status === 'Active' ? 'badge-green' : 'badge-yellow'}`}>{status}</span>}</div><h2 className="text-xl font-black text-gray-900 mt-5">{title}</h2><p className="text-sm text-gray-500 leading-6 mt-2 mb-3">{description}</p>{notice}<Link to={to} className="btn-ghost mt-auto py-3 text-sm gap-2">{action}<ArrowRight className="w-4 h-4" /></Link></article>
 }

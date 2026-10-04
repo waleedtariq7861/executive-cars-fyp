@@ -4,6 +4,8 @@ import { Eye, EyeOff, CheckCircle, Crown, ArrowRight } from 'lucide-react'
 import Logo from '../../components/Logo.jsx'
 import { useAuth } from '../../context/authContext.js'
 import { hasActiveMembership } from '../../utils/membership.js'
+import useMembershipCapabilities from '../../hooks/useMembershipCapabilities.js'
+import MembershipAvailability from '../../components/MembershipAvailability.jsx'
 import { isValidPersonName, isValidPhone, sanitizePersonName, sanitizePhone } from '../../utils/inputValidation.js'
 
 const perks = [
@@ -18,6 +20,7 @@ const perks = [
 export default function AuctionSignupPage() {
   const navigate = useNavigate()
   const { user, registerMember } = useAuth()
+  const capability = useMembershipCapabilities(!hasActiveMembership(user))
   const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirm: '', terms: false })
   const [showPass, setShowPass] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
@@ -44,7 +47,7 @@ export default function AuctionSignupPage() {
     const result = await registerMember(form.name, form.email, form.phone, form.password)
     setLoading(false)
     if (result.success) {
-      navigate('/auction/payment')
+      navigate(capability.available ? '/auction/payment' : '/account')
     } else {
       setErrors({ email: result.message || 'Registration failed. Try a different email.' })
     }
@@ -58,8 +61,9 @@ export default function AuctionSignupPage() {
           <Logo className="w-11 h-11 mx-auto" />
           <div className="w-14 h-14 bg-blue-50 rounded-full flex items-center justify-center mx-auto mt-7"><Crown className="w-7 h-7 text-blue-600" /></div>
           <h1 className="text-2xl font-black text-gray-900 mt-5">Your account is ready</h1>
-          <p className="text-sm text-gray-500 leading-6 mt-2">You do not need another auction account. {active ? 'Your auction membership is already active.' : 'Activate auction access on this same account.'}</p>
-          <Link to={active ? '/auction/dashboard' : '/auction/payment'} className="btn-primary w-full py-3.5 text-sm gap-2 mt-7">{active ? 'Open Auction Dashboard' : 'Continue to Membership Payment'} <ArrowRight className="w-4 h-4" /></Link>
+          <p className="text-sm text-gray-500 leading-6 mt-2">You do not need another auction account. {active ? 'Your auction membership is already active.' : 'Auction membership uses this same account.'}</p>
+          {!active && <MembershipAvailability capability={capability} />}
+          <Link to={active ? '/auction/dashboard' : '/auction/payment'} className="btn-primary w-full py-3.5 text-sm gap-2 mt-7">{active ? 'Open Auction Dashboard' : capability.available ? 'Continue to Demo Activation' : 'Membership Details'} <ArrowRight className="w-4 h-4" /></Link>
           <Link to="/account" className="inline-block text-sm text-blue-600 hover:underline mt-5">Back to my account</Link>
         </div>
       </div>
@@ -111,12 +115,13 @@ export default function AuctionSignupPage() {
             </div>
             <div className="flex justify-between text-xs">
               <span className="text-blue-600 font-semibold">Account Details</span>
-              <span className="text-gray-400">Payment</span>
+              <span className="text-gray-400">Membership</span>
             </div>
           </div>
 
           <h2 className="text-2xl font-black text-gray-900 mb-2">Create Your Unified Account</h2>
           <p className="text-sm text-gray-500 mb-6">This account also works for buying and selling cars.</p>
+          <MembershipAvailability capability={capability} />
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {[
@@ -165,7 +170,7 @@ export default function AuctionSignupPage() {
             </label>
 
             <button type="submit" disabled={loading} className="btn-primary w-full py-3.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 mt-2 shadow-md shadow-blue-200">
-              {loading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <>Proceed to Payment <ArrowRight className="w-4 h-4" /></>}
+              {loading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <>{capability.available ? 'Create Account and Continue to Demo' : 'Create Account'} <ArrowRight className="w-4 h-4" /></>}
             </button>
           </form>
 

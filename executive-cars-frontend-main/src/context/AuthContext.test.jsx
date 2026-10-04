@@ -13,11 +13,13 @@ vi.mock('../api/api.js', () => ({
 vi.mock('../api/socket.js', () => ({ connectSocket: vi.fn(), disconnectSocket: vi.fn() }))
 
 function SessionProbe() {
-  const { user, initializing, loginAccount, logout } = useAuth()
+  const { user, initializing, loginAccount, logout, refreshUser } = useAuth()
   return <div>
     <span>{initializing ? 'initializing' : user?.email || 'anonymous'}</span>
     <button onClick={() => loginAccount('member@example.com', 'password-123')}>Login</button>
     <button onClick={logout}>Logout</button>
+    <button onClick={refreshUser}>Refresh membership</button>
+    {user?.capabilities?.auction && <span>Auction access active</span>}
   </div>
 }
 
@@ -26,6 +28,17 @@ describe('AuthProvider cookie session lifecycle', () => {
     vi.clearAllMocks()
     api.get.mockRejectedValue({ response: { status: 401 } })
     api.post.mockResolvedValue({ data: {} })
+  })
+
+  it('refreshes saved membership and CSRF state after activation', async () => {
+    const user = { id: 'member-1', email: 'member@example.com', role: 'user', capabilities: { auction: false } }
+    api.get.mockResolvedValueOnce({ data: { user, csrfToken: 'initial-csrf' } })
+      .mockResolvedValueOnce({ data: { user: { ...user, capabilities: { auction: true } }, csrfToken: 'refreshed-csrf' } })
+    render(<AuthProvider><SessionProbe /></AuthProvider>)
+    await screen.findByText('member@example.com')
+    fireEvent.click(screen.getByRole('button', { name: 'Refresh membership' }))
+    expect(await screen.findByText('Auction access active')).toBeInTheDocument()
+    expect(setCsrfToken).toHaveBeenLastCalledWith('refreshed-csrf')
   })
 
   it('restores a server session and connects the customer socket without reading a browser token', async () => {
