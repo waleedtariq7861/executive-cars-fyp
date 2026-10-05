@@ -15,7 +15,7 @@ The frontend uses the Vite proxy for `/api` and Socket.IO during local developme
 - Node.js 20 or newer and npm
 - Python 3.11
 - Git LFS
-- A reachable MongoDB deployment
+- A local Docker MongoDB 8 replica set for development/tests; Atlas for production
 
 Cloud integrations are configured through local environment files. Never commit real credentials.
 
@@ -38,13 +38,15 @@ Copy-Item .\executive-cars-frontend-main\.env.example .\executive-cars-frontend-
 Copy-Item .\ml-service\.env.example .\ml-service\.env
 ```
 
-At minimum, configure `MONGO_URI` and a strong `JWT_SECRET` in the backend file. Add Cloudinary, email, and Groq credentials only when those integrations are required. The checked-in local defaults align the services as follows:
+At minimum, configure `MONGO_URI` and a strong `JWT_SECRET` in the backend file. Development uses `mongodb://127.0.0.1:27017/executivecars_dev?directConnection=true&replicaSet=executivecars-local`. Tests use the separate `executivecars_test` database on the same server. Atlas is reserved for production, with an explicit `/executivecars` database path in the deployed URI. Add Cloudinary, email, and Groq credentials only when those integrations are required. The checked-in local defaults align the services as follows:
 
 - frontend: `http://localhost:5173`
 - backend: `http://127.0.0.1:5082`
 - ML service: `http://127.0.0.1:8000`
 
 Keep `ML_SERVICE_KEY` identical in the backend and ML files if service-key protection is enabled.
+
+The prepared local MongoDB container is `executive-cars-test-mongo`, published at `127.0.0.1:27017`, with replica-set name `executivecars-local`. If it is stopped, start it with `docker start executive-cars-test-mongo`. Development, tests and temporary backup restores share this one server; do not start a second MongoDB container for tests. Its persistent volumes survive container restarts. A fresh machine needs that localhost-only MongoDB 8 single-member replica set provisioned before running the app or database tests.
 
 ## Install dependencies
 
@@ -117,6 +119,8 @@ Only enable and use the demo seed in a local demonstration environment.
 ## Quality checks
 
 Run each suite directly:
+
+Backend API tests require the local Docker replica-set PRIMARY. `npm test` defaults to `executivecars_test`; optional `TEST_MONGO_URI` must still identify that exact database on localhost port 27017. The test harness refuses Atlas, development, production and restore targets before connecting/resetting. It drops the disposable test database between tests, recreates model indexes, and cleans it up afterward. Do not run parallel API suites or store development data in `executivecars_test`.
 
 ```powershell
 Set-Location .\executive-cars-backend-main
