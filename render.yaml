@@ -13,6 +13,8 @@ services:
         value: production
       - key: PAYMENT_MODE
         value: disabled
+      - key: ENABLE_HOSTED_DEMO_MEMBERSHIP
+        value: 'false'
       - key: ENABLE_DEMO_SEED
         value: 'false'
       - key: REQUIRE_CLOUDINARY

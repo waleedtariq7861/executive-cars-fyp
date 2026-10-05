@@ -5,12 +5,14 @@ import Navbar from '../../components/Navbar.jsx'
 import Footer from '../../components/Footer.jsx'
 import { useAuth } from '../../context/authContext.js'
 import { hasActiveMembership } from '../../utils/membership.js'
-import { AUCTION_MEMBERSHIP_PRICE_LABEL } from '../../config/auctionMembership.js'
+import useMembershipCapabilities, { membershipPriceLabel } from '../../hooks/useMembershipCapabilities.js'
+import MembershipAvailability from '../../components/MembershipAvailability.jsx'
 
 
 export default function AuctionGatePage() {
   const { user } = useAuth()
   const active = user?.role === 'user' && hasActiveMembership(user)
+  const capability = useMembershipCapabilities(!active)
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
@@ -71,8 +73,9 @@ export default function AuctionGatePage() {
               </ul>
               <Link to={active ? '/auction/dashboard' : user?.role === 'user' ? '/auction/payment' : '/login'} state={!user ? { from: '/auction/payment', message: 'Please sign in to activate auction access.' } : undefined}
                 className="btn-primary w-full py-3 rounded-xl font-semibold text-sm block text-center shadow-md shadow-blue-200">
-                {active ? 'Open Auction Dashboard' : `Activate — ${AUCTION_MEMBERSHIP_PRICE_LABEL}/yr`}
+                {active ? 'Open Auction Dashboard' : capability.available ? 'Activate Demo Membership' : 'Membership Details'}
               </Link>
+              {!active && <><MembershipAvailability capability={capability} />{capability.available && <p className="text-xs text-gray-500 mt-2">Demonstration plan value: {membershipPriceLabel(capability.data)} / {capability.data.durationYears} year. No charge.</p>}</>}
             </div>
           </div>
 
@@ -80,7 +83,7 @@ export default function AuctionGatePage() {
           {/* Trust badges */}
           <div className="flex items-center justify-center gap-8 flex-wrap">
             {[
-              { icon: Shield, label: 'Secure Payments' },
+              { icon: Shield, label: 'Gated Auction Access' },
               { icon: CheckCircle, label: 'Verified Cars' },
               { icon: Star, label: 'Trusted Platform' },
             ].map(({ icon: Icon, label }) => (
