@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/authContext.js'
-import { Car, Users, Calendar, Gavel, List, Upload, PlusCircle, LogOut, Menu, X, Shield, BarChart3, Database } from 'lucide-react'
+import { Users, Calendar, Gavel, List, Upload, PlusCircle, LogOut, Menu, X, Shield, BarChart3, Database } from 'lucide-react'
 import Logo from './Logo.jsx'
 
 const navItems = [

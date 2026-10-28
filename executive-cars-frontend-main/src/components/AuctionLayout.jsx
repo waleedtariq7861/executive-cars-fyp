@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Gavel, TrendingUp, Trophy, User, LogOut, Bell, Menu, X, Car } from 'lucide-react'
+import { LayoutDashboard, Gavel, TrendingUp, Trophy, User, LogOut, Bell, Menu, X } from 'lucide-react'
 import Logo from './Logo.jsx'
 import { useAuth } from '../context/authContext.js'
 

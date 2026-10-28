@@ -135,11 +135,10 @@ Set-Location ..\ml-service
 .\.venv\Scripts\python.exe -m pytest tests
 ```
 
-The integration candidate was prepared from a locally verified implementation with 36 backend tests, 59 frontend tests, 10 ML tests, backend syntax checks, and a successful production frontend build. See `QA_TEST_REPORT.md` and `QA_REMEDIATION_IMPLEMENTATION_PLAN.md` for the detailed audit trail and remaining release considerations.
+The audit-era QA reports were removed from the repository on 2026-10-29 and remain available in Git history. At that point the backend suite had 80 passing tests and the frontend suite had 94 passing tests across 26 files.
 
 ## Important data and artifact notes
 
 - `pakwheels_used_car_data_v02.csv` is the retained training dataset supplied with the project.
-- `Executive Cars.docx` and `PROJECT_AUDIT.md` are retained historical project artifacts.
 - Generated uploads and private documents must be stored outside the Git repository in production.
 - Model training can create large versioned artifacts; review them before intentionally adding any new artifact to Git LFS.

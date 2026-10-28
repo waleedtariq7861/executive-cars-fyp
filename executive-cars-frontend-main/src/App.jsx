@@ -19,7 +19,6 @@ const BecomeSellerPage = lazy(() => import('./pages/BecomeSellerPage.jsx'))
 const UsedCarsPage = lazy(() => import('./pages/UsedCarsPage.jsx'))
 const UsedCarDetailPage = lazy(() => import('./pages/UsedCarDetailPage.jsx'))
 const PricePredictorPage = lazy(() => import('./pages/PricePredictorPage.jsx'))
-const BookingConfirmedPage = lazy(() => import('./pages/BookingConfirmedPage.jsx'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage.jsx'))
 const LegalPage = lazy(() => import('./pages/LegalPage.jsx'))
 const SavedCarsPage = lazy(() => import('./pages/SavedCarsPage.jsx'))
@@ -103,7 +102,6 @@ export default function App() {
           <Route path="/used-cars" element={<UsedCarsPage />} />
           <Route path="/used-cars/:id" element={<UsedCarDetailPage />} />
           <Route path="/price-predictor" element={<PricePredictorPage />} />
-          <Route path="/booking-confirmed" element={<ProtectedRoute role="user"><BookingConfirmedPage /></ProtectedRoute>} />
           <Route path="/privacy" element={<LegalPage type="privacy" />} />
           <Route path="/terms" element={<LegalPage type="terms" />} />
           <Route path="/saved-cars" element={<SavedCarsPage />} />
