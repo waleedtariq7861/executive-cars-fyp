@@ -40,8 +40,15 @@ export function useSavedCars() {
       // Cars saved as a guest are moved into the account the first time it signs in.
       const guestIds = readLocalIds()
       if (guestIds.length) {
-        await Promise.allSettled(guestIds.map(id => api.post(`/member/saved-cars/${id}`)))
-        localStorage.removeItem(STORAGE_KEY)
+        const results = await Promise.allSettled(guestIds.map(id => api.post(`/member/saved-cars/${id}`)))
+        // A save the server rejected (for example a car that no longer exists) is dropped; one that could not be
+        // delivered (offline, timeout, 5xx) stays in the browser and is retried the next time the list loads.
+        const undelivered = guestIds.filter((id, index) => {
+          const failure = results[index]
+          return failure.status === 'rejected' && (!failure.reason?.response || failure.reason.response.status >= 500)
+        })
+        if (undelivered.length) storeLocalIds(undelivered)
+        else localStorage.removeItem(STORAGE_KEY)
       }
       const { data } = await api.get('/member/saved-cars')
       const cars = Array.isArray(data?.cars) ? data.cars : []
