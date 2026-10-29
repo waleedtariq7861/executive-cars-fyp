@@ -266,19 +266,19 @@ export default function AdminUploadUsedCarPage() {
           <div className="space-y-5">
             <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
               <h3 className="text-gray-900 font-bold mb-5">Car Images</h3>
-              <label className="block w-full border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-primary/40 transition-colors group mb-4">
+              <label className="block w-full border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-primary/40 focus-within:border-blue-500 focus-within:bg-blue-50 transition-colors group mb-4">
                 <Upload className="w-10 h-10 text-gray-500 group-hover:text-primary mx-auto mb-3 transition-colors" />
-                <p className="text-gray-500 text-sm">Drag & drop images or click to upload</p>
+                <p className="text-gray-500 text-sm">Click to choose images</p>
                 <p className="text-gray-600 text-xs mt-1">Max 6 images, JPG/PNG</p>
-                <input key={resetKey} type="file" accept="image/*" multiple className="hidden" onChange={handleImages} />
+                <input key={resetKey} type="file" accept="image/*" multiple className="sr-only" aria-label="Car images" onChange={handleImages} />
               </label>
               {images.length > 0 && (
                 <div className="grid grid-cols-3 gap-2">
                   {images.map((img, i) => (
                     <div key={i} className="relative aspect-square bg-gray-50 rounded-lg overflow-hidden group">
                       <div className="w-full h-full flex items-center justify-center text-gray-500 text-xs p-2 text-center">{img.name}</div>
-                      <button type="button" onClick={() => removeImage(i)}
-                        className="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button type="button" onClick={() => removeImage(i)} aria-label={`Remove ${img.name}`}
+                        className="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity">
                         <X className="w-3 h-3" />
                       </button>
                     </div>
@@ -289,10 +289,10 @@ export default function AdminUploadUsedCarPage() {
 
             <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
               <h3 className="text-gray-900 font-bold mb-5">Inspection Report</h3>
-              <label className="block w-full border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer hover:border-primary/40 transition-colors group">
+              <label className="block w-full border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer hover:border-primary/40 focus-within:border-blue-500 focus-within:bg-blue-50 transition-colors group">
                 <FileText className="w-8 h-8 text-gray-500 group-hover:text-primary mx-auto mb-2 transition-colors" />
                 <p className="text-gray-500 text-sm">{report ? report.name : 'Upload inspection report PDF'}</p>
-                <input key={`pdf-${resetKey}`} type="file" accept=".pdf" className="hidden" onChange={e => setReport(e.target.files[0])} />
+                <input key={`pdf-${resetKey}`} type="file" accept=".pdf" className="sr-only" aria-label="Inspection report PDF" onChange={e => setReport(e.target.files[0])} />
               </label>
             </div>
 

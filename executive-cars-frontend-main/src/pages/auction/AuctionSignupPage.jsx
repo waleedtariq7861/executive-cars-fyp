@@ -49,7 +49,7 @@ export default function AuctionSignupPage() {
     if (result.success) {
       navigate(capability.available ? '/auction/payment' : '/account')
     } else {
-      setErrors({ email: result.message || 'Registration failed. Try a different email.' })
+      setErrors({ submit: result.message || 'Registration failed. Try a different email.' })
     }
   }
 
@@ -142,7 +142,7 @@ export default function AuctionSignupPage() {
               <div className="relative">
                 <input id="auction-signup-password" type={showPass ? 'text' : 'password'} value={form.password} onChange={e => update('password', e.target.value)}
                   placeholder="Min. 8 characters" required className={`input-light pr-10 ${errors.password ? 'border-red-400' : ''}`} />
-                <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                <button type="button" onClick={() => setShowPass(!showPass)} aria-label={showPass ? 'Hide password' : 'Show password'} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
                   {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
@@ -154,7 +154,7 @@ export default function AuctionSignupPage() {
               <div className="relative">
                 <input id="auction-signup-confirm" type={showConfirm ? 'text' : 'password'} value={form.confirm} onChange={e => update('confirm', e.target.value)}
                   placeholder="Repeat password" required className={`input-light pr-10 ${errors.confirm ? 'border-red-400' : ''}`} />
-                <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                <button type="button" onClick={() => setShowConfirm(!showConfirm)} aria-label={showConfirm ? 'Hide confirmation password' : 'Show confirmation password'} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
                   {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
@@ -164,11 +164,12 @@ export default function AuctionSignupPage() {
             <label className="flex items-start gap-3 cursor-pointer">
               <input type="checkbox" checked={form.terms} onChange={e => update('terms', e.target.checked)} required className="mt-0.5 accent-blue-600" />
               <span className="text-gray-500 text-sm">
-                I agree to the <span className="text-blue-600 hover:underline cursor-pointer">Terms of Service</span> and{' '}
-                <span className="text-blue-600 hover:underline cursor-pointer">Privacy Policy</span>
+                I agree to the <Link to="/terms" target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">Terms of Use</Link> and{' '}
+                <Link to="/privacy" target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">Privacy Notice</Link>
               </span>
             </label>
 
+            {errors.submit && <p role="alert" className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">{errors.submit}</p>}
             <button type="submit" disabled={loading} className="btn-primary w-full py-3.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 mt-2 shadow-md shadow-blue-200">
               {loading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <>{capability.available ? 'Create Account and Continue to Demo' : 'Create Account'} <ArrowRight className="w-4 h-4" /></>}
             </button>

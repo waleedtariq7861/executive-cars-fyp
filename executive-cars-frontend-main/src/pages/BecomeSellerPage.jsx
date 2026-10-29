@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { ClipboardCheck, FileText, CheckCircle, Upload, ChevronRight, X, RefreshCw } from 'lucide-react'
+import { ClipboardCheck, FileText, CheckCircle, Car, Upload, ChevronRight, RefreshCw } from 'lucide-react'
 import SellerLayout from '../components/SellerLayout.jsx'
+import { Modal } from '../components/ui/Overlays.jsx'
 import api from '../api/api.js'
 import { useAuth } from '../context/authContext.js'
 import {
@@ -15,9 +16,9 @@ import {
 } from '../utils/inputValidation.js'
 
 const steps = [
-  { icon: ClipboardCheck, label: 'Fill Form', desc: 'Provide your personal and car details' },
-  { icon: FileText, label: 'Documents', desc: 'Upload CNIC and vehicle registration' },
-  { icon: CheckCircle, label: 'Admin Approval', desc: 'Our team reviews and confirms your slot' },
+  { icon: ClipboardCheck, label: 'Personal details', desc: 'Your name, phone, CNIC and email' },
+  { icon: Car, label: 'Vehicle details', desc: 'Make, model, year, mileage and engine' },
+  { icon: FileText, label: 'Documents & slot', desc: 'Upload CNIC and registration, then pick a date, time and branch' },
 ]
 const branches = ['Rawalpindi - Stadium Road Branch', 'Rawalpindi - Saddar Branch']
 
@@ -38,6 +39,10 @@ export default function BecomeSellerPage() {
   const [fieldErrors, setFieldErrors] = useState({})
   const update = (k, v) => setForm(f => ({ ...f, [k]: v }))
   const today = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10)
+
+  useEffect(() => {
+    if (showOTP) window.requestAnimationFrame(() => document.getElementById('otp-0')?.focus())
+  }, [showOTP])
 
   useEffect(() => {
     if (!showOTP || otpTimer <= 0) return undefined
@@ -134,6 +139,18 @@ export default function BecomeSellerPage() {
     if (val && i < 5) document.getElementById(`otp-${i + 1}`)?.focus()
   }
 
+  const handleOtpKeyDown = (i, event) => {
+    if (event.key === 'Backspace' && !otp[i] && i > 0) document.getElementById(`otp-${i - 1}`)?.focus()
+  }
+
+  const handleOtpPaste = event => {
+    const digits = event.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6)
+    if (!digits) return
+    event.preventDefault()
+    setOtp(Array.from({ length: 6 }, (_, index) => digits[index] || ''))
+    document.getElementById(`otp-${Math.min(digits.length, 5)}`)?.focus()
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     const errs = validateStep(step)
@@ -148,7 +165,7 @@ export default function BecomeSellerPage() {
       setShowOTP(true)
       startOtpTimer()
     } catch (err) {
-      setFieldErrors({ date: err.response?.data?.message || 'Failed to send OTP. Try again.' })
+      setFieldErrors({ submit: err.response?.data?.message || 'Failed to send OTP. Try again.' })
     } finally {
       setRequestingOtp(false)
     }
@@ -231,9 +248,9 @@ export default function BecomeSellerPage() {
                       { label: 'Email Address', key: 'email', type: 'email', placeholder: 'you@example.com' },
                     ].map(f => (
                       <div key={f.key}>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">{f.label}</label>
-                        <input type={f.type} value={form[f.key]} onChange={e => update(f.key, f.key === 'name' ? sanitizePersonName(e.target.value) : f.key === 'phone' ? sanitizePhone(e.target.value) : f.key === 'cnic' ? sanitizeCnic(e.target.value) : e.target.value)} placeholder={f.placeholder} required readOnly={f.key === 'email' && user?.role === 'user'} inputMode={f.inputMode} maxLength={f.maxLength} className={`input-light ${fieldErrors[f.key] ? 'border-red-400' : ''} ${f.key === 'email' && user?.role === 'user' ? 'bg-gray-50 text-gray-500' : ''}`} />
-                        {fieldErrors[f.key] && <p className="text-red-600 text-xs mt-1">{fieldErrors[f.key]}</p>}
+                        <label htmlFor={`seller-personal-${f.key}`} className="block text-sm font-medium text-gray-700 mb-1.5">{f.label}</label>
+                        <input id={`seller-personal-${f.key}`} aria-invalid={Boolean(fieldErrors[f.key])} aria-describedby={fieldErrors[f.key] ? `seller-personal-${f.key}-error` : undefined} type={f.type} value={form[f.key]} onChange={e => update(f.key, f.key === 'name' ? sanitizePersonName(e.target.value) : f.key === 'phone' ? sanitizePhone(e.target.value) : f.key === 'cnic' ? sanitizeCnic(e.target.value) : e.target.value)} placeholder={f.placeholder} required readOnly={f.key === 'email' && user?.role === 'user'} inputMode={f.inputMode} maxLength={f.maxLength} className={`input-light ${fieldErrors[f.key] ? 'border-red-400' : ''} ${f.key === 'email' && user?.role === 'user' ? 'bg-gray-50 text-gray-500' : ''}`} />
+                        {fieldErrors[f.key] && <p id={`seller-personal-${f.key}-error`} role="alert" className="text-red-600 text-xs mt-1">{fieldErrors[f.key]}</p>}
                       </div>
                     ))}
                   </>
@@ -275,18 +292,18 @@ export default function BecomeSellerPage() {
                     <h3 className="text-gray-900 font-bold text-xl mb-5">Documents & Verification</h3>
                     <div>
                       <p className="block text-sm font-medium text-gray-700 mb-1.5">Upload CNIC Image</p>
-                      <label className="block w-full border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors group">
+                      <label className="block w-full border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 focus-within:border-blue-500 focus-within:bg-blue-50 transition-colors group">
                         <Upload className="w-8 h-8 text-gray-400 group-hover:text-blue-500 mx-auto mb-2 transition-colors" />
-                        <span className="text-gray-500 text-sm">{form.cnicFile ? form.cnicFile.name : 'Drag & drop or click to upload CNIC'}</span>
-                        <input type="file" accept="image/*" className="hidden" onChange={e => update('cnicFile', e.target.files[0])} />
+                        <span className="text-gray-500 text-sm">{form.cnicFile ? form.cnicFile.name : 'Click to choose your CNIC image'}</span>
+                        <input type="file" accept="image/*" className="sr-only" aria-label="CNIC image" onChange={e => update('cnicFile', e.target.files[0])} />
                       </label>
                     </div>
                     <div>
                       <p className="block text-sm font-medium text-gray-700 mb-1.5">Vehicle Registration Document</p>
-                      <label className="block w-full border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors group">
+                      <label className="block w-full border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 focus-within:border-blue-500 focus-within:bg-blue-50 transition-colors group">
                         <FileText className="w-8 h-8 text-gray-400 group-hover:text-blue-500 mx-auto mb-2 transition-colors" />
-                        <span className="text-gray-500 text-sm">{form.regFile ? form.regFile.name : 'Drag & drop or click to upload Registration'}</span>
-                        <input type="file" accept="image/*,.pdf" className="hidden" onChange={e => update('regFile', e.target.files[0])} />
+                        <span className="text-gray-500 text-sm">{form.regFile ? form.regFile.name : 'Click to choose your registration document'}</span>
+                        <input type="file" accept="image/*,.pdf" className="sr-only" aria-label="Vehicle registration document" onChange={e => update('regFile', e.target.files[0])} />
                       </label>
                     </div>
                     <div>
@@ -316,6 +333,7 @@ export default function BecomeSellerPage() {
                   </>
                 )}
 
+                {fieldErrors.submit && <p role="alert" className="text-red-600 text-sm">{fieldErrors.submit}</p>}
                 <div className="flex gap-3 pt-2">
                   {step > 1 && (
                     <button type="button" onClick={() => setStep(s => s - 1)} className="btn-ghost px-6 py-3 rounded-xl font-semibold text-sm">Back</button>
@@ -335,45 +353,32 @@ export default function BecomeSellerPage() {
       </section>
 
       {/* OTP Modal */}
-      {showOTP && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <button type="button" aria-label="Close verification dialog" tabIndex={-1} className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowOTP(false)} />
-          <div role="dialog" aria-modal="true" aria-labelledby="seller-otp-title" className="relative bg-white rounded-2xl p-8 w-full max-w-sm shadow-2xl animate-scaleIn">
-            <button type="button" aria-label="Close verification dialog" onClick={() => setShowOTP(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
-            <div className="text-center mb-6">
-              <div className="w-14 h-14 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle className="w-7 h-7 text-white" />
-              </div>
-              <h3 id="seller-otp-title" className="text-gray-900 font-bold text-xl">Verify Your Email</h3>
-              <p className="text-gray-500 text-sm mt-2">Enter the 6-digit OTP sent to {form.email}</p>
-            </div>
-            <div className="flex gap-2 justify-center mb-4">
-              {otp.map((d, i) => (
-                <input key={i} id={`otp-${i}`} type="text" inputMode="numeric" pattern="[0-9]*" autoComplete={i === 0 ? 'one-time-code' : 'off'} maxLength={1} value={d} onChange={e => handleOtpChange(i, e.target.value)}
-                  className="w-11 h-12 bg-gray-50 border-2 border-gray-200 rounded-lg text-center text-gray-900 text-lg font-bold focus:outline-none focus:border-blue-500 transition-colors" />
-              ))}
-            </div>
-            {devOtp && (
-              <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-4 text-center">
-                <p className="text-amber-800 text-xs font-semibold">Local email delivery is unavailable</p>
-                <p className="text-amber-950 font-black tracking-[0.25em] text-xl mt-1">{devOtp}</p>
-                <p className="text-amber-700 text-[11px] mt-1">Development only — production never exposes the OTP.</p>
-              </div>
-            )}
-            {otpError && <p className="text-red-600 text-xs text-center mb-3">{otpError}</p>}
-            <button onClick={handleVerifyOtp} disabled={verifying || submitting} className="btn-primary w-full py-3 rounded-xl font-semibold text-sm mb-3">
-              {verifying || submitting ? 'Verifying...' : 'Verify OTP'}
-            </button>
-            <div className="text-center text-sm text-gray-500">
-              {otpTimer > 0 ? <span>Resend in {otpTimer}s</span> : (
-                <button onClick={handleResendOtp} className="text-blue-600 flex items-center gap-1 mx-auto hover:underline">
-                  <RefreshCw className="w-3 h-3" /> Resend OTP
-                </button>
-              )}
-            </div>
-          </div>
+      <Modal open={showOTP} onClose={() => setShowOTP(false)} title="Verify your email" description={`Enter the 6-digit code sent to ${form.email}`} size="sm">
+        <div className="flex gap-2 justify-center mb-4" role="group" aria-label="6-digit verification code" onPaste={handleOtpPaste}>
+          {otp.map((d, i) => (
+            <input key={i} id={`otp-${i}`} aria-label={`Digit ${i + 1}`} type="text" inputMode="numeric" pattern="[0-9]*" autoComplete={i === 0 ? 'one-time-code' : 'off'} maxLength={1} value={d} onChange={e => handleOtpChange(i, e.target.value)} onKeyDown={e => handleOtpKeyDown(i, e)}
+              className="w-11 h-12 bg-gray-50 border-2 border-gray-200 rounded-lg text-center text-gray-900 text-lg font-bold focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-200 transition-colors" />
+          ))}
         </div>
-      )}
+        {devOtp && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-4 text-center">
+            <p className="text-amber-800 text-xs font-semibold">Local email delivery is unavailable</p>
+            <p className="text-amber-950 font-black tracking-[0.25em] text-xl mt-1">{devOtp}</p>
+            <p className="text-amber-700 text-[11px] mt-1">Development only — production never exposes the OTP.</p>
+          </div>
+        )}
+        {otpError && <p role="alert" className="text-red-600 text-xs text-center mb-3">{otpError}</p>}
+        <button type="button" onClick={handleVerifyOtp} disabled={verifying || submitting} className="btn-primary w-full py-3 rounded-xl font-semibold text-sm mb-3">
+          {verifying || submitting ? 'Verifying...' : 'Verify OTP'}
+        </button>
+        <div className="text-center text-sm text-gray-500">
+          {otpTimer > 0 ? <span>Resend in {otpTimer}s</span> : (
+            <button type="button" onClick={handleResendOtp} className="text-blue-600 inline-flex items-center gap-1 hover:underline">
+              <RefreshCw className="w-3 h-3" /> Resend OTP
+            </button>
+          )}
+        </div>
+      </Modal>
     </div>
   )
 
