@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import {
   ChevronLeft, Gavel, FileText, Download, Users, Timer,
-  Settings, Fuel, Gauge, Calendar, Palette, CheckCircle, Car,
+  Settings, Fuel, Gauge, Calendar, Palette, CheckCircle,
   TrendingUp, Zap, Bell
 } from 'lucide-react'
 import { useAuth } from '../../context/authContext.js'
