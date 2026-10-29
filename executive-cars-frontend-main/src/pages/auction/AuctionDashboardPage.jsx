@@ -9,14 +9,10 @@ import VehicleImage from '../../components/VehicleImage.jsx'
 import { formatBidCount } from '../../utils/auction.js'
 import { ErrorState, Skeleton } from '../../components/ui/Feedback.jsx'
 
-function timeUntil(isoDate) {
-  const diff = Math.max(0, Math.floor((new Date(isoDate) - Date.now()) / 1000))
-  return { h: Math.floor(diff / 3600), m: Math.floor((diff % 3600) / 60), s: diff % 60 }
-}
-
 const AuctionCard = React.memo(function AuctionCard({ car }) {
-  const endsIn = timeUntil(car.auctionEnd)
-  const isHot = car.bidCount > 3
+  // The countdown reaching zero closes bidding on screen without waiting for a reload.
+  const [ended, setEnded] = useState(() => new Date(car.auctionEnd).getTime() <= Date.now())
+  const isHot = !ended && car.bidCount > 3
   return (
     <Link to={`/auction/car/${car._id}`}
       className="bg-white border border-gray-200 rounded-2xl overflow-hidden card-hover group shadow-sm">
@@ -29,13 +25,17 @@ const AuctionCard = React.memo(function AuctionCard({ car }) {
               <Flame className="w-3 h-3" /> Hot
             </span>
           )}
-          <span className="bg-green-500/90 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1 font-medium">
-            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" /> Live
-          </span>
+          {ended ? (
+            <span className="bg-gray-700/90 text-white text-xs px-2 py-1 rounded-full font-medium">Ended</span>
+          ) : (
+            <span className="bg-green-500/90 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1 font-medium">
+              <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" /> Live
+            </span>
+          )}
         </div>
-        <div className="absolute bottom-3 right-3">
-          <CountdownTimer endsIn={endsIn} />
-        </div>
+        {!ended && <div className="absolute bottom-3 right-3">
+          <CountdownTimer endsAt={car.auctionEnd} onEnd={() => setEnded(true)} />
+        </div>}
       </div>
       <div className="p-4">
         <h3 className="text-gray-900 font-bold">{car.make} {car.model} {car.year}</h3>
@@ -46,9 +46,10 @@ const AuctionCard = React.memo(function AuctionCard({ car }) {
           </div>
           <div className="text-right">
             <p className="text-gray-400 text-xs">{formatBidCount(car.bidCount)}</p>
-            <button className="btn-primary px-4 py-2 rounded-lg text-xs font-semibold mt-1 flex items-center gap-1">
-              <Gavel className="w-3 h-3" /> Bid Now
-            </button>
+            {/* A <span>, not a <button>: the whole card is already one link. */}
+            <span className="btn-primary px-4 py-2 rounded-lg text-xs font-semibold mt-1 gap-1">
+              <Gavel className="w-3 h-3" /> {ended ? 'View result' : 'Bid Now'}
+            </span>
           </div>
         </div>
       </div>
@@ -120,7 +121,7 @@ export default function AuctionDashboardPage() {
         <div className="flex items-center gap-2">
           <div className="flex gap-1">
             {['All', 'Hot', 'Ending Soon'].map(f => (
-              <button key={f} onClick={() => setFilter(f)}
+              <button key={f} type="button" onClick={() => setFilter(f)} aria-pressed={filter === f}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${
                   filter === f ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300'
                 }`}>{f}</button>
@@ -140,6 +141,12 @@ export default function AuctionDashboardPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
           {filtered.map(car => <AuctionCard key={car._id} car={car} />)}
+        </div>
+      )}
+      {cars.length > 0 && filtered.length === 0 && (
+        <div className="text-center py-16 text-gray-500" role="status">
+          <p className="font-medium">No {filter === 'Hot' ? 'hot' : 'ending-soon'} auctions right now.</p>
+          <button type="button" onClick={() => setFilter('All')} className="mt-3 text-blue-600 text-sm font-semibold hover:underline">Show all auctions</button>
         </div>
       )}
       </>}

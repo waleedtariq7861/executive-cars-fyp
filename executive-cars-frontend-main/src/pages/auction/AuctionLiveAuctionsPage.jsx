@@ -10,11 +10,6 @@ import api from '../../api/api.js'
 import { hasInspectionReport } from '../../utils/inspectionReport.js'
 import { formatBidCount } from '../../utils/auction.js'
 
-function timeUntil(isoDate) {
-  const diff = Math.max(0, Math.floor((new Date(isoDate) - Date.now()) / 1000))
-  return { d: Math.floor(diff / 86400), h: Math.floor((diff % 86400) / 3600), m: Math.floor((diff % 3600) / 60), s: diff % 60 }
-}
-
 const phases = [
   { value: 'live', label: 'Live auctions' },
   { value: 'upcoming', label: 'Upcoming' },
@@ -27,10 +22,14 @@ const phaseTone = {
   ended: 'bg-gray-700 text-white',
 }
 
-function AuctionCard({ car, phase }) {
+function AuctionCard({ car, phase: listedPhase }) {
+  // The card follows the clock: upcoming becomes live, live becomes ended, without a reload.
+  const [clockPhase, setClockPhase] = useState(null)
+  const phase = clockPhase || listedPhase
+  const advancePhase = () => setClockPhase(phase === 'upcoming' ? 'live' : phase === 'live' ? 'ended' : phase)
   const isHot = phase === 'live' && car.bidCount > 3
   const countTo = phase === 'upcoming' ? car.auctionStart : car.auctionEnd
-  const reserveText = car.reservePrice
+  const reserveText = phase !== 'upcoming' && car.reservePrice
     ? (car.currentBid >= car.reservePrice ? 'Reserve met' : 'Reserve not met')
     : null
 
@@ -43,7 +42,7 @@ function AuctionCard({ car, phase }) {
           {isHot && <span className="bg-red-600 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1 font-bold"><Flame className="w-3 h-3" /> Active bidding</span>}
           <span className={`${phaseTone[phase]} text-xs px-2.5 py-1 rounded-full font-bold capitalize`}>{phase}</span>
         </div>
-        <div className="absolute bottom-3 left-3"><p className="text-white/75 text-[11px] font-semibold mb-1">{phase === 'upcoming' ? 'Starts in' : phase === 'live' ? 'Ends in' : 'Ended'}</p>{phase !== 'ended' && <CountdownTimer endsIn={timeUntil(countTo)} showDays />}</div>
+        <div className="absolute bottom-3 left-3"><p className="text-white/75 text-[11px] font-semibold mb-1">{phase === 'upcoming' ? 'Starts in' : phase === 'live' ? 'Ends in' : 'Ended'}</p>{phase !== 'ended' && <CountdownTimer key={phase} endsAt={countTo} showDays onEnd={advancePhase} />}</div>
       </Link>
       <div className="p-4">
         <div className="flex justify-between gap-3"><div><h3 className="text-gray-950 font-black">{car.make} {car.model} {car.year}</h3><p className="text-gray-500 text-xs mt-1">{car.km?.toLocaleString('en-PK')} km · {car.transmission} · {car.engine} cc</p></div>{hasInspectionReport(car) && <span className="badge-blue text-xs self-start px-2 py-1 rounded-full font-bold">Report</span>}</div>
@@ -93,7 +92,7 @@ export default function AuctionLiveAuctionsPage() {
         <p className="text-xs text-gray-500 mt-3">{filtered.length} {phase} auction{filtered.length === 1 ? '' : 's'}</p>
       </div>
 
-      {loadError ? <div className="bg-white border border-gray-200 rounded-2xl"><ErrorState title="Auctions unavailable" description={loadError} onRetry={() => setRefreshKey(value => value + 1)} /></div> : loading ? <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5">{[1, 2, 3, 4, 5, 6].map(item => <div key={item} className="bg-white border border-gray-200 rounded-2xl p-3"><Skeleton className="aspect-video" /><Skeleton className="h-5 w-2/3 mt-4" /><Skeleton className="h-10 mt-4" /></div>)}</div> : filtered.length ? <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">{filtered.map(car => <AuctionCard key={car._id} car={car} phase={phase} />)}</div> : <div className="bg-white border border-gray-200 rounded-2xl"><EmptyState icon={phase === 'upcoming' ? CalendarClock : Gavel} title={`No ${phase} auctions`} description={search ? 'No auction matches this search.' : `There are no ${phase} auctions at the moment.`} /></div>}
+      {loadError ? <div className="bg-white border border-gray-200 rounded-2xl"><ErrorState title="Auctions unavailable" description={loadError} onRetry={() => setRefreshKey(value => value + 1)} /></div> : loading ? <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5">{[1, 2, 3, 4, 5, 6].map(item => <div key={item} className="bg-white border border-gray-200 rounded-2xl p-3"><Skeleton className="aspect-video" /><Skeleton className="h-5 w-2/3 mt-4" /><Skeleton className="h-10 mt-4" /></div>)}</div> : filtered.length ? <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">{filtered.map(car => <AuctionCard key={`${car._id}-${phase}`} car={car} phase={phase} />)}</div> : <div className="bg-white border border-gray-200 rounded-2xl"><EmptyState icon={phase === 'upcoming' ? CalendarClock : Gavel} title={`No ${phase} auctions`} description={search ? 'No auction matches this search.' : `There are no ${phase} auctions at the moment.`} /></div>}
     </AuctionLayout>
   )
 }
