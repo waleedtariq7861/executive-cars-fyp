@@ -14,7 +14,9 @@ export default function ProtectedRoute({ role = 'user', capability, unauthentica
     const loginPath = role === 'admin' ? '/admin/login' : '/login'
     const from = `${location.pathname}${location.search}`
     const message = user
-      ? 'That page needs a different type of account. Sign in with the right account to continue.'
+      ? (role === 'admin'
+        ? 'This area is for administrators. Sign in with an administrator account to continue.'
+        : 'This page is for customer accounts. Sign in with a customer account to continue.')
       : unauthenticatedMessage
     return <Navigate to={loginPath} state={{ from, message }} replace />
   }

@@ -145,7 +145,7 @@ export default function AuctionDashboardPage() {
       )}
       {cars.length > 0 && filtered.length === 0 && (
         <div className="text-center py-16 text-gray-500" role="status">
-          <p className="font-medium">No {filter === 'Hot' ? 'hot' : 'ending-soon'} auctions right now.</p>
+          <p className="font-medium">No auctions match “{filter}” right now.</p>
           <button type="button" onClick={() => setFilter('All')} className="mt-3 text-blue-600 text-sm font-semibold hover:underline">Show all auctions</button>
         </div>
       )}

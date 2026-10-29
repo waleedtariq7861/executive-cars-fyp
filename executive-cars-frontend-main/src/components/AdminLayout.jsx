@@ -27,7 +27,7 @@ export default function AdminLayout({ children, title }) {
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
-      <aside id="admin-sidebar" aria-label="Admin navigation" className={`fixed lg:static inset-y-0 left-0 z-40 w-60 bg-white border-r border-gray-200 flex flex-col transition-transform duration-300 ${mobileOpen ? 'translate-x-0' : '-translate-x-full invisible lg:visible lg:translate-x-0'}`}>
+      <aside id="admin-sidebar" aria-label="Admin navigation" className={`fixed lg:static inset-y-0 left-0 z-40 w-60 bg-white border-r border-gray-200 flex flex-col transition-[transform,visibility] duration-300 ${mobileOpen ? 'translate-x-0' : '-translate-x-full invisible lg:visible lg:translate-x-0'}`}>
         <div className="p-5 border-b border-gray-200">
           <Link to="/" className="flex items-center gap-2">
             <Logo />

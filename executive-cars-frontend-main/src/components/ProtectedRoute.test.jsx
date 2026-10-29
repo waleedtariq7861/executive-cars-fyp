@@ -36,7 +36,7 @@ describe('ProtectedRoute', () => {
         </MemoryRouter>
       </AuthContext.Provider>
     )
-    expect(screen.getByText(/Redirect: \/account/)).toHaveTextContent('needs a different type of account')
+    expect(screen.getByText(/Redirect: \/account/)).toHaveTextContent('This page is for customer accounts')
   })
 
   it('preserves the complete inspection destination and sign-in message', () => {

@@ -61,7 +61,7 @@ export default function SellerListingsPage() {
                       <p className="text-gray-400 text-xs">{formatBidCount(listing.bidCount)}</p>
                     )}
                   </div>
-                  <Link to={isAuction ? '/auction' : `/used-cars/${listing._id}`} className="btn-ghost w-full mt-4 py-2 text-xs">{isAuction ? 'Open auctions' : 'View public listing'}</Link>
+                  {!isAuction && <Link to={`/used-cars/${listing._id}`} className="btn-ghost w-full mt-4 py-2 text-xs">View public listing</Link>}
                 </div>
               </div>
             )

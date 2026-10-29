@@ -18,7 +18,7 @@ import {
 const steps = [
   { icon: ClipboardCheck, label: 'Personal details', desc: 'Your name, phone, CNIC and email' },
   { icon: Car, label: 'Vehicle details', desc: 'Make, model, year, mileage and engine' },
-  { icon: FileText, label: 'Documents & slot', desc: 'Upload CNIC and registration, then pick a date, time and branch' },
+  { icon: FileText, label: 'Documents & schedule', desc: 'Upload your CNIC and registration, then pick a date, time and branch' },
 ]
 const branches = ['Rawalpindi - Stadium Road Branch', 'Rawalpindi - Saddar Branch']
 
@@ -60,14 +60,14 @@ export default function BecomeSellerPage() {
       setDevOtp(data.devOtp || '')
       startOtpTimer()
     } catch (err) {
-      setOtpError(err.response?.data?.message || 'Failed to resend OTP.')
+      setOtpError(err.response?.data?.message || 'Could not resend the code. Try again.')
     }
   }
 
   const handleVerifyOtp = async () => {
     setOtpError('')
     if (!/^\d{6}$/.test(otp.join(''))) {
-      setOtpError('Enter the complete 6-digit OTP.')
+      setOtpError('Enter the complete 6-digit code.')
       return
     }
     setVerifying(true)
@@ -102,7 +102,7 @@ export default function BecomeSellerPage() {
         },
       })
     } catch (err) {
-      setOtpError(err.response?.data?.message || 'Invalid or expired OTP.')
+      setOtpError(err.response?.data?.message || 'That code is invalid or has expired. Request a new one.')
     }
     setVerifying(false)
     setSubmitting(false)
@@ -165,7 +165,7 @@ export default function BecomeSellerPage() {
       setShowOTP(true)
       startOtpTimer()
     } catch (err) {
-      setFieldErrors({ submit: err.response?.data?.message || 'Failed to send OTP. Try again.' })
+      setFieldErrors({ submit: err.response?.data?.message || 'Could not send the verification code. Try again.' })
     } finally {
       setRequestingOtp(false)
     }
@@ -294,7 +294,7 @@ export default function BecomeSellerPage() {
                       <p className="block text-sm font-medium text-gray-700 mb-1.5">Upload CNIC Image</p>
                       <label className="block w-full border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 focus-within:border-blue-500 focus-within:bg-blue-50 transition-colors group">
                         <Upload className="w-8 h-8 text-gray-400 group-hover:text-blue-500 mx-auto mb-2 transition-colors" />
-                        <span className="text-gray-500 text-sm">{form.cnicFile ? form.cnicFile.name : 'Click to choose your CNIC image'}</span>
+                        <span className="text-gray-500 text-sm">{form.cnicFile ? form.cnicFile.name : 'Choose your CNIC image'}</span>
                         <input type="file" accept="image/*" className="sr-only" aria-label="CNIC image" onChange={e => update('cnicFile', e.target.files[0])} />
                       </label>
                     </div>
@@ -302,7 +302,7 @@ export default function BecomeSellerPage() {
                       <p className="block text-sm font-medium text-gray-700 mb-1.5">Vehicle Registration Document</p>
                       <label className="block w-full border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 focus-within:border-blue-500 focus-within:bg-blue-50 transition-colors group">
                         <FileText className="w-8 h-8 text-gray-400 group-hover:text-blue-500 mx-auto mb-2 transition-colors" />
-                        <span className="text-gray-500 text-sm">{form.regFile ? form.regFile.name : 'Click to choose your registration document'}</span>
+                        <span className="text-gray-500 text-sm">{form.regFile ? form.regFile.name : 'Choose your registration document'}</span>
                         <input type="file" accept="image/*,.pdf" className="sr-only" aria-label="Vehicle registration document" onChange={e => update('regFile', e.target.files[0])} />
                       </label>
                     </div>
@@ -369,12 +369,12 @@ export default function BecomeSellerPage() {
         )}
         {otpError && <p role="alert" className="text-red-600 text-xs text-center mb-3">{otpError}</p>}
         <button type="button" onClick={handleVerifyOtp} disabled={verifying || submitting} className="btn-primary w-full py-3 rounded-xl font-semibold text-sm mb-3">
-          {verifying || submitting ? 'Verifying...' : 'Verify OTP'}
+          {verifying || submitting ? 'Verifying…' : 'Verify code'}
         </button>
         <div className="text-center text-sm text-gray-500">
-          {otpTimer > 0 ? <span>Resend in {otpTimer}s</span> : (
+          {otpTimer > 0 ? <span>Resend code in {otpTimer}s</span> : (
             <button type="button" onClick={handleResendOtp} className="text-blue-600 inline-flex items-center gap-1 hover:underline">
-              <RefreshCw className="w-3 h-3" /> Resend OTP
+              <RefreshCw className="w-3 h-3" /> Resend code
             </button>
           )}
         </div>

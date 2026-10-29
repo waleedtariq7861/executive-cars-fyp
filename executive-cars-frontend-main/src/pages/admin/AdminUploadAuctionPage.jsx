@@ -307,7 +307,7 @@ export default function AdminUploadAuctionPage() {
               <h3 className="text-gray-900 font-bold mb-5">Car Images</h3>
               <label className="block w-full border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-primary/40 focus-within:border-blue-500 focus-within:bg-blue-50 transition-colors group mb-4">
                 <Upload className="w-10 h-10 text-gray-500 group-hover:text-primary mx-auto mb-3 transition-colors" />
-                <p className="text-gray-500 text-sm">Click to choose images</p>
+                <p className="text-gray-500 text-sm">Choose up to 6 images</p>
                 <p className="text-gray-600 text-xs mt-1">Max 6 images, JPG/PNG</p>
                 <input key={resetKey} type="file" accept="image/*" multiple className="sr-only" aria-label="Car images" onChange={handleImages} />
               </label>
