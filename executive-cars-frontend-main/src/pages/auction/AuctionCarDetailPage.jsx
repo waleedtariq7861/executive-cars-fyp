@@ -327,7 +327,7 @@ export default function AuctionCarDetailPage() {
               <div className="mb-4 pb-4 border-b border-gray-100">
                 <div className="flex items-center gap-2 mb-3">
                   <Timer className="w-4 h-4 text-blue-600" />
-                  <span className="text-gray-700 text-sm font-semibold">{auctionNotStarted ? 'Auction starts in' : 'Auction ends in'}</span>
+                  <span className="text-gray-700 text-sm font-semibold">{auctionEnded ? 'Auction ended' : auctionNotStarted ? 'Auction starts in' : 'Auction ends in'}</span>
                 </div>
                 <CountdownTimer key={auctionNotStarted ? 'opens' : 'closes'} endsAt={auctionNotStarted ? car.auctionStart : car.auctionEnd} showDays onEnd={onCountdownEnd} />
               </div>
@@ -388,7 +388,7 @@ export default function AuctionCarDetailPage() {
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="text-gray-900 font-bold text-sm">Live Bid Feed</h4>
                   <span className={`flex items-center gap-1 text-xs font-medium ${auctionEnded ? 'text-gray-500' : 'text-green-600'}`}>
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" /> Live
+                    <span className={`w-1.5 h-1.5 rounded-full ${auctionEnded ? 'bg-gray-400' : 'bg-green-500 animate-pulse'}`} /> {auctionEnded ? 'Closed' : 'Live'}
                   </span>
                 </div>
                 <div ref={bidListRef} className="space-y-2 max-h-52 overflow-y-auto pr-1">

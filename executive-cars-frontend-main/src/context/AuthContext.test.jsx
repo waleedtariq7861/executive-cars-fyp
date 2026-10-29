@@ -93,6 +93,19 @@ describe('AuthProvider cookie session lifecycle', () => {
       expect(disconnectSocket).not.toHaveBeenCalled()
     })
 
+    it('exposes the requested landing page after a successful sign out and ignores event arguments', async () => {
+      const Probe2 = () => {
+        const { user, logout, logoutRedirect } = useAuth()
+        return <div><span>{user ? 'in' : 'out'}</span><span>redirect:{logoutRedirect || 'none'}</span><button onClick={() => logout('/auction')}>Go</button><button onClick={logout}>Event</button></div>
+      }
+      api.get.mockResolvedValue({ data: { user: member, csrfToken: 'csrf-1' } })
+      render(<AuthProvider><Probe2 /></AuthProvider>)
+      await screen.findByText('in')
+      fireEvent.click(screen.getByRole('button', { name: 'Go' }))
+      expect(await screen.findByText('redirect:/auction')).toBeInTheDocument()
+      expect(screen.getByText('out')).toBeInTheDocument()
+    })
+
     it('treats 401 as already signed out', async () => {
       renderSignedIn()
       await screen.findByText('member@example.com')

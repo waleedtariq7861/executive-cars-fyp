@@ -46,3 +46,17 @@ describe('AuctionLayout', () => {
     expect(screen.getByRole('link', { name: 'Live Auctions' })).toHaveAttribute('aria-current', 'page')
   })
 })
+
+describe.each([
+  ['AdminLayout', AdminLayout, '/admin/dashboard', '/admin'],
+  ['AuctionLayout', AuctionLayout, '/auction/dashboard', '/auction'],
+  ['SellerLayout', SellerLayout, '/seller/dashboard', '/login'],
+])('%s sign out', (_name, Layout, path, destination) => {
+  it('asks the auth context to land on the public page after signing out', () => {
+    logout.mockClear()
+    render(<MemoryRouter initialEntries={[path]}><Layout title="Page"><p>Body</p></Layout></MemoryRouter>)
+    fireEvent.click(screen.getByRole('button', { name: /logout/i }))
+    expect(logout).toHaveBeenCalledTimes(1)
+    expect(logout).toHaveBeenCalledWith(destination)
+  })
+})

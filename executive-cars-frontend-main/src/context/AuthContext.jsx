@@ -8,6 +8,9 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [initializing, setInitializing] = useState(true)
   const toast = useContext(ToastContext)
+  // Where a protected page should send the user right after an intentional sign out.
+  const [logoutRedirect, setLogoutRedirect] = useState(null)
+  const clearLogoutRedirect = useCallback(() => setLogoutRedirect(null), [])
 
   useEffect(() => {
     const handleUnauthorized = () => {
@@ -66,7 +69,8 @@ export function AuthProvider({ children }) {
   // Resolves true once the browser is really signed out. If the server could
   // not clear the session cookie we keep the user signed in and say so, rather
   // than showing a signed-out UI that the next reload would silently undo.
-  const logout = async () => {
+  const logout = async redirectTo => {
+    const destination = typeof redirectTo === 'string' ? redirectTo : null
     const signOutLocally = () => {
       disconnectSocket()
       setCsrfToken('')
@@ -81,10 +85,12 @@ export function AuthProvider({ children }) {
         await api.post('/auth/logout')
       }
       signOutLocally()
+      if (destination) setLogoutRedirect(destination)
       return true
     } catch (error) {
       if (error.response?.status === 401) { // the session had already ended
         signOutLocally()
+        if (destination) setLogoutRedirect(destination)
         return true
       }
       toast?.showToast({ tone: 'error', title: 'Could not sign out', message: 'Check your connection and try again.' })
@@ -116,6 +122,8 @@ export function AuthProvider({ children }) {
       registerAccount,
       registerMember: registerAccount,
       logout,
+      logoutRedirect,
+      clearLogoutRedirect,
       updateUser,
       refreshUser,
     }}>

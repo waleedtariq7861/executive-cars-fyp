@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/authContext.js'
 import { Car, Users, Calendar, Gavel, List, Upload, PlusCircle, LogOut, Menu, X, Shield, BarChart3, Database } from 'lucide-react'
 import Logo from './Logo.jsx'
@@ -17,12 +17,11 @@ const navItems = [
 
 export default function AdminLayout({ children, title }) {
   const location = useLocation()
-  const navigate = useNavigate()
   const { logout } = useAuth()
   const [mobileOpen, setMobileOpen] = useState(false)
 
   const isActive = to => location.pathname === to || location.pathname.startsWith(`${to}/`)
-  const handleLogout = async () => { if (await logout()) navigate('/admin') }
+  const handleLogout = () => logout('/admin')
 
   return (
     <div className="min-h-screen bg-gray-50 flex">

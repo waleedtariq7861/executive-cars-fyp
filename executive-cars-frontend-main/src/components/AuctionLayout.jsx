@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { LayoutDashboard, Gavel, TrendingUp, Trophy, User, LogOut, Menu, X } from 'lucide-react'
 import Logo from './Logo.jsx'
 import { useAuth } from '../context/authContext.js'
@@ -14,12 +14,11 @@ const navItems = [
 
 export default function AuctionLayout({ children, title }) {
   const location = useLocation()
-  const navigate = useNavigate()
   const { user, logout } = useAuth()
   const [mobileOpen, setMobileOpen] = useState(false)
 
   const isActive = item => location.pathname === item.to || (item.to === '/auction/live' && location.pathname.startsWith('/auction/car/'))
-  const handleLogout = async () => { if (await logout()) navigate('/auction') }
+  const handleLogout = () => logout('/auction')
 
   return (
     <div className="min-h-screen bg-gray-50 flex">

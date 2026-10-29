@@ -1,7 +1,7 @@
 import React from 'react'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import ProtectedRoute from './ProtectedRoute.jsx'
 import { AuthContext } from '../context/authContext.js'
 
@@ -23,6 +23,25 @@ describe('ProtectedRoute', () => {
   it('renders for a matching account role', () => {
     renderRoute({ role: 'user' })
     expect(screen.getByText('Private account')).toBeInTheDocument()
+  })
+
+  it('sends a deliberate sign out to the chosen page instead of the login form', () => {
+    const clearLogoutRedirect = vi.fn()
+    render(
+      <AuthContext.Provider value={{ user: null, logoutRedirect: '/auction', clearLogoutRedirect }}>
+        <MemoryRouter initialEntries={['/auction/dashboard']}>
+          <Routes>
+            <Route path="/login" element={<p>Login screen</p>} />
+            <Route path="/auction" element={<p>Auction gate</p>} />
+            <Route path="/auction/dashboard" element={<ProtectedRoute role="user"><p>Dashboard</p></ProtectedRoute>} />
+          </Routes>
+        </MemoryRouter>
+      </AuthContext.Provider>
+    )
+    expect(screen.getByText('Auction gate')).toBeInTheDocument()
+    expect(screen.queryByText('Login screen')).not.toBeInTheDocument()
+    // forgotten once the guard has been left behind, not while the redirect is still pending
+    expect(clearLogoutRedirect).toHaveBeenCalledTimes(1)
   })
 
   it('explains why a signed-in account of the wrong type was sent to sign in', () => {

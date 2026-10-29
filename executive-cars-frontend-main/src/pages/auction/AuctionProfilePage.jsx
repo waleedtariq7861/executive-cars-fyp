@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import { User, Mail, Phone, Calendar, Shield, Edit3, Save, X, Key, CheckCircle, LogOut } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
 import AuctionLayout from '../../components/AuctionLayout.jsx'
 import { useAuth } from '../../context/authContext.js'
 import api from '../../api/api.js'
@@ -19,7 +18,6 @@ const profileToForm = p => ({
 
 export default function AuctionProfilePage() {
   const { user, logout, updateUser } = useAuth()
-  const navigate = useNavigate()
 
   const [editing, setEditing] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -105,7 +103,7 @@ export default function AuctionProfilePage() {
     }
   }
 
-  const handleLogout = async () => { if (await logout()) navigate('/auction') }
+  const handleLogout = () => logout('/auction')
 
   const memberSince = profile?.createdAt ? new Date(profile.createdAt).toLocaleDateString() : '—'
   const memberExpiry = profile?.subscriptionExpiry ? new Date(profile.subscriptionExpiry).toLocaleDateString() : '—'

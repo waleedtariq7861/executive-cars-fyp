@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { LayoutDashboard, ClipboardCheck, PlusCircle, Car, Gavel, User, LogOut, Menu, X } from 'lucide-react'
 import { useAuth } from '../context/authContext.js'
 import Logo from './Logo.jsx'
@@ -15,12 +15,11 @@ const navItems = [
 
 export default function SellerLayout({ children, title }) {
   const location = useLocation()
-  const navigate = useNavigate()
   const { user, logout } = useAuth()
   const [mobileOpen, setMobileOpen] = useState(false)
 
   const isActive = item => location.pathname === item.to
-  const handleLogout = async () => { if (await logout()) navigate('/login') }
+  const handleLogout = () => logout('/login')
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
