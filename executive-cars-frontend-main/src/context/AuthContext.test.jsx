@@ -106,6 +106,39 @@ describe('AuthProvider cookie session lifecycle', () => {
       expect(screen.getByText('out')).toBeInTheDocument()
     })
 
+    it('resolves false when the server cannot end the session and true when it can', async () => {
+      let result
+      const Probe3 = () => {
+        const { logout } = useAuth()
+        return <button onClick={async () => { result = await logout() }}>Run</button>
+      }
+      api.get.mockResolvedValue({ data: { user: member, csrfToken: 'csrf-1' } })
+      render(<AuthProvider><Probe3 /></AuthProvider>)
+      api.post.mockRejectedValueOnce(new Error('Network Error'))
+      fireEvent.click(screen.getByRole('button', { name: 'Run' }))
+      await waitFor(() => expect(result).toBe(false))
+
+      api.post.mockResolvedValueOnce({ data: {} })
+      fireEvent.click(screen.getByRole('button', { name: 'Run' }))
+      await waitFor(() => expect(result).toBe(true))
+    })
+
+    it('forgets a pending sign-out landing when someone signs in', async () => {
+      const Probe4 = () => {
+        const { user, logout, logoutRedirect, loginAccount } = useAuth()
+        return <div><span>{user ? 'in' : 'out'}</span><span>redirect:{logoutRedirect || 'none'}</span><button onClick={() => logout('/auction')}>Out</button><button onClick={() => loginAccount('member@example.com', 'password-123')}>In</button></div>
+      }
+      api.get.mockResolvedValue({ data: { user: member, csrfToken: 'csrf-1' } })
+      render(<AuthProvider><Probe4 /></AuthProvider>)
+      await screen.findByText('in')
+      fireEvent.click(screen.getByRole('button', { name: 'Out' }))
+      expect(await screen.findByText('redirect:/auction')).toBeInTheDocument()
+
+      api.post.mockResolvedValueOnce({ data: { user: member, csrfToken: 'csrf-2' } })
+      fireEvent.click(screen.getByRole('button', { name: 'In' }))
+      expect(await screen.findByText('redirect:none')).toBeInTheDocument()
+    })
+
     it('treats 401 as already signed out', async () => {
       renderSignedIn()
       await screen.findByText('member@example.com')

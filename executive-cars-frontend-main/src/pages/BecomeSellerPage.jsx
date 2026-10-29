@@ -215,7 +215,7 @@ export default function BecomeSellerPage() {
               <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6 mt-2">
                 <h4 className="text-gray-900 font-semibold mb-3">What to Expect</h4>
                 <ul className="space-y-2 text-sm text-gray-600">
-                  {['Inspection appointment at the selected branch', 'Report can be attached after inspection', 'Listing remains pending until review', 'Email OTP confirms the booking address', 'Track approval status from your account'].map(item => (
+                  {['Inspection appointment at the selected branch', 'Report can be attached after inspection', 'Listing remains pending until review', 'A code sent to your email confirms the booking address', 'Track approval status from your account'].map(item => (
                     <li key={item} className="flex items-center gap-2">
                       <CheckCircle className="w-4 h-4 text-blue-600 shrink-0" />
                       {item}
@@ -364,7 +364,7 @@ export default function BecomeSellerPage() {
           <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-4 text-center">
             <p className="text-amber-800 text-xs font-semibold">Local email delivery is unavailable</p>
             <p className="text-amber-950 font-black tracking-[0.25em] text-xl mt-1">{devOtp}</p>
-            <p className="text-amber-700 text-[11px] mt-1">Development only — production never exposes the OTP.</p>
+            <p className="text-amber-700 text-[11px] mt-1">Development only — production never exposes the code.</p>
           </div>
         )}
         {otpError && <p role="alert" className="text-red-600 text-xs text-center mb-3">{otpError}</p>}

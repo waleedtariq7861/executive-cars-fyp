@@ -30,6 +30,7 @@ export function AuthProvider({ children }) {
   }, [])
 
   const persist = (userData, nextCsrfToken) => {
+    setLogoutRedirect(null) // a new sign-in ends any pending sign-out landing
     setUser(userData)
     setCsrfToken(nextCsrfToken)
     if (userData.role === 'user') connectSocket()

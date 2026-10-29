@@ -43,6 +43,22 @@ describe('useSavedCars guest merge', () => {
     await waitFor(() => expect(localStorage.getItem('ec_wishlist')).toBeNull())
   })
 
+  it('keeps guest saves that could not be delivered and drops the ones the server rejected', async () => {
+    localStorage.setItem('ec_wishlist', JSON.stringify(['offline-car', 'server-down-car', 'deleted-car', 'ok-car']))
+    api.post.mockImplementation(url => {
+      if (url.endsWith('offline-car')) return Promise.reject(new Error('Network Error'))
+      if (url.endsWith('server-down-car')) return Promise.reject({ response: { status: 503 } })
+      if (url.endsWith('deleted-car')) return Promise.reject({ response: { status: 404 } })
+      return Promise.resolve({ data: {} })
+    })
+    api.get.mockResolvedValue({ data: { cars: [{ _id: 'ok-car' }] } })
+
+    renderAs({ id: 'm1', role: 'user' })
+
+    expect(await screen.findByText('saved: ok-car')).toBeInTheDocument()
+    await waitFor(() => expect(JSON.parse(localStorage.getItem('ec_wishlist'))).toEqual(['offline-car', 'server-down-car']))
+  })
+
   it('leaves guest saves in the browser for signed-out visitors', async () => {
     localStorage.setItem('ec_wishlist', JSON.stringify(['car-a']))
     renderAs(null)
