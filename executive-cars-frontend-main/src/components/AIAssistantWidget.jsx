@@ -4,6 +4,7 @@ import { MessageCircle, X, Send, Bot } from 'lucide-react'
 import api from '../api/api.js'
 import { useSearchParams } from 'react-router-dom'
 import { useDialogLifecycle } from './ui/Overlays.jsx'
+import { siteConfig } from '../config/site.js'
 
 const WELCOME_ID = 'welcome'
 const WELCOME = {
@@ -126,7 +127,9 @@ export default function AIAssistantWidget() {
         {
           id: Date.now() + 1,
           role: 'assistant',
-          content: "Sorry, I'm having trouble right now. Please email info@executivecars.pk for help.",
+          content: siteConfig.email
+            ? `Sorry, I'm having trouble right now. Please email ${siteConfig.email} for help.`
+            : "Sorry, I'm having trouble right now. Please try again in a moment.",
         },
       ])
     } finally {
@@ -163,9 +166,10 @@ export default function AIAssistantWidget() {
               </div>
             </div>
             <button
+              type="button"
               onClick={() => setOpen(false)}
               aria-label="Close AI Assistant"
-              className="text-blue-200 hover:text-white transition-colors"
+              className="w-9 h-9 -mr-2 inline-flex items-center justify-center rounded-lg text-blue-100 hover:text-white hover:bg-blue-500 transition-colors"
             >
               <X className="w-4 h-4" />
             </button>
@@ -188,8 +192,10 @@ export default function AIAssistantWidget() {
               onChange={e => setInput(e.target.value)}
               onKeyDown={onKey}
               placeholder="Ask me anything…"
-              disabled={loading || serviceStatus === 'unavailable'}
-              className="flex-1 text-sm border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-blue-400 disabled:opacity-50 bg-gray-50 placeholder-gray-400"
+              aria-label="Message to the assistant"
+              readOnly={loading}
+              disabled={serviceStatus === 'unavailable'}
+              className="flex-1 text-sm border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-blue-400 disabled:opacity-50 bg-gray-50 placeholder-gray-500"
             />
             <button
               onClick={send}

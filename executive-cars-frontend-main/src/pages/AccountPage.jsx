@@ -1,5 +1,5 @@
 import React from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { ArrowRight, Car, CheckCircle2, Gavel, LogOut, Search, ShieldCheck, UserRound } from 'lucide-react'
 import Navbar from '../components/Navbar.jsx'
 import Footer from '../components/Footer.jsx'
@@ -9,11 +9,10 @@ import useMembershipCapabilities from '../hooks/useMembershipCapabilities.js'
 import MembershipAvailability from '../components/MembershipAvailability.jsx'
 
 export default function AccountPage() {
-  const navigate = useNavigate()
   const { user, logout } = useAuth()
   const auctionActive = hasActiveMembership(user)
   const capability = useMembershipCapabilities(!auctionActive)
-  const signOut = () => { logout(); navigate('/') }
+  const signOut = () => logout('/')
 
   return (
     <div className="min-h-screen bg-gray-50">

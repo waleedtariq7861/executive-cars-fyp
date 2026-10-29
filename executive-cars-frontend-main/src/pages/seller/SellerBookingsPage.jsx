@@ -28,7 +28,7 @@ export default function SellerBookingsPage() {
 
   return (
     <SellerLayout title="My Bookings">
-      {error && <div className="mb-5 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">{error}</div>}
+      {error && <div role="alert" className="mb-5 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">{error}</div>}
       {location.state?.bookingCreated && (
         <div className="mb-6 bg-green-50 border border-green-200 text-green-700 px-5 py-4 rounded-2xl flex items-start gap-3 shadow-sm">
           <CheckCircle className="w-5 h-5 shrink-0 mt-0.5" />

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import {
   ChevronLeft, Gavel, FileText, Download, Users, Timer,
-  Settings, Fuel, Gauge, Calendar, Palette, CheckCircle, Car,
+  Settings, Fuel, Gauge, Calendar, Palette, CheckCircle,
   TrendingUp, Zap, Bell
 } from 'lucide-react'
 import { useAuth } from '../../context/authContext.js'
@@ -16,15 +16,6 @@ import { ConfirmationDialog } from '../../components/ui/Overlays.jsx'
 import { bidValidationError, formatBidCount } from '../../utils/auction.js'
 import { digitsOnly } from '../../utils/inputValidation.js'
 import { openProtectedDocument } from '../../utils/documents.js'
-
-function timeUntilWithDays(isoDate) {
-  const diff = Math.max(0, Math.floor((new Date(isoDate) - Date.now()) / 1000))
-  const d = Math.floor(diff / 86400)
-  const h = Math.floor((diff % 86400) / 3600)
-  const m = Math.floor((diff % 3600) / 60)
-  const s = diff % 60
-  return { d, h, m, s }
-}
 
 function initials(name) {
   return (name || '??').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
@@ -125,6 +116,15 @@ export default function AuctionCarDetailPage() {
 
   const minBid = currentBid + (car?.minimumBidIncrement || 50000)
 
+  // Follow the auction clock: an upcoming auction opens, and a running one closes,
+  // on screen at the right moment instead of waiting for a manual reload.
+  const onCountdownEnd = () => {
+    if (auctionNotStarted) { setAuctionNotStarted(false); return }
+    if (auctionEnded) return
+    setAuctionEnded(true)
+    api.get(`/cars/${id}`).then(({ data }) => setCurrentBid(data.currentBid || data.basePrice)).catch(() => {})
+  }
+
   const handleBid = async (e) => {
     e.preventDefault()
     setBidError('')
@@ -184,8 +184,6 @@ export default function AuctionCarDetailPage() {
     )
   }
 
-  const endsIn = timeUntilWithDays(car.auctionEnd)
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Top bar */}
@@ -196,8 +194,9 @@ export default function AuctionCarDetailPage() {
             <span className="text-sm font-medium hidden sm:block">Back to Auctions</span>
           </Link>
           <div className="flex items-center gap-2 ml-auto">
+            <div role="status" className="sr-only">{liveActivity}</div>
             {liveActivity && (
-              <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 text-blue-700 text-xs px-3 py-1.5 rounded-full animate-fadeInUp font-medium">
+              <div aria-hidden="true" className="flex items-center gap-2 bg-blue-50 border border-blue-200 text-blue-700 text-xs px-3 py-1.5 rounded-full animate-fadeInUp font-medium">
                 <Zap className="w-3 h-3 text-blue-500" />
                 {liveActivity}
               </div>
@@ -211,13 +210,13 @@ export default function AuctionCarDetailPage() {
       </div>
 
       {outbidAlert && !auctionEnded && (
-        <div className="sticky top-16 z-10 bg-orange-500 text-white text-center text-sm font-semibold py-2 px-4">
+        <div role="alert" className="sticky top-16 z-10 bg-orange-500 text-white text-center text-sm font-semibold py-2 px-4">
           You've been outbid! Place a higher bid to stay in the lead.
         </div>
       )}
 
       {auctionEnded && (
-        <div className={`sticky top-16 z-10 text-white text-center text-sm font-semibold py-2 px-4 ${wonResult ? 'bg-green-600' : 'bg-gray-700'}`}>
+        <div role="status" className={`sticky top-16 z-10 text-white text-center text-sm font-semibold py-2 px-4 ${wonResult ? 'bg-green-600' : 'bg-gray-700'}`}>
           {wonResult ? `Auction ended — you won this car for PKR ${formatPKR(currentBid)}!` : 'This auction has ended.'}
         </div>
       )}
@@ -328,9 +327,9 @@ export default function AuctionCarDetailPage() {
               <div className="mb-4 pb-4 border-b border-gray-100">
                 <div className="flex items-center gap-2 mb-3">
                   <Timer className="w-4 h-4 text-blue-600" />
-                  <span className="text-gray-700 text-sm font-semibold">{auctionNotStarted ? 'Auction starts in' : 'Auction ends in'}</span>
+                  <span className="text-gray-700 text-sm font-semibold">{auctionEnded ? 'Auction ended' : auctionNotStarted ? 'Auction starts in' : 'Auction ends in'}</span>
                 </div>
-                <CountdownTimer endsIn={timeUntilWithDays(auctionNotStarted ? car.auctionStart : car.auctionEnd)} showDays={true} />
+                <CountdownTimer key={auctionNotStarted ? 'opens' : 'closes'} endsAt={auctionNotStarted ? car.auctionStart : car.auctionEnd} showDays onEnd={onCountdownEnd} />
               </div>
 
               {/* Bid form */}
@@ -353,13 +352,13 @@ export default function AuctionCarDetailPage() {
               ) : (
                 <form onSubmit={handleBid} className="space-y-3 mb-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    <label htmlFor="auction-bid-amount" className="block text-sm font-medium text-gray-700 mb-1.5">
                       Your Bid <span className="text-gray-400 font-normal">(min: PKR {formatPKR(minBid)})</span>
                     </label>
-                    <input type="text" inputMode="numeric" pattern="[0-9]*" maxLength={10} value={bidAmount} onChange={e => setBidAmount(digitsOnly(e.target.value, 10))}
+                    <input id="auction-bid-amount" aria-invalid={Boolean(bidError)} aria-describedby={bidError ? 'auction-bid-error' : undefined} type="text" inputMode="numeric" pattern="[0-9]*" maxLength={10} value={bidAmount} onChange={e => setBidAmount(digitsOnly(e.target.value, 10))}
                       placeholder={`PKR ${formatPKR(minBid)}`}
                       className={`input-light ${bidError ? 'border-red-400' : ''}`} />
-                    {bidError && <p className="text-red-500 text-xs mt-1">{bidError}</p>}
+                    {bidError && <p id="auction-bid-error" role="alert" className="text-red-600 text-xs mt-1">{bidError}</p>}
                   </div>
                   <div className="flex gap-2">
                     {[minBid, minBid + 100000, minBid + 200000].map(amt => (
@@ -389,7 +388,7 @@ export default function AuctionCarDetailPage() {
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="text-gray-900 font-bold text-sm">Live Bid Feed</h4>
                   <span className={`flex items-center gap-1 text-xs font-medium ${auctionEnded ? 'text-gray-500' : 'text-green-600'}`}>
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" /> Live
+                    <span className={`w-1.5 h-1.5 rounded-full ${auctionEnded ? 'bg-gray-400' : 'bg-green-500 animate-pulse'}`} /> {auctionEnded ? 'Closed' : 'Live'}
                   </span>
                 </div>
                 <div ref={bidListRef} className="space-y-2 max-h-52 overflow-y-auto pr-1">

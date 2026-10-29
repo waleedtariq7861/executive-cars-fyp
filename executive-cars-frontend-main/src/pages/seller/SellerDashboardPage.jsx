@@ -7,6 +7,7 @@ import {
 import { useAuth } from '../../context/authContext.js'
 import { formatPKR } from '../../utils/format.js'
 import SellerLayout from '../../components/SellerLayout.jsx'
+import VehicleImage from '../../components/VehicleImage.jsx'
 import api from '../../api/api.js'
 import { formatBidCount } from '../../utils/auction.js'
 
@@ -27,13 +28,14 @@ export default function SellerDashboardPage() {
       .finally(() => setLoading(false))
   }, [])
 
+  const openListings = listings.filter(listing => ['active', 'available'].includes(listing.status))
   const activeAuction = listings
     .filter(listing => listing.auctionEnd && listing.status === 'active')
     .sort((a, b) => (b.bidCount || 0) - (a.bidCount || 0))[0]
 
   return (
     <SellerLayout title="Dashboard">
-      {loadError && <div className="mb-5 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">{loadError}</div>}
+      {loadError && <div role="alert" className="mb-5 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">{loadError}</div>}
 
       {/* Live listing summary */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-6 mb-6 text-white">
@@ -61,9 +63,9 @@ export default function SellerDashboardPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8" aria-busy="false">
         {[
           { label: 'My Bookings',        value: bookings.length,  icon: ClipboardCheck, color: 'text-blue-600',   bg: 'bg-blue-50',   border: 'border-blue-200'   },
-          { label: 'Active Listings',    value: listings.length,  icon: Car,            color: 'text-green-600',  bg: 'bg-green-50',  border: 'border-green-200'  },
+          { label: 'Active Listings',    value: openListings.length,  icon: Car,            color: 'text-green-600',  bg: 'bg-green-50',  border: 'border-green-200'  },
           { label: 'Total Bids Received', value: listings.reduce((a, l) => a + (l.bidCount || 0), 0), icon: Gavel, color: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-200' },
-          { label: 'Estimated Value',    value: listings.length ? `PKR ${formatPKR(Math.max(...listings.map(l => l.currentBid || l.basePrice || l.price || 0)))}` : '—', icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200' },
+          { label: 'Highest Listing Value', value: listings.length ? `PKR ${formatPKR(Math.max(...listings.map(l => l.currentBid || l.basePrice || l.price || 0)))}` : '—', icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200' },
         ].map(s => (
           <div key={s.label} className={`bg-white border ${s.border} rounded-2xl p-5 shadow-sm`}>
             <div className={`w-10 h-10 ${s.bg} rounded-xl flex items-center justify-center mb-3`}>
@@ -139,7 +141,7 @@ export default function SellerDashboardPage() {
               <p className="text-gray-400 text-sm text-center py-8">No listings yet</p>
             ) : listings.slice(0, 3).map(l => (
               <div key={l._id} className="flex items-center gap-4 px-5 py-4">
-                {l.images?.[0] && <img src={l.images[0]} alt={`${l.make} ${l.model}`} className="w-16 h-12 rounded-xl object-cover shrink-0" />}
+                <VehicleImage src={l.images?.[0]} alt={`${l.make} ${l.model}`} className="w-16 h-12 rounded-xl object-cover shrink-0" fallbackClassName="w-16 h-12 rounded-xl shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-gray-900 font-semibold text-sm">{l.make} {l.model} {l.year}</p>
                   <div className="flex items-center gap-2 mt-1">

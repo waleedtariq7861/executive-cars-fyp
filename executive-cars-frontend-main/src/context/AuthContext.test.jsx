@@ -3,6 +3,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { AuthProvider } from './AuthContext.jsx'
 import { useAuth } from './authContext.js'
+import { ToastContext } from './toastContext.js'
 import api, { setCsrfToken } from '../api/api.js'
 import { connectSocket, disconnectSocket } from '../api/socket.js'
 
@@ -71,5 +72,56 @@ describe('AuthProvider cookie session lifecycle', () => {
     expect(await screen.findByText('anonymous')).toBeInTheDocument()
     expect(disconnectSocket).toHaveBeenCalled()
     expect(setCsrfToken).toHaveBeenLastCalledWith('')
+  })
+
+  describe('logout failures', () => {
+    const member = { id: 'member-1', email: 'member@example.com', role: 'user' }
+    const renderSignedIn = (showToast = vi.fn()) => {
+      api.get.mockResolvedValue({ data: { user: member, csrfToken: 'csrf-1' } })
+      render(<ToastContext.Provider value={{ showToast, dismiss: vi.fn() }}><AuthProvider><SessionProbe /></AuthProvider></ToastContext.Provider>)
+      return showToast
+    }
+
+    it('stays signed in and tells the user when the server cannot end the session', async () => {
+      const showToast = renderSignedIn()
+      await screen.findByText('member@example.com')
+      disconnectSocket.mockClear()
+      api.post.mockRejectedValueOnce(new Error('Network Error'))
+      fireEvent.click(screen.getByRole('button', { name: 'Logout' }))
+      await waitFor(() => expect(showToast).toHaveBeenCalledWith(expect.objectContaining({ tone: 'error', title: 'Could not sign out' })))
+      expect(screen.getByText('member@example.com')).toBeInTheDocument()
+      expect(disconnectSocket).not.toHaveBeenCalled()
+    })
+
+    it('exposes the requested landing page after a successful sign out and ignores event arguments', async () => {
+      const Probe2 = () => {
+        const { user, logout, logoutRedirect } = useAuth()
+        return <div><span>{user ? 'in' : 'out'}</span><span>redirect:{logoutRedirect || 'none'}</span><button onClick={() => logout('/auction')}>Go</button><button onClick={logout}>Event</button></div>
+      }
+      api.get.mockResolvedValue({ data: { user: member, csrfToken: 'csrf-1' } })
+      render(<AuthProvider><Probe2 /></AuthProvider>)
+      await screen.findByText('in')
+      fireEvent.click(screen.getByRole('button', { name: 'Go' }))
+      expect(await screen.findByText('redirect:/auction')).toBeInTheDocument()
+      expect(screen.getByText('out')).toBeInTheDocument()
+    })
+
+    it('treats 401 as already signed out', async () => {
+      renderSignedIn()
+      await screen.findByText('member@example.com')
+      api.post.mockRejectedValueOnce({ response: { status: 401 } })
+      fireEvent.click(screen.getByRole('button', { name: 'Logout' }))
+      expect(await screen.findByText('anonymous')).toBeInTheDocument()
+    })
+
+    it('refreshes a stale CSRF token on 403 and retries the logout once', async () => {
+      renderSignedIn()
+      await screen.findByText('member@example.com')
+      api.post.mockRejectedValueOnce({ response: { status: 403 } }).mockResolvedValueOnce({ data: {} })
+      fireEvent.click(screen.getByRole('button', { name: 'Logout' }))
+      expect(await screen.findByText('anonymous')).toBeInTheDocument()
+      expect(api.post.mock.calls.filter(([url]) => url === '/auth/logout')).toHaveLength(2)
+      expect(api.get.mock.calls.filter(([url]) => url === '/auth/session').length).toBeGreaterThanOrEqual(2)
+    })
   })
 })

@@ -1,11 +1,16 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useState } from 'react'
 import api, { setCsrfToken } from '../api/api'
 import { connectSocket, disconnectSocket } from '../api/socket'
 import { AuthContext } from './authContext.js'
+import { ToastContext } from './toastContext.js'
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [initializing, setInitializing] = useState(true)
+  const toast = useContext(ToastContext)
+  // Where a protected page should send the user right after an intentional sign out.
+  const [logoutRedirect, setLogoutRedirect] = useState(null)
+  const clearLogoutRedirect = useCallback(() => setLogoutRedirect(null), [])
 
   useEffect(() => {
     const handleUnauthorized = () => {
@@ -61,13 +66,35 @@ export function AuthProvider({ children }) {
     }
   }
 
-  const logout = async () => {
-    try {
-      await api.post('/auth/logout')
-    } finally {
+  // Resolves true once the browser is really signed out. If the server could
+  // not clear the session cookie we keep the user signed in and say so, rather
+  // than showing a signed-out UI that the next reload would silently undo.
+  const logout = async redirectTo => {
+    const destination = typeof redirectTo === 'string' ? redirectTo : null
+    const signOutLocally = () => {
       disconnectSocket()
       setCsrfToken('')
       setUser(null)
+    }
+    try {
+      try {
+        await api.post('/auth/logout')
+      } catch (error) {
+        if (error.response?.status !== 403) throw error
+        await refreshUser() // stale CSRF token: fetch a fresh one and retry once
+        await api.post('/auth/logout')
+      }
+      signOutLocally()
+      if (destination) setLogoutRedirect(destination)
+      return true
+    } catch (error) {
+      if (error.response?.status === 401) { // the session had already ended
+        signOutLocally()
+        if (destination) setLogoutRedirect(destination)
+        return true
+      }
+      toast?.showToast({ tone: 'error', title: 'Could not sign out', message: 'Check your connection and try again.' })
+      return false
     }
   }
 
@@ -95,6 +122,8 @@ export function AuthProvider({ children }) {
       registerAccount,
       registerMember: registerAccount,
       logout,
+      logoutRedirect,
+      clearLogoutRedirect,
       updateUser,
       refreshUser,
     }}>

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import SellerLayout from '../../components/SellerLayout.jsx'
 import { formatPKR } from '../../utils/format.js'
 import api from '../../api/api.js'
 import { EmptyState, Skeleton } from '../../components/ui/Feedback.jsx'
+import VehicleImage from '../../components/VehicleImage.jsx'
 import { formatBidCount } from '../../utils/auction.js'
 
 const statusClass = { active: 'badge-green', available: 'badge-blue', sold: 'badge-yellow', ended: 'bg-gray-100 text-gray-600 border border-gray-200' }
@@ -27,7 +29,7 @@ export default function SellerListingsPage() {
 
   return (
     <SellerLayout title="My Listings">
-      {error && <div className="mb-5 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">{error}</div>}
+      {error && <div role="alert" className="mb-5 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">{error}</div>}
       <div className="flex items-end justify-between gap-4 mb-4"><div><h2 className="text-gray-900 font-bold text-lg">Published inventory</h2><p className="text-gray-500 text-sm">Listings assigned to your account by an administrator.</p></div></div>
       {listings.length === 0 ? (
         <EmptyState title="No published listings yet" description="Managed listings will appear here after showroom inspection, preparation, and administrator publishing." className="bg-white border border-gray-200 rounded-2xl" />
@@ -38,7 +40,7 @@ export default function SellerListingsPage() {
             return (
               <div key={listing._id} className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm card-hover">
                 <div className="relative aspect-[16/10] overflow-hidden">
-                  {listing.images?.[0] && <img src={listing.images[0]} alt={`${listing.make} ${listing.model}`} loading="lazy" className="w-full h-full object-cover" />}
+                  <VehicleImage src={listing.images?.[0]} alt={`${listing.make} ${listing.model}`} className="w-full h-full object-cover" fallbackClassName="w-full h-full" />
                   <div className="absolute top-3 left-3 flex gap-2">
                     <span className={`${statusClass[listing.status] || 'badge-blue'} text-xs px-2.5 py-1 rounded-full font-medium`}>
                       {listing.status?.charAt(0).toUpperCase() + listing.status?.slice(1)}
@@ -59,6 +61,7 @@ export default function SellerListingsPage() {
                       <p className="text-gray-400 text-xs">{formatBidCount(listing.bidCount)}</p>
                     )}
                   </div>
+                  {!isAuction && <Link to={`/used-cars/${listing._id}`} className="btn-ghost w-full mt-4 py-2 text-xs">View public listing</Link>}
                 </div>
               </div>
             )

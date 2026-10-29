@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Gavel, TrendingUp, Trophy, User, LogOut, Bell, Menu, X, Car } from 'lucide-react'
+import { Link, useLocation } from 'react-router-dom'
+import { LayoutDashboard, Gavel, TrendingUp, Trophy, User, LogOut, Menu, X } from 'lucide-react'
 import Logo from './Logo.jsx'
 import { useAuth } from '../context/authContext.js'
 
@@ -14,16 +14,16 @@ const navItems = [
 
 export default function AuctionLayout({ children, title }) {
   const location = useLocation()
-  const navigate = useNavigate()
   const { user, logout } = useAuth()
   const [mobileOpen, setMobileOpen] = useState(false)
 
-  const handleLogout = () => { logout(); navigate('/auction') }
+  const isActive = item => location.pathname === item.to || (item.to === '/auction/live' && location.pathname.startsWith('/auction/car/'))
+  const handleLogout = () => logout('/auction')
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
-      <aside className={`fixed lg:static inset-y-0 left-0 z-40 w-60 bg-white border-r border-gray-200 flex flex-col transition-transform duration-300 ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+      <aside id="auction-sidebar" aria-label="Auction navigation" className={`fixed lg:static inset-y-0 left-0 z-40 w-60 bg-white border-r border-gray-200 flex flex-col transition-[transform,visibility] duration-300 ${mobileOpen ? 'translate-x-0' : '-translate-x-full invisible lg:visible lg:translate-x-0'}`}>
         <div className="p-5 border-b border-gray-200">
           <Link to="/" className="flex items-center gap-2">
             <Logo />
@@ -40,8 +40,9 @@ export default function AuctionLayout({ children, title }) {
               key={item.to}
               to={item.to}
               onClick={() => setMobileOpen(false)}
+              aria-current={isActive(item) ? 'page' : undefined}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                location.pathname === item.to
+                isActive(item)
                   ? 'bg-blue-50 text-blue-600 border border-blue-200'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 border border-transparent'
               }`}
@@ -67,6 +68,7 @@ export default function AuctionLayout({ children, title }) {
 
         <div className="p-4 border-t border-gray-200">
           <button
+            type="button"
             onClick={handleLogout}
             className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-500 hover:text-red-500 hover:bg-red-50 transition-all w-full"
           >
@@ -85,7 +87,11 @@ export default function AuctionLayout({ children, title }) {
         {/* Top bar */}
         <header className="sticky top-0 z-20 bg-white border-b border-gray-200 px-4 sm:px-6 py-4 flex items-center gap-4 shadow-sm">
           <button
+            type="button"
             onClick={() => setMobileOpen(!mobileOpen)}
+            aria-label={mobileOpen ? 'Close navigation' : 'Open navigation'}
+            aria-expanded={mobileOpen}
+            aria-controls="auction-sidebar"
             className="lg:hidden text-gray-500 hover:text-gray-700 p-1"
           >
             {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -95,10 +101,6 @@ export default function AuctionLayout({ children, title }) {
             <span className="hidden sm:block badge-blue text-xs px-3 py-1.5 rounded-full font-semibold">
               Auction Member
             </span>
-            <button className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:text-gray-700 relative">
-              <Bell className="w-4 h-4" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-blue-600 border-2 border-white" />
-            </button>
           </div>
         </header>
 

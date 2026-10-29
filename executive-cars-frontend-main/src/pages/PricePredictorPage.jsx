@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  ArrowRight, CheckCircle2, Info, Printer, RotateCcw, Save, Sparkles, TrendingUp,
+  ArrowRight, CheckCircle2, Info, Printer, RotateCcw, Sparkles, TrendingUp,
 } from 'lucide-react'
 import Navbar from '../components/Navbar.jsx'
 import Footer from '../components/Footer.jsx'
@@ -72,7 +72,7 @@ export default function PricePredictorPage() {
   const [error, setError] = useState('')
   const [fieldErrors, setFieldErrors] = useState({})
   const [loading, setLoading] = useState(false)
-  const [saved, setSaved] = useState(false)
+  const resultRef = useRef(null)
   const [metadata, setMetadata] = useState(null)
   const [optionResponse, setOptionResponse] = useState(null)
   const [metadataLoading, setMetadataLoading] = useState(true)
@@ -87,6 +87,12 @@ export default function PricePredictorPage() {
       .finally(() => { if (active) setMetadataLoading(false) })
     return () => { active = false }
   }, [])
+  // On narrow screens the result sits below the form: bring it into view and announce it.
+  useEffect(() => {
+    if (!result || !resultRef.current) return
+    resultRef.current.scrollIntoView?.({ behavior: 'smooth', block: 'start' })
+    resultRef.current.focus({ preventScroll: true })
+  }, [result])
   const optionKey = JSON.stringify([form.make, form.model, form.year])
   useEffect(() => {
     let active = true
@@ -162,7 +168,6 @@ export default function PricePredictorPage() {
     setLoading(true)
     setError('')
     setFieldErrors({})
-    setSaved(false)
     try {
       const { data } = await api.post('/predict-price', {
         ...form,
@@ -190,17 +195,6 @@ export default function PricePredictorPage() {
     setResult(null)
     setError('')
     setFieldErrors({})
-    setSaved(false)
-  }
-
-  const saveValuation = () => {
-    if (!result) return
-    const history = (() => {
-      try { return JSON.parse(localStorage.getItem('ec_valuations') || '[]') } catch { return [] }
-    })()
-    const valuation = { id: Date.now(), vehicle: form, result, savedAt: new Date().toISOString() }
-    localStorage.setItem('ec_valuations', JSON.stringify([valuation, ...history].slice(0, 10)))
-    setSaved(true)
   }
 
   const estimate = result?.predicted_price ?? result?.estimatedPrice ?? result?.estimatedMarketPrice ?? result?.predicted
@@ -330,7 +324,7 @@ export default function PricePredictorPage() {
 
           <aside className="space-y-5 lg:sticky lg:top-[116px]">
             {result ? (
-              <section className="bg-white border border-blue-200 rounded-xl shadow-elevated overflow-hidden animate-scaleIn print:shadow-none">
+              <section ref={resultRef} tabIndex={-1} aria-label="Valuation result" className="bg-white border border-blue-200 rounded-xl shadow-elevated overflow-hidden animate-scaleIn focus:outline-none print:shadow-none">
                 <div className="bg-blue-950 px-5 py-5 text-white">
                   <p className="text-xs font-bold uppercase tracking-[0.12em] text-blue-100/70">Expected Market Range</p>
                   <p className="text-2xl sm:text-3xl font-black mt-1">{formatMarketPkr(range?.low)} – {formatMarketPkr(range?.high)}</p>
@@ -351,9 +345,8 @@ export default function PricePredictorPage() {
                   </div>}
 
                   <div className="flex gap-2 mt-5 text-[11px] text-gray-500 leading-5"><Info className="w-4 h-4 shrink-0 mt-0.5" /><span>{disclaimer}</span></div>
-                  <div className="grid grid-cols-2 gap-2 mt-5 print:hidden">
-                    <Button type="button" variant="outline" size="sm" onClick={saveValuation}><Save className="w-4 h-4" />{saved ? 'Saved' : 'Save'}</Button>
-                    <Button type="button" variant="outline" size="sm" onClick={() => window.print()}><Printer className="w-4 h-4" />Print</Button>
+                  <div className="mt-5 print:hidden">
+                    <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => window.print()}><Printer className="w-4 h-4" />Print</Button>
                   </div>
                   <Button as={Link} to="/sell-car" className="w-full mt-3 print:hidden">Sell this car <ArrowRight className="w-4 h-4" /></Button>
                 </div>

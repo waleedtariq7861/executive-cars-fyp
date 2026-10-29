@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import { User, Mail, Phone, Calendar, Shield, Edit3, Save, X, Key, CheckCircle, LogOut } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
 import AuctionLayout from '../../components/AuctionLayout.jsx'
 import { useAuth } from '../../context/authContext.js'
 import api from '../../api/api.js'
@@ -13,9 +12,12 @@ import {
   sanitizePhone,
 } from '../../utils/inputValidation.js'
 
+const profileToForm = p => ({
+  name: sanitizePersonName(p.name), email: p.email, phone: sanitizePhone(p.phone || ''), cnic: sanitizeCnic(p.cnic || ''), city: p.city || '',
+})
+
 export default function AuctionProfilePage() {
   const { user, logout, updateUser } = useAuth()
-  const navigate = useNavigate()
 
   const [editing, setEditing] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -32,12 +34,14 @@ export default function AuctionProfilePage() {
   const [passError, setPassError] = useState('')
   const [passSaved, setPassSaved] = useState(false)
   const [profileError, setProfileError] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [changingPassword, setChangingPassword] = useState(false)
 
   useEffect(() => {
     api.get('/member/profile').then(res => {
       const p = res.data
       setProfile(p)
-      setForm({ name: sanitizePersonName(p.name), email: p.email, phone: sanitizePhone(p.phone || ''), cnic: sanitizeCnic(p.cnic || ''), city: p.city || '' })
+      setForm(profileToForm(p))
     }).catch(err => setProfileError(err.response?.data?.message || 'Could not load your profile.'))
   }, [])
 
@@ -56,21 +60,37 @@ export default function AuctionProfilePage() {
       setProfileError('Enter a valid 13-digit CNIC.')
       return
     }
+    if (saving) return
+    setSaving(true)
     try {
       setProfileError('')
       await api.put('/member/profile', { name: form.name, phone: form.phone, cnic: form.cnic, city: form.city })
       updateUser({ name: form.name })
+      setProfile(current => ({ ...current, name: form.name, phone: form.phone, cnic: form.cnic, city: form.city }))
       setEditing(false)
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
     } catch (err) {
       setProfileError(err.response?.data?.message || 'Could not update your profile.')
+    } finally {
+      setSaving(false)
     }
+  }
+
+  // Cancel discards unsaved edits instead of leaving them on screen as if saved.
+  const handleCancel = () => {
+    if (profile) setForm(profileToForm(profile))
+    setProfileError('')
+    setEditing(false)
   }
 
   const handleChangePassword = async () => {
     setPassError('')
+    if (changingPassword) return
+    if (!passForm.current) { setPassError('Enter your current password.'); return }
+    if (passForm.newPass.length < 8) { setPassError('New password must be at least 8 characters.'); return }
     if (passForm.newPass !== passForm.confirm) { setPassError('Passwords do not match.'); return }
+    setChangingPassword(true)
     try {
       await api.post('/auth/change-password', { current: passForm.current, newPassword: passForm.newPass })
       setPassSaved(true)
@@ -78,10 +98,12 @@ export default function AuctionProfilePage() {
       setTimeout(() => setPassSaved(false), 3000)
     } catch (err) {
       setPassError(err.response?.data?.message || 'Failed to update password.')
+    } finally {
+      setChangingPassword(false)
     }
   }
 
-  const handleLogout = () => { logout(); navigate('/auction') }
+  const handleLogout = () => logout('/auction')
 
   const memberSince = profile?.createdAt ? new Date(profile.createdAt).toLocaleDateString() : '—'
   const memberExpiry = profile?.subscriptionExpiry ? new Date(profile.subscriptionExpiry).toLocaleDateString() : '—'
@@ -91,7 +113,7 @@ export default function AuctionProfilePage() {
   return (
     <AuctionLayout title="My Profile">
       <div className="max-w-2xl">
-        {profileError && <div className="mb-5 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">{profileError}</div>}
+        {profileError && <div role="alert" className="mb-5 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">{profileError}</div>}
         {/* Profile card */}
         <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden mb-5">
           {/* Header banner */}
@@ -105,17 +127,17 @@ export default function AuctionProfilePage() {
             </div>
             <div className="absolute top-3 right-4 flex gap-2">
               {!editing ? (
-                <button onClick={() => setEditing(true)}
+                <button type="button" onClick={() => setEditing(true)}
                   className="bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors">
                   <Edit3 className="w-3 h-3" /> Edit Profile
                 </button>
               ) : (
                 <div className="flex gap-2">
-                  <button onClick={handleSave}
+                  <button type="button" onClick={handleSave} disabled={saving}
                     className="bg-white text-blue-600 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 hover:bg-blue-50 transition-colors">
-                    <Save className="w-3 h-3" /> Save
+                    <Save className="w-3 h-3" /> {saving ? 'Saving…' : 'Save'}
                   </button>
-                  <button onClick={() => setEditing(false)}
+                  <button type="button" onClick={handleCancel}
                     className="bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors">
                     <X className="w-3 h-3" /> Cancel
                   </button>
@@ -134,7 +156,7 @@ export default function AuctionProfilePage() {
             <div className="mb-4">
               {editing ? (
                 <input value={form.name} onChange={e => update('name', sanitizePersonName(e.target.value))}
-                  maxLength={80} autoComplete="name" className="input-light text-xl font-black w-full mb-1" />
+                  aria-label="Full name" maxLength={80} autoComplete="name" className="input-light text-xl font-black w-full mb-1" />
               ) : (
                 <h2 className="text-gray-900 font-black text-xl">{form.name}</h2>
               )}
@@ -149,18 +171,18 @@ export default function AuctionProfilePage() {
                 { icon: User,     label: 'City',    key: 'city',   type: 'text'  },
               ].map(f => (
                 <div key={f.key}>
-                  <label className="block text-xs font-medium text-gray-500 mb-1.5 flex items-center gap-1">
+                  <label htmlFor={`auction-profile-${f.key}`} className="block text-xs font-medium text-gray-500 mb-1.5 flex items-center gap-1">
                     <f.icon className="w-3 h-3" /> {f.label}
                   </label>
                   {editing ? (
-                    <input type={f.type} value={form[f.key]} onChange={e => update(f.key, f.key === 'phone' ? sanitizePhone(e.target.value) : f.key === 'cnic' ? sanitizeCnic(e.target.value) : e.target.value)} disabled={f.key === 'email'}
+                    <input id={`auction-profile-${f.key}`} type={f.type} value={form[f.key]} onChange={e => update(f.key, f.key === 'phone' ? sanitizePhone(e.target.value) : f.key === 'cnic' ? sanitizeCnic(e.target.value) : e.target.value)} disabled={f.key === 'email'}
                       inputMode={f.key === 'phone' ? 'tel' : f.key === 'cnic' ? 'numeric' : undefined}
                       pattern={f.key === 'cnic' ? '[0-9-]*' : undefined}
                       maxLength={f.key === 'phone' ? 16 : f.key === 'cnic' ? 15 : undefined}
                       className="input-light text-sm disabled:bg-gray-50 disabled:text-gray-500" />
                   ) : (
-                    <p className="text-gray-900 font-medium text-sm bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5">
-                      {form[f.key]}
+                    <p id={`auction-profile-${f.key}`} className="text-gray-900 font-medium text-sm bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5">
+                      {form[f.key] || '—'}
                     </p>
                   )}
                 </div>
@@ -194,7 +216,10 @@ export default function AuctionProfilePage() {
         {/* Change Password */}
         <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden mb-5">
           <button
+            type="button"
             onClick={() => setShowPassSection(!showPassSection)}
+            aria-expanded={showPassSection}
+            aria-controls="auction-password-section"
             className="w-full flex items-center justify-between px-6 py-4 hover:bg-gray-50 transition-colors"
           >
             <div className="flex items-center gap-3">
@@ -207,23 +232,23 @@ export default function AuctionProfilePage() {
           </button>
 
           {showPassSection && (
-            <div className="px-6 pb-6 border-t border-gray-100 pt-4 space-y-4">
+            <div id="auction-password-section" className="px-6 pb-6 border-t border-gray-100 pt-4 space-y-4">
               {[
-                { label: 'Current Password', key: 'current' },
-                { label: 'New Password',     key: 'newPass' },
-                { label: 'Confirm Password', key: 'confirm' },
+                { label: 'Current Password', key: 'current', autoComplete: 'current-password' },
+                { label: 'New Password',     key: 'newPass', autoComplete: 'new-password' },
+                { label: 'Confirm Password', key: 'confirm', autoComplete: 'new-password' },
               ].map(f => (
                 <div key={f.key}>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">{f.label}</label>
-                  <input type="password" value={passForm[f.key]}
+                  <label htmlFor={`auction-password-${f.key}`} className="block text-sm font-medium text-gray-700 mb-1.5">{f.label}</label>
+                  <input id={`auction-password-${f.key}`} type="password" autoComplete={f.autoComplete} value={passForm[f.key]}
                     onChange={e => setPassForm(p => ({ ...p, [f.key]: e.target.value }))}
                     className="input-light" placeholder="••••••••" />
                 </div>
               ))}
-              {passError && <p className="text-red-600 text-xs">{passError}</p>}
+              {passError && <p role="alert" className="text-red-600 text-xs">{passError}</p>}
               {passSaved && <p className="text-green-600 text-xs flex items-center gap-1"><CheckCircle className="w-3 h-3" /> Password updated!</p>}
-              <button onClick={handleChangePassword} className="btn-primary px-6 py-2.5 rounded-xl font-semibold text-sm">
-                Update Password
+              <button type="button" onClick={handleChangePassword} disabled={changingPassword} className="btn-primary px-6 py-2.5 rounded-xl font-semibold text-sm">
+                {changingPassword ? 'Updating…' : 'Update Password'}
               </button>
             </div>
           )}
@@ -235,7 +260,7 @@ export default function AuctionProfilePage() {
             <LogOut className="w-4 h-4 text-red-500" /> Account Actions
           </h3>
           <div className="flex flex-wrap gap-3">
-            <button onClick={handleLogout}
+            <button type="button" onClick={handleLogout}
               className="bg-red-50 border border-red-200 text-red-600 px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-red-100 transition-colors flex items-center gap-2">
               <LogOut className="w-4 h-4" /> Logout
             </button>

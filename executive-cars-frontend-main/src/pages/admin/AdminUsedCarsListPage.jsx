@@ -15,6 +15,7 @@ export default function AdminUsedCarsListPage() {
   const [maxPrice, setMaxPrice] = useState(100000000)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [editTarget, setEditTarget] = useState(null)
+  const [confirming, setConfirming] = useState(false)
   const [error, setError] = useState('')
   const { owners, loadingOwners } = useAdminOwners()
 
@@ -32,24 +33,31 @@ export default function AdminUsedCarsListPage() {
     return matchSearch && matchPrice
   })
 
+  // The dialog always closes so a failure banner is never hidden behind the overlay.
   const confirmDelete = async () => {
+    setConfirming(true)
     try {
       setError('')
       await api.delete(`/admin/products/${deleteTarget._id}`)
       setCars(prev => prev.filter(c => c._id !== deleteTarget._id))
-      setDeleteTarget(null)
     } catch (err) {
       setError(err.response?.data?.message || 'Could not delete used car.')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    } finally {
+      setDeleteTarget(null)
+      setConfirming(false)
     }
   }
 
   const saveEdit = async () => {
+    setConfirming(true)
     try {
       setError('')
       const payload = {
         make: editTarget.make,
         model: editTarget.model,
         year: Number(editTarget.year),
+        city: editTarget.city || '',
         km: Number(editTarget.km),
         price: Number(editTarget.price),
         ownerId: ownerValue(editTarget.ownerId),
@@ -59,19 +67,21 @@ export default function AdminUsedCarsListPage() {
       setEditTarget(null)
     } catch (err) {
       setError(err.response?.data?.message || 'Could not update used car.')
+    } finally {
+      setConfirming(false)
     }
   }
 
   return (
     <AdminLayout title="Used Cars List">
-      {error && <div className="mb-5 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">{error}</div>}
+      {error && <div role="alert" className="mb-5 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">{error}</div>}
       <div className="flex flex-col sm:flex-row gap-3 mb-6 items-start sm:items-center justify-between">
         <div className="flex gap-3 flex-1 flex-wrap">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
             <input type="text" value={search} onChange={e => setSearch(e.target.value)} aria-label="Search used cars"
               placeholder="Search car..."
-              className="bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-500 w-52" />
+              className="bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:border-blue-500 w-52" />
           </div>
           <div className="flex items-center gap-2">
             <span className="text-gray-500 text-sm whitespace-nowrap">Max Price:</span>
@@ -141,8 +151,9 @@ export default function AdminUsedCarsListPage() {
 
       <ConfirmationDialog
         open={Boolean(deleteTarget)}
-        onClose={() => setDeleteTarget(null)}
+        onClose={() => !confirming && setDeleteTarget(null)}
         onConfirm={confirmDelete}
+        loading={confirming}
         title="Delete used car?"
         description={deleteTarget ? `Remove ${deleteTarget.make} ${deleteTarget.model} from used cars? This cannot be undone.` : ''}
         confirmLabel="Delete"
@@ -163,6 +174,7 @@ export default function AdminUsedCarsListPage() {
                 { label: 'Make', key: 'make' },
                 { label: 'Model', key: 'model' },
                 { label: 'Year', key: 'year', numeric: true, maxLength: 4 },
+                { label: 'City', key: 'city' },
                 { label: 'Mileage (km)', key: 'km', numeric: true, maxLength: 7 },
                 { label: 'Price (PKR)', key: 'price', numeric: true, maxLength: 10 },
               ].map(f => (
@@ -173,7 +185,10 @@ export default function AdminUsedCarsListPage() {
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 focus:outline-none focus:border-blue-500 transition-colors text-sm" />
                 </div>
               ))}
-              <button type="button" onClick={saveEdit} className="btn-primary w-full py-3 rounded-xl font-bold text-sm mt-4">Save Changes</button>
+              <div className="flex gap-3 mt-4">
+                <button type="button" onClick={() => setEditTarget(null)} disabled={confirming} className="btn-ghost flex-1 py-3 rounded-xl font-bold text-sm">Cancel</button>
+                <button type="button" onClick={saveEdit} disabled={confirming} className="btn-primary flex-1 py-3 rounded-xl font-bold text-sm">{confirming ? 'Saving…' : 'Save Changes'}</button>
+              </div>
             </div>
         )}
       </Drawer>

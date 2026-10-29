@@ -36,7 +36,7 @@ export default function AdminDashboardPage() {
 
   return (
     <AdminLayout title="Dashboard">
-      {error && <div className="mb-5 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">{error}</div>}
+      {error && <div role="alert" className="mb-5 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">{error}</div>}
       {/* Welcome */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-6 mb-6 text-white">
         <div className="flex items-center justify-between">
