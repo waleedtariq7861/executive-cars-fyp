@@ -21,7 +21,7 @@ export default function AdminLayout({ children, title }) {
   const { logout } = useAuth()
   const [mobileOpen, setMobileOpen] = useState(false)
 
-  const handleLogout = () => { logout(); navigate('/admin') }
+  const handleLogout = async () => { if (await logout()) navigate('/admin') }
 
   return (
     <div className="min-h-screen bg-gray-50 flex">

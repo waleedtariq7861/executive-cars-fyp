@@ -23,6 +23,7 @@ export default function AdminAuctionListPage() {
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [closeTarget, setCloseTarget] = useState(null)
   const [editTarget, setEditTarget] = useState(null)
+  const [confirming, setConfirming] = useState(false)
   const [error, setError] = useState('')
   const [results, setResults] = useState(null)
   const [resultsLoading, setResultsLoading] = useState(false)
@@ -42,14 +43,19 @@ export default function AdminAuctionListPage() {
     return matchSearch && matchStatus
   })
 
+  // Confirmation dialogs always close so a failure banner is never hidden behind the overlay.
   const confirmDelete = async () => {
+    setConfirming(true)
     try {
       setError('')
       await api.delete(`/admin/cars/${deleteTarget._id}`)
       setAuctions(prev => prev.filter(a => a._id !== deleteTarget._id))
-      setDeleteTarget(null)
     } catch (err) {
       setError(err.response?.data?.message || 'Could not delete auction.')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    } finally {
+      setDeleteTarget(null)
+      setConfirming(false)
     }
   }
 
@@ -87,26 +93,30 @@ export default function AdminAuctionListPage() {
 
   const closeAuction = async () => {
     if (!closeTarget) return
+    setConfirming(true)
     try {
       setError('')
       const { data } = await api.post(`/admin/cars/${closeTarget._id}/close`)
       setAuctions(prev => prev.map(item => item._id === closeTarget._id ? data.auction : item))
-      setCloseTarget(null)
     } catch (err) {
       setError(err.response?.data?.message || 'Could not close auction.')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    } finally {
+      setCloseTarget(null)
+      setConfirming(false)
     }
   }
 
   return (
     <AdminLayout title="Auction List">
-      {error && <div className="mb-5 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">{error}</div>}
+      {error && <div role="alert" className="mb-5 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">{error}</div>}
       <div className="flex flex-col sm:flex-row gap-3 mb-6 items-start sm:items-center justify-between">
         <div className="flex gap-3 flex-1">
           <div className="relative flex-1 max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
             <input type="text" value={search} onChange={e => setSearch(e.target.value)} aria-label="Search auctions"
               placeholder="Search car..."
-              className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-500" />
+              className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:border-blue-500" />
           </div>
           <div className="flex gap-2">
             {['All', 'Active', 'Ended'].map(s => (
@@ -191,8 +201,9 @@ export default function AdminAuctionListPage() {
 
       <ConfirmationDialog
         open={Boolean(deleteTarget)}
-        onClose={() => setDeleteTarget(null)}
+        onClose={() => !confirming && setDeleteTarget(null)}
         onConfirm={confirmDelete}
+        loading={confirming}
         title="Delete auction?"
         description={deleteTarget ? `Remove ${deleteTarget.make} ${deleteTarget.model} from auctions? This cannot be undone.` : ''}
         confirmLabel="Delete"
@@ -201,8 +212,9 @@ export default function AdminAuctionListPage() {
 
       <ConfirmationDialog
         open={Boolean(closeTarget)}
-        onClose={() => setCloseTarget(null)}
+        onClose={() => !confirming && setCloseTarget(null)}
         onConfirm={closeAuction}
+        loading={confirming}
         title="Close auction?"
         description={closeTarget ? `Close the auction for ${closeTarget.make} ${closeTarget.model}? This stops further bids.` : ''}
         confirmLabel="Close auction"

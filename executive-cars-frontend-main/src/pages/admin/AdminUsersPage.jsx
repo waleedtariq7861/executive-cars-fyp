@@ -13,6 +13,7 @@ export default function AdminUsersPage() {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('All')
   const [deleteTarget, setDeleteTarget] = useState(null)
+  const [confirming, setConfirming] = useState(false)
   const [page, setPage] = useState(1)
   const [error, setError] = useState('')
   const PER_PAGE = 20
@@ -38,15 +39,20 @@ export default function AdminUsersPage() {
     }
   }
 
+  // The dialog always closes so a failure banner is never hidden behind the overlay.
   const confirmDelete = async () => {
+    setConfirming(true)
     try {
       setError('')
       await api.delete(`/admin/members/${deleteTarget._id}`)
       setMembers(prev => prev.filter(m => m._id !== deleteTarget._id))
       setTotal(t => t - 1)
-      setDeleteTarget(null)
     } catch (err) {
       setError(err.response?.data?.message || 'Could not delete customer account.')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    } finally {
+      setDeleteTarget(null)
+      setConfirming(false)
     }
   }
 
@@ -54,7 +60,7 @@ export default function AdminUsersPage() {
 
   return (
     <AdminLayout title="Customer Accounts">
-      {error && <div className="mb-5 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">{error}</div>}
+      {error && <div role="alert" className="mb-5 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">{error}</div>}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
           { label: 'Total Accounts', value: total,  color: 'text-blue-600', bg: 'bg-blue-50' },
@@ -74,7 +80,7 @@ export default function AdminUsersPage() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input type="text" value={search} onChange={e => setSearch(e.target.value)} onKeyDown={handleSearch} aria-label="Search customer accounts"
             placeholder="Search by name or email... (Enter to search)"
-            className="w-full bg-white border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-500 shadow-sm" />
+            className="w-full bg-white border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:border-blue-500 shadow-sm" />
         </div>
         <div className="flex gap-2">
           {['All', 'Active', 'Inactive'].map(s => (
@@ -148,8 +154,9 @@ export default function AdminUsersPage() {
 
       <ConfirmationDialog
         open={Boolean(deleteTarget)}
-        onClose={() => setDeleteTarget(null)}
+        onClose={() => !confirming && setDeleteTarget(null)}
         onConfirm={confirmDelete}
+        loading={confirming}
         title="Delete customer account?"
         description={deleteTarget ? `Delete ${deleteTarget.name}? This cannot be undone.` : ''}
         confirmLabel="Delete"

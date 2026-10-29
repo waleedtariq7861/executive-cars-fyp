@@ -10,7 +10,18 @@ const styles = {
 }
 const sizes = { sm: 'min-h-9 px-3 text-xs', md: 'min-h-11 px-4 text-sm', lg: 'min-h-12 px-6 text-sm' }
 
-export default function Button({ as: Component = 'button', variant = 'primary', size = 'md', loading = false, disabled, className = '', children, ...props }) {
-  const buttonProps = Component === 'button' ? { type: props.type || 'button', disabled: disabled || loading } : { 'aria-disabled': disabled || loading }
-  return <Component className={`inline-flex items-center justify-center gap-2 rounded-lg border font-bold transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-100 disabled:opacity-55 disabled:pointer-events-none ${styles[variant]} ${sizes[size]} ${className}`} {...props} {...buttonProps}>{loading && <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />}<span>{children}</span></Component>
+export default function Button({ as: Component = 'button', variant = 'primary', size = 'md', loading = false, disabled, className = '', children, onClick, ...props }) {
+  const inactive = Boolean(disabled || loading)
+  // Non-button elements (links) have no native disabled state: block activation and keyboard focus ourselves.
+  const buttonProps = Component === 'button'
+    ? { type: props.type || 'button', disabled: inactive, onClick }
+    : {
+        'aria-disabled': inactive || undefined,
+        tabIndex: inactive ? -1 : props.tabIndex,
+        onClick: event => {
+          if (inactive) { event.preventDefault(); return }
+          onClick?.(event)
+        },
+      }
+  return <Component className={`inline-flex items-center justify-center gap-2 rounded-lg border font-bold transition-colors disabled:pointer-events-none aria-disabled:pointer-events-none aria-disabled:opacity-60 ${styles[variant]} ${sizes[size]} ${className}`} {...props} {...buttonProps}>{loading && <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />}<span className="inline-flex items-center justify-center gap-2">{children}</span></Component>
 }

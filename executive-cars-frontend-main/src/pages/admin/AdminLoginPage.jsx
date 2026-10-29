@@ -104,7 +104,7 @@ export default function AdminLoginPage() {
             </div>
 
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-red-600 text-sm text-center">
+              <div role="alert" className="bg-red-50 border border-red-200 rounded-xl p-3 text-red-600 text-sm text-center">
                 {error}
               </div>
             )}

@@ -189,7 +189,7 @@ export default function AIAssistantWidget() {
               onKeyDown={onKey}
               placeholder="Ask me anything…"
               disabled={loading || serviceStatus === 'unavailable'}
-              className="flex-1 text-sm border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-blue-400 disabled:opacity-50 bg-gray-50 placeholder-gray-400"
+              className="flex-1 text-sm border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-blue-400 disabled:opacity-50 bg-gray-50 placeholder-gray-500"
             />
             <button
               onClick={send}

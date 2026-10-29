@@ -59,7 +59,7 @@ export default function AdminBookingsPage() {
 
   return (
     <AdminLayout title="Inspection Bookings">
-      {error && <div className="mb-5 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">{error}</div>}
+      {error && <div role="alert" className="mb-5 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">{error}</div>}
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4 mb-6">
         {[
@@ -80,7 +80,7 @@ export default function AdminBookingsPage() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
           <input type="text" value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Search seller or car..."
-            className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-500" />
+            className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:border-blue-500" />
         </div>
         <div className="flex gap-2">
           {['All', 'Pending', 'Confirmed', 'Completed', 'Cancelled'].map(s => (

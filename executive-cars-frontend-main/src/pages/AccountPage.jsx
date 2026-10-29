@@ -13,7 +13,7 @@ export default function AccountPage() {
   const { user, logout } = useAuth()
   const auctionActive = hasActiveMembership(user)
   const capability = useMembershipCapabilities(!auctionActive)
-  const signOut = () => { logout(); navigate('/') }
+  const signOut = async () => { if (await logout()) navigate('/') }
 
   return (
     <div className="min-h-screen bg-gray-50">

@@ -168,7 +168,7 @@ export default function AdminUploadAuctionPage() {
                     onChange={e => update('mileage', digitsOnly(e.target.value, 7))}
                     placeholder="45000"
                     required
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-500 text-sm"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
                   />
                   {errors.mileage && <p className="text-red-600 text-xs mt-1">{errors.mileage}</p>}
                 </div>
@@ -184,7 +184,7 @@ export default function AdminUploadAuctionPage() {
                     onChange={e => update('engine', digitsOnly(e.target.value, 5))}
                     placeholder="1800"
                     required
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-500 text-sm"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
                   />
                   {errors.engine && <p className="text-red-600 text-xs mt-1">{errors.engine}</p>}
                 </div>
@@ -249,7 +249,7 @@ export default function AdminUploadAuctionPage() {
                     onChange={e => update('basePrice', digitsOnly(e.target.value, 10))}
                     placeholder="5000000"
                     required
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-500 text-sm"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
                   />
                   {errors.basePrice && <p className="text-red-600 text-xs mt-1">{errors.basePrice}</p>}
                 </div>
@@ -284,7 +284,7 @@ export default function AdminUploadAuctionPage() {
                     onChange={e => update('notes', e.target.value)}
                     rows={3}
                     placeholder="Additional details about the car..."
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-500 text-sm resize-none"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-none"
                   />
                 </div>
               </div>

@@ -27,7 +27,7 @@ export default function SellerListingsPage() {
 
   return (
     <SellerLayout title="My Listings">
-      {error && <div className="mb-5 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">{error}</div>}
+      {error && <div role="alert" className="mb-5 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">{error}</div>}
       <div className="flex items-end justify-between gap-4 mb-4"><div><h2 className="text-gray-900 font-bold text-lg">Published inventory</h2><p className="text-gray-500 text-sm">Listings assigned to your account by an administrator.</p></div></div>
       {listings.length === 0 ? (
         <EmptyState title="No published listings yet" description="Managed listings will appear here after showroom inspection, preparation, and administrator publishing." className="bg-white border border-gray-200 rounded-2xl" />

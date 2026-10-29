@@ -3,7 +3,7 @@ import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 export function Dropdown({ label, children, align = 'right' }) {
-  return <details className="relative group"><summary className="list-none cursor-pointer inline-flex items-center gap-1.5 min-h-10 px-3 rounded-lg text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-50 hover:text-blue-700 focus-visible:ring-4 focus-visible:ring-blue-100">{label}<ChevronDown className="w-4 h-4 transition-transform group-open:rotate-180" /></summary><div className={`absolute z-30 mt-2 min-w-52 rounded-xl border border-gray-200 bg-white p-2 shadow-elevated origin-top animate-scaleIn ${align === 'right' ? 'right-0' : 'left-0'}`}>{children}</div></details>
+  return <details className="relative group"><summary className="list-none cursor-pointer inline-flex items-center gap-1.5 min-h-10 px-3 rounded-lg text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-50 hover:text-blue-700 focus-visible:ring-4 focus-visible:ring-blue-300">{label}<ChevronDown className="w-4 h-4 transition-transform group-open:rotate-180" /></summary><div className={`absolute z-30 mt-2 min-w-52 rounded-xl border border-gray-200 bg-white p-2 shadow-elevated origin-top animate-scaleIn ${align === 'right' ? 'right-0' : 'left-0'}`}>{children}</div></details>
 }
 export function DropdownItem({ to, icon: Icon, children }) { return <Link to={to} className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-semibold text-gray-600 transition-colors hover:bg-blue-50 hover:text-blue-700">{Icon && <Icon className="w-4 h-4" />}{children}</Link> }
 

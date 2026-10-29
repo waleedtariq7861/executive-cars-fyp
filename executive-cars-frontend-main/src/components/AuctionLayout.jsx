@@ -18,7 +18,7 @@ export default function AuctionLayout({ children, title }) {
   const { user, logout } = useAuth()
   const [mobileOpen, setMobileOpen] = useState(false)
 
-  const handleLogout = () => { logout(); navigate('/auction') }
+  const handleLogout = async () => { if (await logout()) navigate('/auction') }
 
   return (
     <div className="min-h-screen bg-gray-50 flex">

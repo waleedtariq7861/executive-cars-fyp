@@ -15,6 +15,7 @@ export default function AdminUsedCarsListPage() {
   const [maxPrice, setMaxPrice] = useState(100000000)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [editTarget, setEditTarget] = useState(null)
+  const [confirming, setConfirming] = useState(false)
   const [error, setError] = useState('')
   const { owners, loadingOwners } = useAdminOwners()
 
@@ -32,14 +33,19 @@ export default function AdminUsedCarsListPage() {
     return matchSearch && matchPrice
   })
 
+  // The dialog always closes so a failure banner is never hidden behind the overlay.
   const confirmDelete = async () => {
+    setConfirming(true)
     try {
       setError('')
       await api.delete(`/admin/products/${deleteTarget._id}`)
       setCars(prev => prev.filter(c => c._id !== deleteTarget._id))
-      setDeleteTarget(null)
     } catch (err) {
       setError(err.response?.data?.message || 'Could not delete used car.')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    } finally {
+      setDeleteTarget(null)
+      setConfirming(false)
     }
   }
 
@@ -64,14 +70,14 @@ export default function AdminUsedCarsListPage() {
 
   return (
     <AdminLayout title="Used Cars List">
-      {error && <div className="mb-5 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">{error}</div>}
+      {error && <div role="alert" className="mb-5 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">{error}</div>}
       <div className="flex flex-col sm:flex-row gap-3 mb-6 items-start sm:items-center justify-between">
         <div className="flex gap-3 flex-1 flex-wrap">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
             <input type="text" value={search} onChange={e => setSearch(e.target.value)} aria-label="Search used cars"
               placeholder="Search car..."
-              className="bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-500 w-52" />
+              className="bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:border-blue-500 w-52" />
           </div>
           <div className="flex items-center gap-2">
             <span className="text-gray-500 text-sm whitespace-nowrap">Max Price:</span>
@@ -141,8 +147,9 @@ export default function AdminUsedCarsListPage() {
 
       <ConfirmationDialog
         open={Boolean(deleteTarget)}
-        onClose={() => setDeleteTarget(null)}
+        onClose={() => !confirming && setDeleteTarget(null)}
         onConfirm={confirmDelete}
+        loading={confirming}
         title="Delete used car?"
         description={deleteTarget ? `Remove ${deleteTarget.make} ${deleteTarget.model} from used cars? This cannot be undone.` : ''}
         confirmLabel="Delete"

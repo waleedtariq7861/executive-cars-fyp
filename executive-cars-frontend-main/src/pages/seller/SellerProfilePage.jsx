@@ -46,7 +46,7 @@ export default function SellerProfilePage() {
 
   return (
     <SellerLayout title="My Profile">
-      {error && <div className="mb-6 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">{error}</div>}
+      {error && <div role="alert" className="mb-6 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">{error}</div>}
       {saved && (
         <div className="mb-6 bg-green-50 border border-green-200 text-green-700 px-5 py-4 rounded-2xl flex items-center gap-3">
           <Save className="w-5 h-5 shrink-0" />

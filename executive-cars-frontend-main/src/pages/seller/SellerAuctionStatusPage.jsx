@@ -30,7 +30,7 @@ export default function SellerAuctionStatusPage() {
 
   return (
     <SellerLayout title="Auction Status">
-      {error && <div className="mb-5 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">{error}</div>}
+      {error && <div role="alert" className="mb-5 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">{error}</div>}
       <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
         <div className="p-5 border-b border-gray-200">
           <h2 className="text-gray-900 font-bold text-lg">My Cars in Auction</h2>

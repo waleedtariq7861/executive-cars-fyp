@@ -40,7 +40,7 @@ export default function AccountSignupPage() {
           <Field label="Email address" type="email" value={form.email} onChange={value => update('email', value)} autoComplete="email" />
           <div className="grid sm:grid-cols-2 gap-4"><PasswordField label="Password" value={form.password} onChange={value => update('password', value)} show={showPass} toggle={() => setShowPass(value => !value)} /><PasswordField label="Confirm password" value={form.confirm} onChange={value => update('confirm', value)} show={showPass} /></div>
           <label className="flex items-start gap-2.5 text-xs text-gray-500"><input type="checkbox" checked={form.terms} onChange={event => update('terms', event.target.checked)} required className="mt-0.5 accent-blue-600" /><span>I agree to the marketplace terms and safe-trading guidelines.</span></label>
-          {error && <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-600">{error}</div>}
+          {error && <div role="alert" className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-600">{error}</div>}
           <button disabled={loading} className="btn-primary w-full py-3.5 text-sm gap-2">{loading ? 'Creating account…' : <><UserPlus className="w-4 h-4" /> Create Account</>}</button>
         </form>
         <div className="mt-6 pt-5 border-t border-gray-200 text-center"><p className="text-sm text-gray-500">Already registered? <Link to="/login" className="font-bold text-blue-600 hover:underline">Sign in</Link></p><p className="inline-flex items-center gap-1.5 text-xs text-gray-400 mt-3"><CheckCircle2 className="w-4 h-4 text-green-600" /> No buyer/seller role selection</p></div>
