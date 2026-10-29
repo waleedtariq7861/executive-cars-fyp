@@ -4,6 +4,7 @@ import AuctionLayout from '../../components/AuctionLayout.jsx'
 import { formatPKR } from '../../utils/format.js'
 import api from '../../api/api.js'
 import VehicleImage from '../../components/VehicleImage.jsx'
+import { siteConfig } from '../../config/site.js'
 
 export default function AuctionWonCarsPage() {
   const [wonCars, setWonCars] = useState([])
@@ -80,10 +81,12 @@ export default function AuctionWonCarsPage() {
                   </div>
 
                   <div className="flex flex-wrap gap-3">
-                    <a href={`mailto:${car.sellerEmail}`}
-                      className="bg-green-50 border border-green-200 text-green-700 px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 hover:bg-green-100 transition-colors">
-                      <Phone className="w-4 h-4" /> Contact Seller
-                    </a>
+                    {(car.sellerEmail || siteConfig.email) ? (
+                      <a href={`mailto:${car.sellerEmail || siteConfig.email}`}
+                        className="bg-green-50 border border-green-200 text-green-700 px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 hover:bg-green-100 transition-colors">
+                        <Phone className="w-4 h-4" /> Contact Seller
+                      </a>
+                    ) : <span className="text-sm text-gray-500">Seller contact will be shared by the showroom.</span>}
                     <span className="flex items-center gap-1.5 text-green-600 text-sm font-medium">
                       <CheckCircle className="w-4 h-4" /> You won this auction
                     </span>

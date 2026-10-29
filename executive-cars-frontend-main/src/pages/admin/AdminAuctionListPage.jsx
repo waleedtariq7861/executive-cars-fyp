@@ -60,12 +60,14 @@ export default function AdminAuctionListPage() {
   }
 
   const saveEdit = async () => {
+    setConfirming(true)
     try {
       setError('')
       const payload = {
         make: editTarget.make,
         model: editTarget.model,
         year: Number(editTarget.year),
+        city: editTarget.city || '',
         basePrice: Number(editTarget.basePrice),
         auctionEnd: new Date(editTarget.auctionEnd).toISOString(),
         ownerId: ownerValue(editTarget.ownerId),
@@ -75,6 +77,8 @@ export default function AdminAuctionListPage() {
       setEditTarget(null)
     } catch (err) {
       setError(err.response?.data?.message || 'Could not update auction.')
+    } finally {
+      setConfirming(false)
     }
   }
 
@@ -235,6 +239,7 @@ export default function AdminAuctionListPage() {
                 { label: 'Make', key: 'make' },
                 { label: 'Model', key: 'model' },
                 { label: 'Year', key: 'year', numeric: true, maxLength: 4 },
+                { label: 'City', key: 'city' },
                 { label: 'Base Price (PKR)', key: 'basePrice', numeric: true, maxLength: 10 },
                 { label: 'Auction End Date', key: 'auctionEnd', type: 'datetime-local' },
               ].map(f => (
@@ -246,7 +251,10 @@ export default function AdminAuctionListPage() {
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 focus:outline-none focus:border-blue-500 transition-colors text-sm" />
                 </div>
               ))}
-              <button type="button" onClick={saveEdit} className="btn-primary w-full py-3 rounded-xl font-bold text-sm mt-4">Save Changes</button>
+              <div className="flex gap-3 mt-4">
+                <button type="button" onClick={() => setEditTarget(null)} disabled={confirming} className="btn-ghost flex-1 py-3 rounded-xl font-bold text-sm">Cancel</button>
+                <button type="button" onClick={saveEdit} disabled={confirming} className="btn-primary flex-1 py-3 rounded-xl font-bold text-sm">{confirming ? 'Saving…' : 'Save Changes'}</button>
+              </div>
             </div>
         )}
       </Drawer>

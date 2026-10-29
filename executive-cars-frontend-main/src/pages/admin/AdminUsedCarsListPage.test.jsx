@@ -43,6 +43,20 @@ describe('AdminUsedCarsListPage accessibility', () => {
     await waitFor(() => expect(edit).toHaveFocus())
   })
 
+  it('edits the city and can be cancelled from the form itself', async () => {
+    api.put.mockResolvedValue({ data: { _id: 'car-1', make: 'Honda', model: 'City', year: 2022, km: 30000, price: 5000000, city: 'Lahore', createdAt: '2026-09-01T00:00:00Z' } })
+    render(<MemoryRouter><AdminUsedCarsListPage /></MemoryRouter>)
+    fireEvent.click(await screen.findByRole('button', { name: 'Edit Honda City' }))
+    fireEvent.change(screen.getByLabelText('City'), { target: { value: 'Lahore' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Save Changes' }))
+    await waitFor(() => expect(api.put).toHaveBeenCalledWith('/admin/products/car-1', expect.objectContaining({ city: 'Lahore' })))
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit Honda City' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
   it('closes the delete dialog and announces the error when deletion fails', async () => {
     api.delete.mockRejectedValue({ response: { data: { message: 'Car is referenced elsewhere' } } })
     render(<MemoryRouter><AdminUsedCarsListPage /></MemoryRouter>)

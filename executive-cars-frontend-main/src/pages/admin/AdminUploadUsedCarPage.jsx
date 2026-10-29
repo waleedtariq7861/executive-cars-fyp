@@ -6,13 +6,14 @@ import AdminOwnerSelect, { useAdminOwners } from '../../components/AdminOwnerSel
 import { BRANDS, MODELS } from '../../data/carBrands.js'
 import api from '../../api/api.js'
 import { digitsOnly } from '../../utils/inputValidation.js'
+const cities = ['Rawalpindi', 'Islamabad', 'Lahore', 'Karachi', 'Faisalabad', 'Peshawar', 'Multan', 'Other']
 const colors = ['White', 'Black', 'Silver', 'Grey', 'Red', 'Blue', 'Brown', 'Green', 'Orange']
 
 export default function AdminUploadUsedCarPage() {
   const navigate = useNavigate()
   const [form, setForm] = useState({
     make: '', model: '', year: '', mileage: '', engine: '',
-    transmission: 'Auto', fuel: 'Petrol', color: '',
+    transmission: 'Auto', fuel: 'Petrol', color: '', city: '',
     price: '', condition: 'Excellent', notes: '', ownerId: '',
   })
   const [images, setImages] = useState([])
@@ -63,6 +64,7 @@ export default function AdminUploadUsedCarPage() {
       fd.append('transmission', form.transmission)
       fd.append('fuel', form.fuel)
       fd.append('color', form.color)
+      fd.append('city', form.city)
       fd.append('price', form.price)
       fd.append('condition', form.condition)
       fd.append('description', form.notes)
@@ -71,7 +73,7 @@ export default function AdminUploadUsedCarPage() {
       if (report) fd.append('report', report)
       await api.post('/admin/products', fd)
       setSaved(true)
-      setForm({ make: '', model: '', year: '', mileage: '', engine: '', transmission: 'Auto', fuel: 'Petrol', color: '', price: '', condition: 'Excellent', notes: '', ownerId: '' })
+      setForm({ make: '', model: '', year: '', mileage: '', engine: '', transmission: 'Auto', fuel: 'Petrol', color: '', city: '', price: '', condition: 'Excellent', notes: '', ownerId: '' })
       setImages([])
       setReport(null)
       setResetKey(k => k + 1)
@@ -189,6 +191,13 @@ export default function AdminUploadUsedCarPage() {
                     </select>
                     <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
                   </div>
+                </div>
+                <div>
+                  <label htmlFor="used-upload-city" className="block text-sm text-gray-600 font-medium mb-1.5">City</label>
+                  <select id="used-upload-city" value={form.city} onChange={e => update('city', e.target.value)} required className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 focus:outline-none focus:border-blue-500 text-sm">
+                    <option value="">Select City</option>
+                    {cities.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
                 </div>
               </div>
 

@@ -3,6 +3,7 @@ import { Search, Trash2 } from 'lucide-react'
 import AdminLayout from '../../components/AdminLayout.jsx'
 import api from '../../api/api.js'
 import { ConfirmationDialog } from '../../components/ui/Overlays.jsx'
+import { Pagination } from '../../components/ui/Navigation.jsx'
 
 function getInitials(name) { return (name || '').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() }
 
@@ -32,11 +33,10 @@ export default function AdminUsersPage() {
 
   useEffect(() => { fetchMembers() }, [page, statusFilter])
 
-  const handleSearch = (e) => {
-    if (e.key === 'Enter') {
-      if (page === 1) fetchMembers()
-      else setPage(1)
-    }
+  const submitSearch = (e) => {
+    e.preventDefault()
+    if (page === 1) fetchMembers()
+    else setPage(1)
   }
 
   // The dialog always closes so a failure banner is never hidden behind the overlay.
@@ -64,8 +64,8 @@ export default function AdminUsersPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
           { label: 'Total Accounts', value: total,  color: 'text-blue-600', bg: 'bg-blue-50' },
-          { label: 'Auction Active',  value: members.filter(m => m.subscriptionStatus === 'active').length,  color: 'text-green-600', bg: 'bg-green-50' },
-          { label: 'Auction Inactive', value: members.filter(m => m.subscriptionStatus !== 'active').length, color: 'text-red-600', bg: 'bg-red-50' },
+          { label: 'Auction Active (this page)',  value: members.filter(m => m.subscriptionStatus === 'active').length,  color: 'text-green-600', bg: 'bg-green-50' },
+          { label: 'Auction Inactive (this page)', value: members.filter(m => m.subscriptionStatus !== 'active').length, color: 'text-red-600', bg: 'bg-red-50' },
           { label: 'This Page', value: members.length, color: 'text-purple-600', bg: 'bg-purple-50' },
         ].map(s => (
           <div key={s.label} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
@@ -76,12 +76,15 @@ export default function AdminUsersPage() {
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 mb-5">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input type="text" value={search} onChange={e => setSearch(e.target.value)} onKeyDown={handleSearch} aria-label="Search customer accounts"
-            placeholder="Search by name or email... (Enter to search)"
-            className="w-full bg-white border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:border-blue-500 shadow-sm" />
-        </div>
+        <form role="search" onSubmit={submitSearch} className="flex flex-1 gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input type="text" value={search} onChange={e => setSearch(e.target.value)} aria-label="Search customer accounts"
+              placeholder="Search by name or email"
+              className="w-full bg-white border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:border-blue-500 shadow-sm" />
+          </div>
+          <button type="submit" className="btn-primary px-5 py-2.5 rounded-xl text-sm">Search</button>
+        </form>
         <div className="flex gap-2">
           {['All', 'Active', 'Inactive'].map(s => (
             <button key={s} onClick={() => { setStatusFilter(s); setPage(1) }}
@@ -140,14 +143,7 @@ export default function AdminUsersPage() {
         {totalPages > 1 && (
           <div className="flex items-center justify-between px-5 py-4 border-t border-gray-200">
             <span className="text-gray-500 text-sm">{total} members</span>
-            <div className="flex gap-1">
-              {Array.from({ length: totalPages }, (_, i) => (
-                <button key={i} onClick={() => setPage(i + 1)}
-                  className={`w-8 h-8 rounded-lg text-sm transition-all ${page === i + 1 ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
-                  {i + 1}
-                </button>
-              ))}
-            </div>
+            <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
           </div>
         )}
       </div>

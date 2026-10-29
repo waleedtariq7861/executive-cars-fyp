@@ -37,6 +37,12 @@ export function useSavedCars() {
 
     setSyncing(true)
     try {
+      // Cars saved as a guest are moved into the account the first time it signs in.
+      const guestIds = readLocalIds()
+      if (guestIds.length) {
+        await Promise.allSettled(guestIds.map(id => api.post(`/member/saved-cars/${id}`)))
+        localStorage.removeItem(STORAGE_KEY)
+      }
       const { data } = await api.get('/member/saved-cars')
       const cars = Array.isArray(data?.cars) ? data.cars : []
       const ids = cars.map(car => car._id)

@@ -50,12 +50,14 @@ export default function AdminUsedCarsListPage() {
   }
 
   const saveEdit = async () => {
+    setConfirming(true)
     try {
       setError('')
       const payload = {
         make: editTarget.make,
         model: editTarget.model,
         year: Number(editTarget.year),
+        city: editTarget.city || '',
         km: Number(editTarget.km),
         price: Number(editTarget.price),
         ownerId: ownerValue(editTarget.ownerId),
@@ -65,6 +67,8 @@ export default function AdminUsedCarsListPage() {
       setEditTarget(null)
     } catch (err) {
       setError(err.response?.data?.message || 'Could not update used car.')
+    } finally {
+      setConfirming(false)
     }
   }
 
@@ -170,6 +174,7 @@ export default function AdminUsedCarsListPage() {
                 { label: 'Make', key: 'make' },
                 { label: 'Model', key: 'model' },
                 { label: 'Year', key: 'year', numeric: true, maxLength: 4 },
+                { label: 'City', key: 'city' },
                 { label: 'Mileage (km)', key: 'km', numeric: true, maxLength: 7 },
                 { label: 'Price (PKR)', key: 'price', numeric: true, maxLength: 10 },
               ].map(f => (
@@ -180,7 +185,10 @@ export default function AdminUsedCarsListPage() {
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 focus:outline-none focus:border-blue-500 transition-colors text-sm" />
                 </div>
               ))}
-              <button type="button" onClick={saveEdit} className="btn-primary w-full py-3 rounded-xl font-bold text-sm mt-4">Save Changes</button>
+              <div className="flex gap-3 mt-4">
+                <button type="button" onClick={() => setEditTarget(null)} disabled={confirming} className="btn-ghost flex-1 py-3 rounded-xl font-bold text-sm">Cancel</button>
+                <button type="button" onClick={saveEdit} disabled={confirming} className="btn-primary flex-1 py-3 rounded-xl font-bold text-sm">{confirming ? 'Saving…' : 'Save Changes'}</button>
+              </div>
             </div>
         )}
       </Drawer>

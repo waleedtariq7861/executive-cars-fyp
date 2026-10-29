@@ -96,7 +96,7 @@ export default function SellerProfilePage() {
             </div>
             <div>
               <p className="text-gray-900 font-bold text-lg">{form.name}</p>
-              <p className="text-blue-600 text-sm font-medium">Verified Seller</p>
+              <p className="text-blue-600 text-sm font-medium">{user?.sellerApproved ? 'Approved seller' : 'Seller approval pending'}</p>
               <p className="text-gray-400 text-xs">{user?.email}</p>
             </div>
           </div>

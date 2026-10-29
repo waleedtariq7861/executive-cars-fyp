@@ -59,7 +59,11 @@ export default function HomePage() {
     const evidenced = cars.filter(car => car.verificationStatus === 'verified' || hasInspectionReport(car))
     return (evidenced.length ? evidenced : cars).slice(0, 4)
   }, [cars])
-  const recent = cars.slice(0, 4)
+  const recent = useMemo(() => {
+    const featuredIds = new Set(featured.map(car => car._id))
+    const newestFirst = [...cars].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+    return newestFirst.filter(car => !featuredIds.has(car._id)).slice(0, 4)
+  }, [cars, featured])
 
   return <div className="min-h-screen bg-white">
     <Navbar />
@@ -109,7 +113,7 @@ export default function HomePage() {
 
     <section className="py-14 bg-[#0f172a]"><div className="market-shell grid lg:grid-cols-2 gap-6"><Promo icon={Brain} eyebrow="Smart valuation" title="Understand your car’s market value" text="Enter your vehicle details to see an estimated price, expected range, and the key factors that shape its value." action="Value my car" to="/price-predictor" /><Promo icon={Gavel} eyebrow="Vehicle auctions" title="Follow live bids in real time" text="Eligible members can view countdowns, current bids, and bid updates through the auction portal." action="Explore auctions" to="/auction" /></div></section>
 
-    <InventorySection title="Recently Added Cars" eyebrow="Latest listings" cars={recent} loading={loading} error={loadError} onRetry={loadCars} empty="No recent listings are available." />
+    {(loading || loadError || recent.length > 0) && <InventorySection title="Recently Added Cars" eyebrow="Latest listings" cars={recent} loading={loading} error={loadError} onRetry={loadCars} empty="No recent listings are available." />}
 
     <section className="py-14 bg-gray-50 border-y border-gray-200"><div className="market-shell grid lg:grid-cols-2 gap-8"><BrowsePanel title="Browse Cars by Make">{makes.map(make => <Link key={make} to={`/used-cars?search=${make}`} className="browse-link">{make} Cars <ChevronRight className="w-4 h-4" /></Link>)}</BrowsePanel><BrowsePanel title="Browse Cars by Budget">{budgets.map(item => <Link key={item.value} to={`/used-cars?budget=${item.value}`} className="browse-link">{item.label} <ChevronRight className="w-4 h-4" /></Link>)}</BrowsePanel></div></section>
 

@@ -83,9 +83,9 @@ export default function AdminBookingsPage() {
             className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:border-blue-500" />
         </div>
         <div className="flex gap-2">
-          {['All', 'Pending', 'Confirmed', 'Completed', 'Cancelled'].map(s => (
-            <button key={s} onClick={() => setStatusFilter(s)}
-              className={`px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${statusFilter === s ? 'btn-primary' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'}`}>
+          {['All', 'Pending', 'Approved', 'Rejected', 'Confirmed', 'Completed', 'Cancelled'].map(s => (
+            <button key={s} type="button" aria-pressed={statusFilter === s} onClick={() => setStatusFilter(s)}
+              className={`px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${statusFilter === s ? 'btn-primary' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'}`}>
               {s}
             </button>
           ))}
@@ -144,11 +144,11 @@ export default function AdminBookingsPage() {
                     <td data-label="Actions" className="px-4 py-4">
                       <div className="flex items-center gap-2">
                         {b.status === 'pending' && <>
-                          <button onClick={() => updateStatus(b._id, 'approved')}
+                          <button type="button" aria-label={`Approve ${b.name} booking`} onClick={() => updateStatus(b._id, 'approved')}
                             className="w-7 h-7 rounded-lg bg-green-500/15 text-green-500 hover:bg-green-500/25 flex items-center justify-center transition-all" title="Approve">
                             <Check className="w-3.5 h-3.5" />
                           </button>
-                          <button onClick={() => updateStatus(b._id, 'rejected')}
+                          <button type="button" aria-label={`Reject ${b.name} booking`} onClick={() => updateStatus(b._id, 'rejected')}
                             className="w-7 h-7 rounded-lg bg-red-500/15 text-red-500 hover:bg-red-500/25 flex items-center justify-center transition-all" title="Reject">
                             <X className="w-3.5 h-3.5" />
                           </button>

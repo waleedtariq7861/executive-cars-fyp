@@ -25,6 +25,20 @@ describe('ProtectedRoute', () => {
     expect(screen.getByText('Private account')).toBeInTheDocument()
   })
 
+  it('explains why a signed-in account of the wrong type was sent to sign in', () => {
+    render(
+      <AuthContext.Provider value={{ user: { role: 'admin' } }}>
+        <MemoryRouter initialEntries={['/account']}>
+          <Routes>
+            <Route path="/login" element={<LoginState />} />
+            <Route path="/account" element={<ProtectedRoute role="user"><p>Customer account</p></ProtectedRoute>} />
+          </Routes>
+        </MemoryRouter>
+      </AuthContext.Provider>
+    )
+    expect(screen.getByText(/Redirect: \/account/)).toHaveTextContent('needs a different type of account')
+  })
+
   it('preserves the complete inspection destination and sign-in message', () => {
     render(
       <AuthContext.Provider value={{ user: null }}>

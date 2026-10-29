@@ -13,7 +13,10 @@ export default function ProtectedRoute({ role = 'user', capability, unauthentica
   if (!user || user.role !== role) {
     const loginPath = role === 'admin' ? '/admin/login' : '/login'
     const from = `${location.pathname}${location.search}`
-    return <Navigate to={loginPath} state={{ from, message: unauthenticatedMessage }} replace />
+    const message = user
+      ? 'That page needs a different type of account. Sign in with the right account to continue.'
+      : unauthenticatedMessage
+    return <Navigate to={loginPath} state={{ from, message }} replace />
   }
 
   if (capability === 'auction' && !hasActiveMembership(user)) {

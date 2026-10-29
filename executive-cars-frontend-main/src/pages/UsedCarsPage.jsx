@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import {
-  Bell, CheckCircle2, Fuel, Gauge, Heart, LayoutGrid, List, MapPin,
+  CheckCircle2, Fuel, Gauge, Heart, LayoutGrid, List, MapPin,
   Search, Settings, ShieldCheck, SlidersHorizontal,
 } from 'lucide-react'
 import Navbar from '../components/Navbar.jsx'
@@ -183,11 +183,6 @@ export default function UsedCarsPage() {
     if (transmission !== 'All') params.set('transmission', transmission)
     setSearchParams(params)
   }
-  const createAlert = () => {
-    const savedSearch = { search, priceMax, city, minYear, transmission, createdAt: new Date().toISOString() }
-    localStorage.setItem('ec_saved_search', JSON.stringify(savedSearch))
-    showToast({ tone: 'success', title: 'Search saved', message: 'This browser will remember your current marketplace criteria.' })
-  }
 
   return (
     <div className="min-h-screen bg-[#f5f7f9]">
@@ -218,7 +213,6 @@ export default function UsedCarsPage() {
             <p className="text-sm text-gray-500" aria-live="polite">{loading ? 'Loading cars…' : <><strong className="text-gray-900">{filtered.length}</strong> cars found</>}</p>
             <div className="flex items-center gap-2 ml-auto">
               <div className="hidden sm:flex rounded-lg border border-gray-200 bg-white p-1"><button type="button" onClick={() => setView('grid')} aria-label="Grid view" aria-pressed={view === 'grid'} className={`w-8 h-8 rounded-md inline-flex items-center justify-center ${view === 'grid' ? 'bg-blue-50 text-blue-700' : 'text-gray-400'}`}><LayoutGrid className="w-4 h-4" /></button><button type="button" onClick={() => setView('list')} aria-label="List view" aria-pressed={view === 'list'} className={`w-8 h-8 rounded-md inline-flex items-center justify-center ${view === 'list' ? 'bg-blue-50 text-blue-700' : 'text-gray-400'}`}><List className="w-4 h-4" /></button></div>
-              <button type="button" onClick={createAlert} className="hidden md:inline-flex btn-ghost px-3 py-2.5 text-xs gap-1.5"><Bell className="w-3.5 h-3.5" /> Save search</button>
               <label className="sr-only" htmlFor="sort-cars">Sort cars</label>
               <select id="sort-cars" value={sort} onChange={event => setSort(event.target.value)} className="bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-xs text-gray-700 focus:outline-none focus:border-blue-400">
                 <option value="newest">Recently added</option><option value="price-asc">Price: low to high</option><option value="price-desc">Price: high to low</option><option value="km-asc">Lowest mileage</option>

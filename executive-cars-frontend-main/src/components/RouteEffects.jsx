@@ -15,6 +15,16 @@ const titles = {
   '/privacy': 'Privacy Notice — Executive Cars',
   '/terms': 'Terms of Use — Executive Cars',
   '/saved-cars': 'Saved Cars — Executive Cars',
+  '/account': 'My Account — Executive Cars',
+  '/auction/dashboard': 'Auction Dashboard — Executive Cars',
+  '/auction/live': 'Live Auctions — Executive Cars',
+  '/auction/my-bids': 'My Bids — Executive Cars',
+  '/auction/won-cars': 'Won Cars — Executive Cars',
+  '/auction/profile': 'Auction Profile — Executive Cars',
+  '/auction/payment': 'Auction Membership — Executive Cars',
+  '/seller': 'Selling Tools — Executive Cars',
+  '/admin/login': 'Admin Sign In — Executive Cars',
+  '/admin': 'Admin Portal — Executive Cars',
 }
 
 export default function RouteEffects() {
