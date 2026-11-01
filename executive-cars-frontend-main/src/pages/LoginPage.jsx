@@ -1,10 +1,11 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Car, CheckCircle2, Eye, EyeOff, Gavel, Lock, Search, UserRound } from 'lucide-react'
 import Logo from '../components/Logo.jsx'
 import { useAuth } from '../context/authContext.js'
 import api from '../api/api.js'
 import { waitLabel } from '../utils/apiError.js'
+import useRetryCountdown from '../hooks/useRetryCountdown.js'
 import SessionNotice from '../components/auth/SessionNotice.jsx'
 
 const demoAccountsEnabled = (import.meta.env.DEV || import.meta.env.VITE_APP_MODE === 'demo') && import.meta.env.VITE_ENABLE_DEMO_ACCOUNTS === 'true'
@@ -17,39 +18,32 @@ export default function LoginPage() {
   const [showPass, setShowPass] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  // Seconds the server asked us to wait after too many failed attempts (it never locks the account for good).
-  const [retryIn, setRetryIn] = useState(0)
+  // The server asks for a pause after too many failed attempts; it never locks the account for good.
+  const [pauseMessage, setPauseMessage] = useState('')
+  const retry = useRetryCountdown()
   const [demoAccounts, setDemoAccounts] = useState([])
   const redirectMessage = location.state?.message
-  const throttledRef = useRef(false)
+  const shownError = error || (retry.waiting ? pauseMessage : '')
 
   useEffect(() => {
     if (!demoAccountsEnabled) return
     api.get('/demo/accounts').then(response => setDemoAccounts(response.data?.members || [])).catch(() => setDemoAccounts([]))
   }, [])
 
-  useEffect(() => {
-    if (retryIn <= 0) return undefined
-    const timer = setTimeout(() => setRetryIn(seconds => seconds - 1), 1000)
-    return () => clearTimeout(timer)
-  }, [retryIn])
-
-  useEffect(() => { if (retryIn === 0) setError(current => (current && throttledRef.current ? '' : current)) }, [retryIn])
-
   const handleSubmit = async (event) => {
     event.preventDefault()
-    if (loading || retryIn > 0) return
-    setLoading(true); setError(''); throttledRef.current = false
+    if (loading || retry.waiting) return
+    setLoading(true); setError(''); setPauseMessage('')
     const result = await loginAccount(form.email, form.password)
     const requestedPath = location.state?.from
     const safeDestination = typeof requestedPath === 'string' && /^\/(?!\/)/.test(requestedPath)
       ? requestedPath
       : '/account'
     if (result.success) navigate(safeDestination, { replace: true })
-    else {
-      setError(result.message || 'Invalid credentials. Please try again.')
-      if (result.retryAfterSeconds) { throttledRef.current = true; setRetryIn(result.retryAfterSeconds) }
-    }
+    else if (result.retryAfterSeconds) {
+      setPauseMessage(result.message)
+      retry.start(result.retryAfterSeconds)
+    } else setError(result.message || 'Invalid credentials. Please try again.')
     setLoading(false)
   }
 
@@ -83,13 +77,13 @@ export default function LoginPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4 mt-6">
-            <label className="block"><span className="block text-sm font-semibold text-gray-700 mb-1.5">Email address</span><input type="email" value={form.email} onChange={event => setForm(current => ({ ...current, email: event.target.value }))} required autoComplete="email" aria-invalid={error ? 'true' : undefined} aria-describedby={error ? 'login-error' : undefined} className={`input-light ${error ? 'border-red-400' : ''}`} /></label>
+            <label className="block"><span className="block text-sm font-semibold text-gray-700 mb-1.5">Email address</span><input type="email" value={form.email} onChange={event => setForm(current => ({ ...current, email: event.target.value }))} required autoComplete="email" aria-invalid={shownError ? 'true' : undefined} aria-describedby={shownError ? 'login-error' : undefined} className={`input-light ${shownError ? 'border-red-400' : ''}`} /></label>
             <div>
               <div className="flex items-center justify-between gap-3 mb-1.5"><label htmlFor="login-password" className="text-sm font-semibold text-gray-700">Password</label><Link to="/forgot-password" className="text-xs font-bold text-blue-700 hover:underline">Forgot password?</Link></div>
-              <span className="relative block"><input id="login-password" type={showPass ? 'text' : 'password'} value={form.password} onChange={event => setForm(current => ({ ...current, password: event.target.value }))} required autoComplete="current-password" aria-invalid={error ? 'true' : undefined} aria-describedby={error ? 'login-error' : undefined} className={`input-light pr-11 ${error ? 'border-red-400' : ''}`} /><button type="button" onClick={() => setShowPass(value => !value)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600" aria-label={showPass ? 'Hide password' : 'Show password'}>{showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button></span>
+              <span className="relative block"><input id="login-password" type={showPass ? 'text' : 'password'} value={form.password} onChange={event => setForm(current => ({ ...current, password: event.target.value }))} required autoComplete="current-password" aria-invalid={shownError ? 'true' : undefined} aria-describedby={shownError ? 'login-error' : undefined} className={`input-light pr-11 ${shownError ? 'border-red-400' : ''}`} /><button type="button" onClick={() => setShowPass(value => !value)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600" aria-label={showPass ? 'Hide password' : 'Show password'}>{showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button></span>
             </div>
-            {error && <div id="login-error" role="alert" className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-600 text-sm">{error}</div>}
-            <button type="submit" disabled={loading || retryIn > 0} className="btn-primary w-full py-3.5 text-sm gap-2 disabled:opacity-60">{loading ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Lock className="w-4 h-4" />}{loading ? 'Signing in…' : retryIn > 0 ? `Try again in ${waitLabel(retryIn)}` : 'Sign In'}</button>
+            {shownError && <div id="login-error" role="alert" className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-600 text-sm">{shownError}</div>}
+            <button type="submit" disabled={loading || retry.waiting} className="btn-primary w-full py-3.5 text-sm gap-2 disabled:opacity-60">{loading ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Lock className="w-4 h-4" />}{loading ? 'Signing in…' : retry.waiting ? `Try again in ${waitLabel(retry.seconds)}` : 'Sign In'}</button>
           </form>
 
           {demoAccountsEnabled && demoAccounts.length > 0 && (

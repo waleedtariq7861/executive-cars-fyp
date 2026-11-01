@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { CheckCircle2, KeyRound } from 'lucide-react'
 import Logo from '../components/Logo.jsx'
@@ -11,12 +11,23 @@ import { passwordGuidance, passwordProblem } from '../utils/password.js'
 
 export default function ResetPasswordPage() {
   const [searchParams] = useSearchParams()
-  const token = searchParams.get('token') || ''
+  // The link's token is read once and kept in memory; the address bar, history and any later request's Referer
+  // header must not carry it.
+  const [token] = useState(() => searchParams.get('token') || '')
   const [form, setForm] = useState({ password: '', confirm: '' })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [fieldErrors, setFieldErrors] = useState({})
   const [complete, setComplete] = useState(false)
+
+  useEffect(() => {
+    if (window.location.search) window.history.replaceState(window.history.state, '', window.location.pathname + window.location.hash)
+    const meta = document.createElement('meta')
+    meta.name = 'referrer'
+    meta.content = 'no-referrer'
+    document.head.appendChild(meta)
+    return () => meta.remove()
+  }, [])
 
   const submit = async event => {
     event.preventDefault()

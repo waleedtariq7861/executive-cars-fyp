@@ -5,6 +5,8 @@ import Logo from '../../components/Logo.jsx'
 import { useAuth } from '../../context/authContext.js'
 import api from '../../api/api.js'
 import SessionNotice from '../../components/auth/SessionNotice.jsx'
+import useRetryCountdown from '../../hooks/useRetryCountdown.js'
+import { waitLabel } from '../../utils/apiError.js'
 
 const demoAccountsEnabled = (import.meta.env.DEV || import.meta.env.VITE_APP_MODE === 'demo') && import.meta.env.VITE_ENABLE_DEMO_ACCOUNTS === 'true'
 
@@ -15,6 +17,10 @@ export default function AdminLoginPage() {
   const [showPass, setShowPass] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  // The server asks for a pause after too many failed attempts; it never locks the account for good.
+  const [pauseMessage, setPauseMessage] = useState('')
+  const retry = useRetryCountdown()
+  const shownError = error || (retry.waiting ? pauseMessage : '')
   const [demoAccount, setDemoAccount] = useState(null)
   const update = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
@@ -24,10 +30,15 @@ export default function AdminLoginPage() {
   }, [])
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); setLoading(true); setError('')
+    e.preventDefault()
+    if (loading || retry.waiting) return
+    setLoading(true); setError(''); setPauseMessage('')
     const result = await loginAdmin(form.email, form.password)
     if (result.success && result.role === 'admin') {
       navigate('/admin/dashboard')
+    } else if (result.retryAfterSeconds) {
+      setPauseMessage(result.message)
+      retry.start(result.retryAfterSeconds)
     } else {
       setError(result.message || 'Invalid credentials. Please try again.')
     }
@@ -74,30 +85,37 @@ export default function AdminLoginPage() {
             <div>
               <label htmlFor="admin-email" className="block text-sm font-medium text-gray-700 mb-1.5">Email Address</label>
               <input id="admin-email" type="email" value={form.email} onChange={e => update('email', e.target.value)} required autoComplete="username"
-                className={`input-light ${error ? 'border-red-400' : ''}`} />
+                aria-invalid={shownError ? 'true' : undefined} aria-describedby={shownError ? 'admin-login-error' : undefined}
+                className={`input-light ${shownError ? 'border-red-400' : ''}`} />
             </div>
             <div>
-              <label htmlFor="admin-password" className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
+              <div className="flex items-center justify-between gap-3 mb-1.5">
+                <label htmlFor="admin-password" className="text-sm font-medium text-gray-700">Password</label>
+                <Link to="/forgot-password" className="text-xs font-bold text-blue-700 hover:underline">Forgot password?</Link>
+              </div>
               <div className="relative">
                 <input id="admin-password" type={showPass ? 'text' : 'password'} value={form.password} onChange={e => update('password', e.target.value)} required autoComplete="current-password"
-                  className={`input-light pr-10 ${error ? 'border-red-400' : ''}`} />
-                <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                  aria-invalid={shownError ? 'true' : undefined} aria-describedby={shownError ? 'admin-login-error' : undefined}
+                  className={`input-light pr-10 ${shownError ? 'border-red-400' : ''}`} />
+                <button type="button" onClick={() => setShowPass(!showPass)} aria-label={showPass ? 'Hide password' : 'Show password'} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                   {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
 
-            {error && (
-              <div role="alert" className="bg-red-50 border border-red-200 rounded-xl p-3 text-red-600 text-sm text-center">
-                {error}
+            {shownError && (
+              <div id="admin-login-error" role="alert" className="bg-red-50 border border-red-200 rounded-xl p-3 text-red-600 text-sm text-center">
+                {shownError}
               </div>
             )}
 
-            <button type="submit" disabled={loading}
-              className="btn-primary w-full py-3.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 mt-2 shadow-md shadow-blue-200">
+            <button type="submit" disabled={loading || retry.waiting}
+              className="btn-primary w-full py-3.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 mt-2 shadow-md shadow-blue-200 disabled:opacity-60">
               {loading
                 ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                : <><Lock className="w-4 h-4" /> Sign In to Admin Portal</>
+                : retry.waiting
+                  ? <>Try again in {waitLabel(retry.seconds)}</>
+                  : <><Lock className="w-4 h-4" /> Sign In to Admin Portal</>
               }
             </button>
           </form>
