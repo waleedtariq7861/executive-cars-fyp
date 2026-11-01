@@ -110,8 +110,9 @@ Only enable and use the demo seed in a local demonstration environment.
 
 ## Security model
 
-- Browser authentication uses an HttpOnly session cookie rather than browser-accessible JWT storage.
-- State-changing browser requests require CSRF protection.
+- Browser authentication uses an HttpOnly, SameSite=Strict session cookie (`__Host-ec_session` in production) holding a random token; only its SHA-256 is stored server-side in the `Session` collection, so sessions can be ended individually or all at once.
+- Sessions expire after inactivity and after an absolute lifetime (customers 7 / 14 days, administrators 30 minutes / 8 hours; configurable with the `SESSION_*` variables in `.env.example`). Logging out, changing a password or resetting it revokes sessions on the server, not just in the browser.
+- State-changing browser requests require CSRF protection (token plus Origin check).
 - Auction inventory and bidding APIs enforce authenticated membership/role checks server-side.
 - Private documents are served through authorized API routes rather than a public static folder.
 - Secrets, local uploads, dependency folders, caches, reports, and local environment files are excluded from Git.

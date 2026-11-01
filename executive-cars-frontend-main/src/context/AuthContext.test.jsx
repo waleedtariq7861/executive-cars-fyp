@@ -1,6 +1,6 @@
 import React from 'react'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AuthProvider } from './AuthContext.jsx'
 import { useAuth } from './authContext.js'
 import { ToastContext } from './toastContext.js'
@@ -72,6 +72,87 @@ describe('AuthProvider cookie session lifecycle', () => {
     expect(await screen.findByText('anonymous')).toBeInTheDocument()
     expect(disconnectSocket).toHaveBeenCalled()
     expect(setCsrfToken).toHaveBeenLastCalledWith('')
+  })
+
+  describe('session notices and cross-tab sync', () => {
+    const member = { id: 'member-1', email: 'member@example.com', role: 'user' }
+
+    // A tiny in-memory BroadcastChannel: every instance with the same name hears the others, never itself.
+    const channels = new Set()
+    class FakeChannel {
+      constructor(name) { this.name = name; this.sent = []; channels.add(this) }
+      postMessage(data) { this.sent.push(data); channels.forEach(other => { if (other !== this && other.name === this.name) other.onmessage?.({ data }) }) }
+      close() { channels.delete(this) }
+    }
+
+    function NoticeProbe() {
+      const { user, sessionNotice, loginAccount } = useAuth()
+      return <div><span>{user ? 'in' : 'out'}</span><span>notice:{sessionNotice || 'none'}</span><button onClick={() => loginAccount('member@example.com', 'password-123')}>Login</button></div>
+    }
+    const unauthorized = code => window.dispatchEvent(new CustomEvent('ec:unauthorized', { detail: { code } }))
+
+    beforeEach(() => { channels.clear(); vi.stubGlobal('BroadcastChannel', FakeChannel) })
+    afterEach(() => vi.unstubAllGlobals())
+
+    it('explains an unrequested sign-out of a signed-in user, and clears it on the next sign-in', async () => {
+      api.get.mockResolvedValue({ data: { user: member, csrfToken: 'csrf-1' } })
+      render(<AuthProvider><NoticeProbe /></AuthProvider>)
+      await screen.findByText('in')
+
+      act(() => unauthorized('SESSION_EXPIRED'))
+      expect(await screen.findByText('notice:expired')).toBeInTheDocument()
+      expect(screen.getByText('out')).toBeInTheDocument()
+
+      api.post.mockResolvedValueOnce({ data: { user: member, csrfToken: 'csrf-2' } })
+      fireEvent.click(screen.getByRole('button', { name: 'Login' }))
+      expect(await screen.findByText('notice:none')).toBeInTheDocument()
+    })
+
+    it('says "revoked" for a revoked session and says nothing when nobody was signed in', async () => {
+      api.get.mockResolvedValue({ data: { user: member, csrfToken: 'csrf-1' } })
+      const { unmount } = render(<AuthProvider><NoticeProbe /></AuthProvider>)
+      await screen.findByText('in')
+      act(() => unauthorized('SESSION_REVOKED'))
+      expect(await screen.findByText('notice:revoked')).toBeInTheDocument()
+      unmount()
+
+      api.get.mockRejectedValue({ response: { status: 401 } })
+      render(<AuthProvider><NoticeProbe /></AuthProvider>)
+      await screen.findByText('out')
+      act(() => unauthorized('NOT_AUTHENTICATED'))
+      act(() => unauthorized('SESSION_EXPIRED'))
+      expect(screen.getByText('notice:none')).toBeInTheDocument()
+    })
+
+    it('signs this tab out when another tab signs out', async () => {
+      api.get.mockResolvedValue({ data: { user: member, csrfToken: 'csrf-1' } })
+      render(<AuthProvider><NoticeProbe /></AuthProvider>)
+      await screen.findByText('in')
+      const otherTab = new FakeChannel('ec-auth')
+      act(() => otherTab.postMessage({ type: 'signed-out' }))
+      expect(await screen.findByText('out')).toBeInTheDocument()
+      expect(disconnectSocket).toHaveBeenCalled()
+    })
+
+    it('re-checks the session when another tab signs in, and announces its own sign-in without credentials', async () => {
+      api.get.mockRejectedValueOnce({ response: { status: 401 } })
+      render(<AuthProvider><NoticeProbe /></AuthProvider>)
+      await screen.findByText('out')
+      const otherTab = new FakeChannel('ec-auth')
+
+      api.get.mockResolvedValueOnce({ data: { user: member, csrfToken: 'csrf-9' } })
+      act(() => otherTab.postMessage({ type: 'signed-in' }))
+      expect(await screen.findByText('in')).toBeInTheDocument()
+      expect(setCsrfToken).toHaveBeenLastCalledWith('csrf-9')
+
+      // our own sign-in is announced as a bare event name
+      api.post.mockResolvedValueOnce({ data: { user: member, csrfToken: 'csrf-3' } })
+      otherTab.sent.length = 0
+      const heard = []
+      otherTab.onmessage = ({ data }) => heard.push(data)
+      fireEvent.click(screen.getByRole('button', { name: 'Login' }))
+      await waitFor(() => expect(heard).toEqual([{ type: 'signed-in' }]))
+    })
   })
 
   describe('logout failures', () => {

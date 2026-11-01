@@ -4,6 +4,7 @@ import { Car, CheckCircle2, Eye, EyeOff, Gavel, Lock, Search, UserRound } from '
 import Logo from '../components/Logo.jsx'
 import { useAuth } from '../context/authContext.js'
 import api from '../api/api.js'
+import SessionNotice from '../components/auth/SessionNotice.jsx'
 
 const demoAccountsEnabled = (import.meta.env.DEV || import.meta.env.VITE_APP_MODE === 'demo') && import.meta.env.VITE_ENABLE_DEMO_ACCOUNTS === 'true'
 
@@ -60,6 +61,7 @@ export default function LoginPage() {
           <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center"><UserRound className="w-6 h-6 text-blue-600" /></div>
           <h2 className="text-3xl font-black text-gray-900 mt-5">Sign in to your account</h2>
           <p className="text-sm text-gray-500 mt-2">The same login works for buying, selling, and auction membership.</p>
+          <SessionNotice className="mt-5" />
           {redirectMessage && (
             <div role="status" className="mt-5 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-medium text-blue-800">
               {redirectMessage}

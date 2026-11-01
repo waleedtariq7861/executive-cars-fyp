@@ -1,8 +1,11 @@
-import React, { useCallback, useContext, useEffect, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import api, { setCsrfToken } from '../api/api'
 import { connectSocket, disconnectSocket } from '../api/socket'
 import { AuthContext } from './authContext.js'
 import { ToastContext } from './toastContext.js'
+
+const SESSION_NOTICES = { SESSION_EXPIRED: 'expired', SESSION_REVOKED: 'revoked' }
+const AUTH_CHANNEL = 'ec-auth'
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
@@ -11,9 +14,42 @@ export function AuthProvider({ children }) {
   // Where a protected page should send the user right after an intentional sign out.
   const [logoutRedirect, setLogoutRedirect] = useState(null)
   const clearLogoutRedirect = useCallback(() => setLogoutRedirect(null), [])
+  // Why a signed-in user was signed out without asking ("expired" or "revoked"); shown on the sign-in screen.
+  const [sessionNotice, setSessionNotice] = useState(null)
+  const dismissSessionNotice = useCallback(() => setSessionNotice(null), [])
+  const userRef = useRef(null)
+  userRef.current = user
+  const channelRef = useRef(null)
+  // Other tabs only learn that something happened (never any credential) and re-check with the server.
+  const announce = type => channelRef.current?.postMessage({ type })
+
+  const refreshUser = useCallback(async () => {
+    const { data } = await api.get('/auth/session')
+    setCsrfToken(data.csrfToken)
+    setUser(data.user)
+    return data.user
+  }, [])
 
   useEffect(() => {
-    const handleUnauthorized = () => {
+    if (typeof BroadcastChannel === 'undefined') return undefined
+    const channel = new BroadcastChannel(AUTH_CHANNEL)
+    channelRef.current = channel
+    channel.onmessage = ({ data }) => {
+      if (data?.type === 'signed-out') {
+        disconnectSocket()
+        setCsrfToken('')
+        setUser(null)
+      } else if (data?.type === 'signed-in') {
+        refreshUser().catch(() => {})
+      }
+    }
+    return () => { channel.close(); channelRef.current = null }
+  }, [refreshUser])
+
+  useEffect(() => {
+    const handleUnauthorized = event => {
+      const notice = SESSION_NOTICES[event.detail?.code]
+      if (notice && userRef.current) setSessionNotice(notice)
       disconnectSocket()
       setUser(null)
     }
@@ -31,10 +67,12 @@ export function AuthProvider({ children }) {
 
   const persist = (userData, nextCsrfToken) => {
     setLogoutRedirect(null) // a new sign-in ends any pending sign-out landing
+    setSessionNotice(null)
     setUser(userData)
     setCsrfToken(nextCsrfToken)
     if (userData.role === 'user') connectSocket()
     else disconnectSocket()
+    announce('signed-in')
   }
 
   const loginAccount = async (email, password) => {
@@ -76,6 +114,7 @@ export function AuthProvider({ children }) {
       disconnectSocket()
       setCsrfToken('')
       setUser(null)
+      announce('signed-out')
     }
     try {
       try {
@@ -107,13 +146,6 @@ export function AuthProvider({ children }) {
     })
   }, [])
 
-  const refreshUser = useCallback(async () => {
-    const { data } = await api.get('/auth/session')
-    setCsrfToken(data.csrfToken)
-    setUser(data.user)
-    return data.user
-  }, [])
-
   return (
     <AuthContext.Provider value={{
       user,
@@ -125,6 +157,8 @@ export function AuthProvider({ children }) {
       logout,
       logoutRedirect,
       clearLogoutRedirect,
+      sessionNotice,
+      dismissSessionNotice,
       updateUser,
       refreshUser,
     }}>
