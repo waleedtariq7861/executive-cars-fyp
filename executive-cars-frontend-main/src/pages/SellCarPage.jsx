@@ -78,7 +78,7 @@ export default function SellCarPage() {
               Book an Inspection <ArrowRight className="h-4 w-4" />
             </Link>
             <p className="mt-3 text-xs leading-5 text-gray-500">
-              An Executive Cars member account is required. If you are signed out, you will return to the booking page after signing in.
+              An Executive Cars account is required. If you are signed out, you will return to the booking page after signing in.
             </p>
           </div>
         </article>

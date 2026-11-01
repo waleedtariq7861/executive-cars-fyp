@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Eye, EyeOff, Shield, Lock, Car, Users, BarChart3, CheckCircle } from 'lucide-react'
+import { Eye, EyeOff, Shield, Lock } from 'lucide-react'
 import Logo from '../../components/Logo.jsx'
 import { useAuth } from '../../context/authContext.js'
 import api from '../../api/api.js'
@@ -55,24 +55,6 @@ export default function AdminLoginPage() {
           <h2 className="text-4xl font-black text-white mb-3 leading-tight">
             Manage Everything<br /><span className="animated-gradient-text">From One Place</span>
           </h2>
-          <p className="text-slate-400 text-base mb-10">Full control over listings, members, bookings, and auctions.</p>
-
-          <div className="space-y-4">
-            {[
-              { icon: Users, text: 'Manage auction members & subscriptions' },
-              { icon: BarChart3, text: 'View real-time auction bids & stats' },
-              { icon: CheckCircle, text: 'Approve/reject seller inspection bookings' },
-              { icon: Car, text: 'Upload & manage car listings' },
-            ].map(({ icon: Icon, text }) => (
-              <div key={text} className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-blue-600/20 rounded-lg flex items-center justify-center shrink-0">
-                  <Icon className="w-4 h-4 text-blue-400" />
-                </div>
-                <span className="text-slate-300 text-sm">{text}</span>
-              </div>
-            ))}
-          </div>
-
         </div>
       </div>
 
@@ -127,12 +109,6 @@ export default function AdminLoginPage() {
               <button type="button" onClick={() => { setForm({ email: demoAccount.email, password: demoAccount.password }); setError('') }} className="mt-3 w-full rounded-lg border border-blue-200 bg-white px-3 py-2 text-left text-xs font-semibold text-blue-800 hover:bg-blue-100">Use admin demo account</button>
             </section>
           )}
-
-          <div className="mt-6 pt-6 border-t border-gray-200 text-center">
-            <p className="text-gray-500 text-sm">Not an administrator?{' '}
-              <Link to="/login" className="text-blue-600 font-medium hover:underline">Customer sign in →</Link>
-            </p>
-          </div>
         </div>
       </div>
     </div>

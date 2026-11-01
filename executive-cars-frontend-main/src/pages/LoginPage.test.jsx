@@ -21,10 +21,17 @@ describe('session notice on the sign-in screens', () => {
     expect(screen.getByText(/inactivity/i)).toBeInTheDocument()
   })
 
-  it('points non-administrators to the one customer sign-in, with no separate seller login', () => {
+  it('keeps the administrator page free of customer and seller sign-in links and of a public list of admin capabilities', () => {
     renderWith(<AdminLoginPage />, null)
-    expect(screen.getByRole('link', { name: /Customer sign in/ })).toHaveAttribute('href', '/login')
-    expect(screen.queryByText(/seller login/i)).not.toBeInTheDocument()
+    expect(document.querySelector('a[href="/login"]')).toBeNull()
+    expect(screen.queryByText(/seller/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/customer sign in/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Approve\/reject|Upload & manage|Full control/i)).not.toBeInTheDocument()
+  })
+
+  it('no longer explains the account model on the customer pages', () => {
+    renderWith(<LoginPage />, null)
+    expect(screen.queryByText(/No separate buyer or seller registration/i)).not.toBeInTheDocument()
   })
 
   it('explains a revoked session on the administrator sign-in page', () => {

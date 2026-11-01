@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { ArrowRight, CheckCircle2, Crown, UserPlus } from 'lucide-react'
+import { ArrowRight, Crown, UserPlus } from 'lucide-react'
 import Logo from '../components/Logo.jsx'
 import MembershipAvailability from '../components/MembershipAvailability.jsx'
 import SignupForm from '../components/auth/SignupForm.jsx'
@@ -45,7 +45,7 @@ export default function AccountSignupPage() {
         <p className="text-sm text-gray-500 mt-2">One account lets you buy, sell, manage listings, and activate auction access.</p>
         {wantsAuction && <MembershipAvailability capability={capability} />}
         <div className="mt-7"><SignupForm register={registerAccount} onSuccess={goNext} submitLabel={wantsAuction && capability.available ? 'Create Account and Continue to Demo' : 'Create Account'} idPrefix="account-signup" /></div>
-        <div className="mt-6 pt-5 border-t border-gray-200 text-center"><p className="text-sm text-gray-500">Already registered? <Link to="/login" className="font-bold text-blue-600 hover:underline">Sign in</Link></p><p className="inline-flex items-center gap-1.5 text-xs text-gray-400 mt-3"><CheckCircle2 className="w-4 h-4 text-green-600" /> No buyer/seller role selection</p></div>
+        <div className="mt-6 pt-5 border-t border-gray-200 text-center"><p className="text-sm text-gray-500">Already registered? <Link to="/login" className="font-bold text-blue-600 hover:underline">Sign in</Link></p></div>
       </div>
     </div>
   )
