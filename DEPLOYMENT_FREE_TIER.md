@@ -38,7 +38,7 @@ The frontend's `vercel.json` forwards HTTP `/api/*` and Socket.IO `/socket.io/*`
 1. Open the Vercel URL and a deep link such as `/used-cars`; both should load the app.
 2. Open `https://YOUR-VERCEL-HOST/api/health`; it should show `database: connected`. A 404 or HTML response means the Vercel rewrite target is wrong.
 3. Register a fresh account, sign out, sign in, and refresh `/account`. If session or mutation requests fail with 403, check Render `CLIENT_URL` against the address bar's exact origin.
-4. After Resend shows the sending domain as verified and Render is redeployed, verify an inspection booking OTP and a password reset message end to end using an inbox you control. Check Resend's email activity if the application reports a delivery error. The backend accepts a Resend API response as provider acceptance; actual inbox delivery still needs this live check.
+4. After Resend shows the sending domain as verified and Render is redeployed, verify an inspection booking OTP, a sign-up email verification code and a password reset code end to end using an inbox you control. Check Resend's email activity if the application reports a delivery error. The backend accepts a Resend API response as provider acceptance; actual inbox delivery still needs this live check.
 5. Upload a test listing image/document through the intended app workflow and verify it survives a Render redeploy. If it disappears, check the three Cloudinary settings.
 6. Test a member's live auction view and bid update in two browser sessions. Confirm Socket.IO polling connects through `/socket.io/`; this is a required live verification before relying on realtime bidding.
 
