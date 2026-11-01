@@ -27,6 +27,12 @@ describe('session notice on the sign-in screens', () => {
     expect(screen.getByText(/password was changed|signed out on another device/i)).toBeInTheDocument()
   })
 
+  it('does not advertise the administrator sign-in on the customer page', () => {
+    renderWith(<LoginPage />, null)
+    expect(document.querySelector('a[href="/admin/login"]')).toBeNull()
+    expect(screen.queryByText(/administrator/i)).not.toBeInTheDocument()
+  })
+
   it('shows nothing when the visitor simply has no session', () => {
     renderWith(<LoginPage />, null)
     expect(screen.queryByText('Your session expired')).not.toBeInTheDocument()

@@ -105,14 +105,12 @@ export default function LoginPage() {
                   </button>
                 ))}
               </div>
-              <p className="mt-3 text-xs text-blue-800">Administrator? Use the separate <Link className="font-bold underline" to="/admin/login">admin login</Link>.</p>
             </section>
           )}
 
           <div className="mt-7 pt-6 border-t border-gray-200">
             <p className="text-sm text-gray-500 text-center">New to Executive Cars? <Link to="/signup" className="font-bold text-blue-600 hover:underline">Create one account</Link></p>
             <div className="flex items-center justify-center gap-2 mt-4 text-xs text-gray-400"><CheckCircle2 className="w-4 h-4 text-green-600" /> No separate buyer or seller registration</div>
-            <p className="text-xs text-gray-400 text-center mt-5">Administrator? <Link to="/admin/login" className="text-blue-600 hover:underline">Use secure admin login</Link></p>
           </div>
         </div>
       </main>
