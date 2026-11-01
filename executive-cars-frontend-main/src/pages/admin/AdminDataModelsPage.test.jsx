@@ -21,7 +21,7 @@ describe('AdminDataModelsPage provenance', () => {
         versions: [{
           version: 'ec-20260820-100203-13d9e2ba', modelName: 'extra_trees', datasetSize: 72179, trainedRows: 57743,
           trainingDate: '2026-08-20T10:02:03Z', metrics: { mae: 328377, r2: 0.9548 },
-          provenance: { datasetName: 'pakwheels_used_car_data_v02.csv', sourceCategory: 'Legacy metadata unavailable', datasetFingerprint: '13d9e2baaf4e4723', datasetRows: 72179, trainedRows: 57743 },
+          provenance: { datasetName: 'pakwheels_used_car_data_v02.csv', sourceCategory: null, datasetFingerprint: '13d9e2baaf4e4723', datasetRows: 72179, trainedRows: 57743 },
         }],
       } })
     })

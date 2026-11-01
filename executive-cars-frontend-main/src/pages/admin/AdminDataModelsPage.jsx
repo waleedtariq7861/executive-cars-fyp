@@ -14,7 +14,7 @@ const shortVersion = value => {
   return version.length > 24 ? `${version.slice(0, 16)}…${version.slice(-7)}` : version
 }
 
-const displayDate = value => value ? new Date(value).toLocaleString('en-PK') : 'Legacy metadata unavailable'
+const displayDate = value => value ? new Date(value).toLocaleString('en-PK') : null
 
 function ProvenanceGrid({ version }) {
   const provenance = version?.provenance || {}
@@ -27,7 +27,7 @@ function ProvenanceGrid({ version }) {
     ['Training date', displayDate(provenance.trainingDate || version?.trainingDate)],
   ]
   return <dl className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3 mt-4">
-    {items.map(([label, value]) => <div key={label} className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 min-w-0"><dt className="text-[11px] font-bold uppercase tracking-wide text-gray-500">{label}</dt><dd className="text-sm font-semibold text-gray-900 mt-1 break-words" title={String(value || '')}>{value || 'Legacy metadata unavailable'}</dd></div>)}
+    {items.map(([label, value]) => <div key={label} className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 min-w-0"><dt className="text-[11px] font-bold uppercase tracking-wide text-gray-500">{label}</dt><dd className="text-sm font-semibold text-gray-900 mt-1 break-words" title={String(value || '')}>{value ?? 'Not recorded'}</dd></div>)}
   </dl>
 }
 
