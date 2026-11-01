@@ -1,13 +1,14 @@
 import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/authContext.js'
-import { Users, Calendar, Gavel, List, Upload, PlusCircle, LogOut, Menu, X, Shield, BarChart3, Database } from 'lucide-react'
+import { Users, Calendar, Gavel, List, Upload, PlusCircle, LogOut, Menu, X, Shield, BarChart3, Database, Receipt } from 'lucide-react'
 import Logo from './Logo.jsx'
 
 const navItems = [
   { icon: BarChart3, label: 'Dashboard', to: '/admin/dashboard' },
   { icon: Users, label: 'Customer Accounts', to: '/admin/users' },
   { icon: Calendar, label: 'Bookings', to: '/admin/bookings' },
+  { icon: Receipt, label: 'Payments', to: '/admin/payments' },
   { icon: Gavel, label: 'Auction List', to: '/admin/auction-list' },
   { icon: List, label: 'Used Cars List', to: '/admin/used-cars-list' },
   { icon: Upload, label: 'Upload Auction Car', to: '/admin/upload-auction' },

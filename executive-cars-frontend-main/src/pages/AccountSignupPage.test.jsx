@@ -40,7 +40,7 @@ const signUp = async () => {
 
 beforeEach(() => {
   registerAccount.mockReset()
-  api.get.mockReset().mockResolvedValue({ data: { activationMode: 'demo', amount: 4999, currency: 'PKR', durationYears: 1, plan: 'annual_auction_membership' } })
+  api.get.mockReset()
 })
 
 describe('AccountSignupPage after registration', () => {
@@ -54,8 +54,7 @@ describe('AccountSignupPage after registration', () => {
   it('carries the auction intent through the code screen to the membership step', async () => {
     registerAccount.mockResolvedValue({ success: true, verification: { sent: false, failed: true } })
     renderSignup('/signup?next=auction')
-    await waitFor(() => expect(api.get).toHaveBeenCalled())
-    await screen.findByRole('button', { name: /Create Account and Continue to Demo/ })
+    await screen.findByRole('button', { name: /Create Account and Continue to Membership/ })
     await signUp()
     expect(await screen.findByText('verify next=/auction/payment sent=false')).toBeInTheDocument()
   })

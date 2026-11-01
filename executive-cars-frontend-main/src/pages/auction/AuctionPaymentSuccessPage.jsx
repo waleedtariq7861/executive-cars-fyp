@@ -21,12 +21,13 @@ function Confetti() {
 export default function AuctionPaymentSuccessPage() {
   const location = useLocation()
   const { refreshUser } = useAuth()
-  const membership = location.state?.membership
+  const payment = location.state?.payment
+  const invoiceNumber = location.state?.invoiceNumber
   const [verified, setVerified] = useState(null)
   const [status, setStatus] = useState('loading')
   const [attempt, setAttempt] = useState(0)
   const success = status === 'verified' && hasActiveMembership(verified)
-  const completed = success && membership?.memberId === verified.id && membership?.paymentMode === 'demo'
+  const completed = success && payment?.status === 'succeeded'
 
   useEffect(() => {
     let current = true
@@ -42,11 +43,12 @@ export default function AuctionPaymentSuccessPage() {
     {completed && <Confetti />}
     <div className="relative z-10 bg-white border border-gray-200 rounded-3xl p-10 max-w-md w-full text-center shadow-xl">
       {success ? <><CheckCircle className="w-20 h-20 text-blue-600 mx-auto" /><div className="flex justify-center gap-2 mt-4">{[0, 1, 2].map(index => <Sparkles key={index} className="w-4 h-4 text-blue-500 animate-pulse" />)}</div></> : <CircleAlert className="w-20 h-20 text-red-500 mx-auto" />}
-      <h1 className="text-3xl font-black text-gray-900 mt-5">{success ? completed ? 'Demo Auction Access Activated' : 'Your Auction Membership Is Active' : status === 'error' ? 'Could not confirm membership' : 'Membership is not active'}</h1>
-      <p className="text-gray-500 mt-3 mb-7">{success ? 'Your saved membership is confirmed. You can now access the auction features.' : status === 'error' ? 'We could not check your saved membership. Retry the status check before activating again.' : 'Your account has no active auction membership. Return to the membership page to check activation availability.'}</p>
+      <h1 className="text-3xl font-black text-gray-900 mt-5">{success ? completed ? 'Payment successful' : 'Your Auction Membership Is Active' : status === 'error' ? 'Could not confirm membership' : 'Membership is not active'}</h1>
+      <p className="text-gray-500 mt-3 mb-7">{success ? (completed ? 'Your payment was received and your membership is active. You can now access the auction features.' : 'Your saved membership is confirmed. You can now access the auction features.') : status === 'error' ? 'We could not check your saved membership. Retry the status check before activating again.' : 'Your account has no active auction membership. Return to the membership page to check activation availability.'}</p>
       {status === 'error' && <button type="button" onClick={() => { setStatus('loading'); setAttempt(value => value + 1) }} className="btn-primary w-full py-3 mb-4">Retry status check</button>}
+      {completed && <div className="rounded-xl bg-gray-50 border border-gray-200 p-4 text-left text-sm text-gray-700 mb-5"><p><span className="font-semibold">Invoice:</span> {invoiceNumber}</p><p className="mt-1"><span className="font-semibold">Reference:</span> {payment.reference}</p><p className="mt-1"><span className="font-semibold">Paid with:</span> {payment.methodLabel}</p></div>}
       {success && <p className="text-sm text-gray-600 mb-5">Active until {new Date(verified.subscriptionExpiry).toLocaleDateString('en-PK', { dateStyle: 'medium' })}</p>}
-      {success ? <><div className="flex flex-col gap-3"><Link to="/auction/dashboard" className="btn-primary py-3.5 text-sm">View Auctions</Link><Link to="/account" className="btn-ghost py-3.5 text-sm">My Account</Link></div></> : <div className="flex flex-col gap-3"><Link to="/auction/payment" className="btn-primary py-3.5 text-sm">Return to Membership</Link><Link to="/account" className="btn-ghost py-3.5 text-sm">My Account</Link></div>}
+      {success ? <><div className="flex flex-col gap-3"><Link to="/auction/dashboard" className="btn-primary py-3.5 text-sm">View Auctions</Link>{completed && <Link to={`/account/payments/${payment.id}/invoice`} className="btn-ghost py-3.5 text-sm">View invoice</Link>}<Link to="/account" className="btn-ghost py-3.5 text-sm">My Account</Link></div></> : <div className="flex flex-col gap-3"><Link to="/auction/payment" className="btn-primary py-3.5 text-sm">Return to Membership</Link><Link to="/account" className="btn-ghost py-3.5 text-sm">My Account</Link></div>}
     </div>
   </div>
 }
