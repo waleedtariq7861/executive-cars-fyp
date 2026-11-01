@@ -42,7 +42,6 @@ export default function SellerBookingsPage() {
         <div className="p-5 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 className="text-gray-900 font-bold text-lg">Inspection Bookings</h2>
-            <p className="text-gray-500 text-sm mt-0.5">Track your vehicle inspection requests.</p>
           </div>
           <Link to="/seller/book-inspection" className="btn-primary px-4 py-2.5 text-sm gap-2 shrink-0">
             <PlusCircle className="w-4 h-4" /> Book Inspection

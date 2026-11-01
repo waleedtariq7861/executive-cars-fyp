@@ -182,7 +182,7 @@ export default function BecomeSellerPage() {
               <p className="text-blue-100 text-xs font-bold uppercase tracking-wider">Selling Tools</p>
               <h2 className="text-2xl font-black mt-1">Book a Vehicle Inspection</h2>
               <p className="text-blue-100 text-sm leading-6 mt-2 max-w-2xl">
-                Choose a preferred date and branch. You can track the request from My Bookings without leaving the seller portal.
+                Choose a preferred date and branch. You can track the request from My Bookings.
               </p>
             </div>
           </div>
@@ -362,9 +362,8 @@ export default function BecomeSellerPage() {
         </div>
         {devOtp && (
           <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-4 text-center">
-            <p className="text-amber-800 text-xs font-semibold">Local email delivery is unavailable</p>
+            <p className="text-amber-800 text-xs font-semibold">Verification code</p>
             <p className="text-amber-950 font-black tracking-[0.25em] text-xl mt-1">{devOtp}</p>
-            <p className="text-amber-700 text-[11px] mt-1">Development only — production never exposes the code.</p>
           </div>
         )}
         {otpError && <p role="alert" className="text-red-600 text-xs text-center mb-3">{otpError}</p>}

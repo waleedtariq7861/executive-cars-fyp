@@ -35,11 +35,11 @@ export default function ForgotPasswordPage() {
         <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-elevated">
           <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center"><Mail className="w-6 h-6" /></div>
           <h1 className="text-2xl font-black text-gray-950 mt-5">Reset your password</h1>
-          <p className="text-sm text-gray-500 leading-6 mt-2">Enter the email on your customer account. For privacy, the response is the same whether an account exists or not.</p>
+          <p className="text-sm text-gray-500 leading-6 mt-2">Enter the email address of your account and we will send you reset instructions.</p>
           {response ? (
             <div className="mt-6">
               <Alert tone="success" title="Check your email">{response.message}</Alert>
-              {response.developmentResetUrl && <Alert tone="warning" title="Development delivery" className="mt-3">Email delivery is simulated locally. <Link className="font-bold underline" to={response.developmentResetUrl.replace(/^https?:\/\/[^/]+/, '')}>Open the local reset link.</Link></Alert>}
+              {response.developmentResetUrl && <Alert tone="warning" title="Development delivery" className="mt-3"><Link className="font-bold underline" to={response.developmentResetUrl.replace(/^https?:\/\/[^/]+/, '')}>Open the reset link.</Link></Alert>}
               <Button as={Link} to="/login" variant="outline" className="w-full mt-5"><ArrowLeft className="w-4 h-4" /> Back to sign in</Button>
             </div>
           ) : (

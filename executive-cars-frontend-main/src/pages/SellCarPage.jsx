@@ -59,7 +59,7 @@ export default function SellCarPage() {
             </div>
 
             <p className="mt-6 text-sm leading-7 text-gray-600 sm:text-base">
-              Start with a showroom inspection. Our team will help with price guidance, verification, listing preparation, and buyer coordination using the existing managed-selling process.
+              Start with a showroom inspection. Our team will help with price guidance, verification, listing preparation, and buyer coordination.
             </p>
 
             <ul className="mt-6 grid gap-3 sm:grid-cols-2">
@@ -78,7 +78,7 @@ export default function SellCarPage() {
               Book an Inspection <ArrowRight className="h-4 w-4" />
             </Link>
             <p className="mt-3 text-xs leading-5 text-gray-500">
-              An Executive Cars member account is required. If you are signed out, you will return to the booking page after signing in.
+              An Executive Cars account is required. If you are signed out, you will return to the booking page after signing in.
             </p>
           </div>
         </article>
@@ -117,7 +117,6 @@ export default function SellCarPage() {
           </div>
           <div>
             <h2 className="text-xl font-black">Already have an Executive Cars account?</h2>
-            <p className="mt-1 text-sm text-blue-100">Use the same account to track inspection bookings, listings, purchases, and auction access.</p>
           </div>
           <Link to="/account" className="btn-white whitespace-nowrap px-6 py-3 text-sm md:ml-auto">
             My account <ArrowRight className="h-4 w-4" />

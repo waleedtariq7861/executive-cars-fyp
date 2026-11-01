@@ -227,7 +227,7 @@ export default function UsedCarsPage() {
 
             <main className="flex-1 min-w-0">
               {loading ? <LoadingListings view={view} /> : loadError ? (
-                <div className="bg-white border border-red-200 rounded-xl py-16 text-center shadow-card"><p className="font-bold text-gray-900">Could not load the marketplace</p><p className="text-sm text-gray-500 mt-1">Please confirm that the backend API is running and try again.</p><button type="button" onClick={loadCars} className="btn-primary px-5 py-2.5 text-sm mt-5">Retry</button></div>
+                <div className="bg-white border border-red-200 rounded-xl py-16 text-center shadow-card"><p className="font-bold text-gray-900">Could not load the marketplace</p><p className="text-sm text-gray-500 mt-1">Please try again.</p><button type="button" onClick={loadCars} className="btn-primary px-5 py-2.5 text-sm mt-5">Retry</button></div>
               ) : paginated.length === 0 ? (
                 <div className="bg-white border border-gray-200 rounded-xl py-20 text-center shadow-card">
                   <Search className="w-12 h-12 mx-auto text-gray-300" /><h2 className="font-bold text-gray-900 mt-4">No cars match those filters</h2><p className="text-sm text-gray-500 mt-1">Try increasing your budget or clearing a filter.</p><button type="button" onClick={resetFilters} className="btn-brand px-5 py-2.5 text-sm mt-5">Clear filters</button>

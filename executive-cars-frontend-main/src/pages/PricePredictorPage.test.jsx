@@ -98,8 +98,12 @@ describe('PricePredictorPage', () => {
     expect(screen.getByText('PKR 42.0 Lacs – PKR 48.0 Lacs')).toBeInTheDocument()
     expect(screen.getByText('Estimated midpoint')).toBeInTheDocument()
     expect(screen.getByText('PKR 4,500,000')).toBeInTheDocument()
-    expect(screen.getByText(/Model reference year: 2022/)).toBeInTheDocument()
-    expect(screen.getByText('Age at dataset year (2022): 0 years')).toBeInTheDocument()
+    // The model's own age figure (relative to its dataset year) is shown as the model year the customer entered.
+    expect(screen.getByText('Model year: 2021')).toBeInTheDocument()
+    expect(screen.queryByText(/Vehicle age/i)).not.toBeInTheDocument()
+    expect(screen.getByText('Actual market value may vary based on condition and demand.')).toBeInTheDocument()
+    // Internal modelling details are not shown to customers.
+    expect(screen.queryByText(/Model reference year|dataset year|historical dataset/i)).not.toBeInTheDocument()
     expect(screen.queryByText('Comparable fallback')).not.toBeInTheDocument()
     expect(screen.queryByText(/cleaned records/i)).not.toBeInTheDocument()
   })

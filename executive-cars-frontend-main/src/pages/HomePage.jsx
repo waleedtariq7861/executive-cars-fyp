@@ -76,8 +76,7 @@ export default function HomePage() {
       <div className="absolute inset-0 bg-gradient-to-r from-[#061326]/95 via-[#07182bcc] to-[#07182b08]" aria-hidden="true" />
       <div className="relative market-shell py-14 sm:py-16 lg:py-20">
         <div className="max-w-3xl">
-          <span className="inline-flex items-center gap-2 bg-blue-500/15 border border-blue-400/30 rounded-full px-4 py-2 text-xs font-semibold text-blue-200"><Sparkles className="w-4 h-4" /> Buy, sell, inspect, value, and auction</span>
-          <h1 className="mt-6 max-w-3xl text-4xl font-black leading-[1.08] tracking-tight text-white sm:text-5xl lg:text-[3.5rem] xl:text-6xl">Pakistan&apos;s Smart Automotive Marketplace</h1>
+          <h1 className=" max-w-3xl text-4xl font-black leading-[1.08] tracking-tight text-white sm:text-5xl lg:text-[3.5rem] xl:text-6xl">Pakistan&apos;s Smart Automotive Marketplace</h1>
           <p className="mt-4 text-lg font-bold leading-7 text-blue-300 sm:text-xl">{siteConfig.tagline}</p>
           <p className="mt-4 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg sm:leading-8">Buy, sell, inspect, value, and auction vehicles through one trusted platform designed for transparency, convenience, and smarter decisions.</p>
           <div className="flex flex-col sm:flex-row gap-3 mt-8"><Link to="/used-cars" className="btn-primary min-h-12 px-6 text-sm gap-2">Browse Used Cars <ArrowRight className="w-4 h-4" /></Link><Link to="/price-predictor" className="inline-flex items-center justify-center min-h-12 px-6 rounded-lg border border-white/25 bg-white/10 text-white text-sm font-bold transition-colors hover:bg-white/15 gap-2"><Calculator className="w-4 h-4" /> Value My Car</Link></div>
@@ -117,7 +116,7 @@ export default function HomePage() {
 
     <section className="py-14 bg-gray-50 border-y border-gray-200"><div className="market-shell grid lg:grid-cols-2 gap-8"><BrowsePanel title="Browse Cars by Make">{makes.map(make => <Link key={make} to={`/used-cars?search=${make}`} className="browse-link">{make} Cars <ChevronRight className="w-4 h-4" /></Link>)}</BrowsePanel><BrowsePanel title="Browse Cars by Budget">{budgets.map(item => <Link key={item.value} to={`/used-cars?budget=${item.value}`} className="browse-link">{item.label} <ChevronRight className="w-4 h-4" /></Link>)}</BrowsePanel></div></section>
 
-    <section className="py-14 bg-white"><div className="market-shell text-center max-w-3xl"><TrendingUp className="w-10 h-10 text-blue-700 mx-auto" /><h2 className="text-2xl sm:text-3xl font-black text-gray-900 mt-4">Make every car decision with clarity</h2><p className="text-sm text-gray-500 leading-7 mt-3">Explore vehicles, arrange inspections, estimate market value, manage your selling journey, and participate in auctions from one account.</p><div className="flex flex-col sm:flex-row justify-center gap-3 mt-6"><Link to="/used-cars" className="btn-primary min-h-11 px-6 text-sm">Browse used cars</Link><Link to="/signup" className="btn-ghost min-h-11 px-6 text-sm inline-flex items-center justify-center">Create one account</Link></div></div></section>
+    <section className="py-14 bg-white"><div className="market-shell text-center max-w-3xl"><TrendingUp className="w-10 h-10 text-blue-700 mx-auto" /><h2 className="text-2xl sm:text-3xl font-black text-gray-900 mt-4">Make every car decision with clarity</h2><div className="flex flex-col sm:flex-row justify-center gap-3 mt-6"><Link to="/used-cars" className="btn-primary min-h-11 px-6 text-sm">Browse used cars</Link><Link to="/signup" className="btn-ghost min-h-11 px-6 text-sm inline-flex items-center justify-center">Create one account</Link></div></div></section>
     <Footer />
   </div>
 }

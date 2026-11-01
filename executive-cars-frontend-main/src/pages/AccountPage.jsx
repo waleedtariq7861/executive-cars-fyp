@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, Car, CheckCircle2, Gavel, LogOut, Search, ShieldCheck, UserRound } from 'lucide-react'
+import { ArrowRight, Car, Gavel, LogOut, Search, UserRound } from 'lucide-react'
 import Navbar from '../components/Navbar.jsx'
 import Footer from '../components/Footer.jsx'
 import { useAuth } from '../context/authContext.js'
@@ -19,7 +19,7 @@ export default function AccountPage() {
       <Navbar />
       <main className="pt-[68px] md:pt-[100px]">
         <section className="bg-[#0f172a] py-10">
-          <div className="market-shell flex flex-col sm:flex-row sm:items-center gap-5"><div className="w-16 h-16 rounded-full bg-blue-600 flex items-center justify-center text-white text-xl font-black">{user.name?.split(' ').map(part => part[0]).join('').slice(0, 2).toUpperCase() || 'EC'}</div><div><span className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-300"><CheckCircle2 className="w-4 h-4" /> Unified customer account</span><h1 className="text-3xl font-black text-white mt-1">Welcome, {user.name}</h1><p className="text-slate-400 text-sm mt-1">{user.email}</p></div><button onClick={signOut} className="sm:ml-auto btn-white px-4 py-2.5 text-sm gap-2"><LogOut className="w-4 h-4" /> Sign Out</button></div>
+          <div className="market-shell flex flex-col sm:flex-row sm:items-center gap-5"><div className="w-16 h-16 rounded-full bg-blue-600 flex items-center justify-center text-white text-xl font-black">{user.name?.split(' ').map(part => part[0]).join('').slice(0, 2).toUpperCase() || 'EC'}</div><div><h1 className="text-3xl font-black text-white">Welcome, {user.name}</h1><p className="text-slate-400 text-sm mt-1">{user.email}</p></div><button onClick={signOut} className="sm:ml-auto btn-white px-4 py-2.5 text-sm gap-2"><LogOut className="w-4 h-4" /> Sign Out</button></div>
         </section>
 
         <div className="market-shell py-10">
@@ -30,8 +30,8 @@ export default function AccountPage() {
           </div>
 
           <div className="grid lg:grid-cols-[1fr_340px] gap-6 mt-8">
-            <section className="bg-white border border-gray-200 rounded-xl p-6 shadow-card"><div className="flex items-center gap-3"><div className="w-11 h-11 bg-blue-50 rounded-lg flex items-center justify-center"><ShieldCheck className="w-5 h-5 text-blue-600" /></div><div><h2 className="font-black text-gray-900">One identity, separate capabilities</h2><p className="text-sm text-gray-500 mt-0.5">Buying and selling are included. Live bidding is an optional subscription.</p></div></div><div className="grid sm:grid-cols-3 gap-3 mt-6">{[{ label: 'Marketplace', value: 'Available' }, { label: 'Selling tools', value: 'Available' }, { label: 'Auction bidding', value: auctionActive ? 'Active' : 'Requires membership' }].map(item => <div key={item.label} className="bg-gray-50 border border-gray-100 rounded-lg p-4"><p className="text-xs text-gray-400">{item.label}</p><p className="text-sm font-bold text-gray-900 mt-1">{item.value}</p></div>)}</div></section>
-            <section className="bg-white border border-gray-200 rounded-xl p-6 shadow-card"><div className="flex items-center gap-3"><UserRound className="w-5 h-5 text-blue-600" /><h2 className="font-black text-gray-900">Account details</h2></div><dl className="space-y-3 mt-5 text-sm"><div><dt className="text-xs text-gray-400">Name</dt><dd className="font-semibold text-gray-900 mt-0.5">{user.name}</dd></div><div><dt className="text-xs text-gray-400">Email</dt><dd className="font-semibold text-gray-900 mt-0.5 break-all">{user.email}</dd></div><div><dt className="text-xs text-gray-400">Seller verification</dt><dd className="font-semibold text-gray-900 mt-0.5">{user.sellerApproved ? 'Approved' : 'Available after car verification'}</dd></div></dl></section>
+            <section className="bg-white border border-gray-200 rounded-xl p-6 shadow-card"><div className="grid sm:grid-cols-3 gap-3">{[{ label: 'Marketplace', value: 'Available' }, { label: 'Selling tools', value: 'Available' }, { label: 'Auction bidding', value: auctionActive ? 'Active' : 'Requires membership' }].map(item => <div key={item.label} className="bg-gray-50 border border-gray-100 rounded-lg p-4"><p className="text-xs text-gray-400">{item.label}</p><p className="text-sm font-bold text-gray-900 mt-1">{item.value}</p></div>)}</div></section>
+            <section className="bg-white border border-gray-200 rounded-xl p-6 shadow-card"><div className="flex items-center gap-3"><UserRound className="w-5 h-5 text-blue-600" /><h2 className="font-black text-gray-900">Account details</h2></div><dl className="space-y-3 mt-5 text-sm"><div><dt className="text-xs text-gray-400">Name</dt><dd className="font-semibold text-gray-900 mt-0.5">{user.name}</dd></div><div><dt className="text-xs text-gray-400">Email</dt><dd className="font-semibold text-gray-900 mt-0.5 break-all">{user.email}</dd></div><div><dt className="text-xs text-gray-400">Seller verification</dt><dd className="font-semibold text-gray-900 mt-0.5">{user.sellerApproved ? 'Approved' : 'Pending'}</dd></div></dl></section>
           </div>
         </div>
       </main>

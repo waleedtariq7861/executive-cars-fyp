@@ -5,7 +5,7 @@ import Navbar from '../../components/Navbar.jsx'
 import Footer from '../../components/Footer.jsx'
 import { useAuth } from '../../context/authContext.js'
 import { hasActiveMembership } from '../../utils/membership.js'
-import useMembershipCapabilities, { membershipPriceLabel } from '../../hooks/useMembershipCapabilities.js'
+import useMembershipCapabilities from '../../hooks/useMembershipCapabilities.js'
 import MembershipAvailability from '../../components/MembershipAvailability.jsx'
 
 
@@ -48,9 +48,6 @@ export default function AuctionGatePage() {
                 <LogIn className="w-7 h-7 text-white" />
               </div>
               <h3 className="text-gray-900 font-bold text-xl mb-2 text-center">Use Your Account</h3>
-              <p className="text-gray-500 text-sm mb-6 text-center">
-                One Executive Cars login works for buying, selling, and auction membership.
-              </p>
               <Link to={user?.role === 'user' ? '/account' : '/login'}
                 className="btn-brand w-full py-3 rounded-xl font-semibold text-sm block text-center">
                 {user?.role === 'user' ? 'Open My Account' : 'Sign In'}
@@ -75,7 +72,7 @@ export default function AuctionGatePage() {
                 className="btn-primary w-full py-3 rounded-xl font-semibold text-sm block text-center shadow-md shadow-blue-200">
                 {active ? 'Open Auction Dashboard' : capability.available ? 'Activate Demo Membership' : 'Membership Details'}
               </Link>
-              {!active && <><MembershipAvailability capability={capability} />{capability.available && <p className="text-xs text-gray-500 mt-2">Demonstration plan value: {membershipPriceLabel(capability.data)} / {capability.data.durationYears} year. No charge.</p>}</>}
+              {!active && <><MembershipAvailability capability={capability} /></>}
             </div>
           </div>
 

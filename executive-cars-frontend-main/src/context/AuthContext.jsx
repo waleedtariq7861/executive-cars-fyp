@@ -3,6 +3,7 @@ import api, { setCsrfToken } from '../api/api'
 import { connectSocket, disconnectSocket } from '../api/socket'
 import { AuthContext } from './authContext.js'
 import { ToastContext } from './toastContext.js'
+import { readApiError } from '../utils/apiError.js'
 
 const SESSION_NOTICES = { SESSION_EXPIRED: 'expired', SESSION_REVOKED: 'revoked' }
 const AUTH_CHANNEL = 'ec-auth'
@@ -81,7 +82,7 @@ export function AuthProvider({ children }) {
       persist(data.user, data.csrfToken)
       return { success: true, user: data.user }
     } catch (error) {
-      return { success: false, message: error.response?.data?.message || 'Sign in failed' }
+      return { success: false, ...readApiError(error, 'Sign in failed') }
     }
   }
 
@@ -91,7 +92,7 @@ export function AuthProvider({ children }) {
       persist(data.user, data.csrfToken)
       return { success: true, role: data.user.role }
     } catch (error) {
-      return { success: false, message: error.response?.data?.message || 'Admin sign in failed' }
+      return { success: false, ...readApiError(error, 'Admin sign in failed') }
     }
   }
 
@@ -101,7 +102,7 @@ export function AuthProvider({ children }) {
       persist(data.user, data.csrfToken)
       return { success: true, user: data.user }
     } catch (error) {
-      return { success: false, message: error.response?.data?.message || 'Registration failed' }
+      return { success: false, ...readApiError(error, 'Registration failed') }
     }
   }
 
@@ -153,7 +154,6 @@ export function AuthProvider({ children }) {
       loginAccount,
       loginAdmin,
       registerAccount,
-      registerMember: registerAccount,
       logout,
       logoutRedirect,
       clearLogoutRedirect,

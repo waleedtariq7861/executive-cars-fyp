@@ -61,7 +61,6 @@ export default function AuctionLayout({ children, title }) {
             </div>
             <div className="min-w-0">
               <p className="text-gray-900 font-semibold text-xs truncate">{user?.name || 'Member'}</p>
-              <p className="text-blue-600 text-xs font-medium">Unified Account</p>
             </div>
           </div>
         </div>
