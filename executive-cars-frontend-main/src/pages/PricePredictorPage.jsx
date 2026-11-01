@@ -36,12 +36,7 @@ const optionValues = (items, fallback) => {
   return values.length ? values : fallback
 }
 
-const factorLabelFor = (factor, referenceYear) => {
-  const label = typeof factor === 'string' ? factor : `${factor.label}: ${factor.value}`
-  return referenceYear && /^Vehicle age:/i.test(label)
-    ? label.replace(/^Vehicle age:/i, `Age at dataset year (${referenceYear}):`)
-    : label
-}
+const factorLabelFor = factor => (typeof factor === 'string' ? factor : `${factor.label}: ${factor.value}`)
 
 const clientValidate = (form, requiresVerifiedVariant = false) => {
   const errors = {}
@@ -200,9 +195,7 @@ export default function PricePredictorPage() {
   const estimate = result?.predicted_price ?? result?.estimatedPrice ?? result?.estimatedMarketPrice ?? result?.predicted
   const range = result?.recommendedRange || result?.range || { low: result?.lowerRange, high: result?.upperRange }
   const factors = result?.importantFactors || result?.mainPricingFactors || []
-  const disclaimer = result?.isFallback
-    ? 'Estimated from similar Executive Cars listings. Actual market value may vary based on condition and demand.'
-    : 'Estimated from historical Pakistani used-car listing data. Actual market value may vary based on condition and demand.'
+  const disclaimer = 'Actual market value may vary based on condition and demand.'
 
   return (
     <div className="min-h-screen bg-[var(--ec-background)]">
@@ -225,7 +218,6 @@ export default function PricePredictorPage() {
               <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center"><TrendingUp className="w-5 h-5 text-blue-700" /></div>
               <div>
                 <h2 className="font-black text-gray-900">Vehicle details</h2>
-                <p className="text-xs text-gray-500 mt-0.5">Complete the details below for a more useful estimate.</p>
               </div>
             </div>
 
@@ -332,14 +324,13 @@ export default function PricePredictorPage() {
                 <div className="p-5">
                   <p className="text-xs font-bold uppercase tracking-[0.12em] text-gray-500">Estimated midpoint</p>
                   <p className="font-black text-gray-900 mt-1">{formatPkr(estimate)}</p>
-                  {result.datasetReferenceYear && !result.isFallback && <p className="text-xs text-gray-500 mt-2">Model reference year: {result.datasetReferenceYear}. Age factors reflect that historical dataset, not today.</p>}
 
                   {result.extrapolationWarnings?.length > 0 && <Alert tone="warning" className="mt-5">Some of these vehicle details are less common, so the final market value may vary more than usual.</Alert>}
 
                   {factors.length > 0 && <div className="mt-5">
                     <p className="text-xs font-bold uppercase tracking-[0.12em] text-gray-500">Important Price Factors</p>
                     <ul className="space-y-2 mt-2">{factors.slice(0, 5).map((factor, index) => {
-                      const label = factorLabelFor(factor, result.datasetReferenceYear)
+                      const label = factorLabelFor(factor)
                       return <li key={`${typeof factor === 'string' ? factor : factor.feature}-${index}`} className="flex gap-2 text-xs text-gray-600 leading-5"><CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />{label}</li>
                     })}</ul>
                   </div>}

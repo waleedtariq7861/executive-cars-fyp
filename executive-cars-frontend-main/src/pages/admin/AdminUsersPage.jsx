@@ -110,7 +110,7 @@ export default function AdminUsersPage() {
               </thead>
               <tbody>
                 {members.length === 0 ? (
-                  <tr><td colSpan={5} className="responsive-record-empty text-center py-12 text-gray-400">No members found</td></tr>
+                  <tr><td colSpan={5} className="responsive-record-empty text-center py-12 text-gray-400">No customers found</td></tr>
                 ) : members.map(m => (
                   <tr key={m._id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                     <td data-label="Member" className="px-5 py-4">

@@ -64,9 +64,7 @@ export default function SavedCarsPage() {
         <div className="mb-7">
           <p className="eyebrow">Your shortlist</p>
           <h1 className="text-3xl font-black text-gray-900 mt-2">Saved Cars</h1>
-          <p className="text-sm text-gray-500 mt-2">
-            {serverBacked ? 'Saved cars are securely linked to your Executive Cars account.' : 'Sign in to synchronise saved cars across devices. Guest saves remain in this browser.'}
-          </p>
+          {!serverBacked && <p className="text-sm text-gray-500 mt-2">Sign in to synchronise saved cars across devices. Guest saves remain in this browser.</p>}
         </div>
 
         {loading ? (

@@ -58,9 +58,8 @@ export default function LoginPage() {
       <section className="hidden lg:flex flex-col justify-center bg-[#0f172a] relative overflow-hidden px-16">
         <div className="absolute inset-0 surface-grid opacity-30" /><div className="absolute right-0 top-1/4 w-96 h-96 bg-blue-600/15 rounded-full blur-3xl" />
         <div className="relative max-w-xl">
-          <Link to="/" className="inline-flex items-center gap-3 mb-14"><Logo className="w-11 h-11" /><div><span className="text-white font-black text-xl block leading-none">Executive Cars</span><span className="text-blue-400 text-xs font-semibold">One account for everything</span></div></Link>
+          <Link to="/" className="inline-flex items-center gap-3 mb-14"><Logo className="w-11 h-11" /><span className="text-white font-black text-xl leading-none">Executive Cars</span></Link>
           <h1 className="text-4xl xl:text-5xl font-black text-white leading-tight">Buy, sell, and bid with one account</h1>
-          <p className="text-slate-400 leading-7 mt-4">Your profile, selling activity, saved marketplace journey, and auction membership all stay under one customer identity.</p>
           <div className="grid grid-cols-3 gap-3 mt-9">
             {[
               { icon: Search, label: 'Browse cars' },
@@ -76,7 +75,6 @@ export default function LoginPage() {
           <Link to="/" className="lg:hidden inline-flex items-center gap-2.5 mb-10"><Logo className="w-10 h-10" /><span className="font-black text-gray-900">Executive <span className="text-blue-600">Cars</span></span></Link>
           <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center"><UserRound className="w-6 h-6 text-blue-600" /></div>
           <h2 className="text-3xl font-black text-gray-900 mt-5">Sign in to your account</h2>
-          <p className="text-sm text-gray-500 mt-2">The same login works for buying, selling, and auction membership.</p>
           <SessionNotice className="mt-5" />
           {redirectMessage && (
             <div role="status" className="mt-5 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-medium text-blue-800">
@@ -97,7 +95,6 @@ export default function LoginPage() {
           {demoAccountsEnabled && demoAccounts.length > 0 && (
             <section className="mt-6 rounded-xl border border-blue-200 bg-blue-50 p-4" aria-label="Demo Accounts">
               <h3 className="text-sm font-black text-blue-950">Demo Accounts</h3>
-              <p className="mt-1 text-xs leading-5 text-blue-800">Local FYP demonstration accounts. Choose one to fill the form, then press Sign In.</p>
               <div className="mt-3 grid gap-2">
                 {demoAccounts.map(account => (
                   <button key={account.email} type="button" onClick={() => { setForm({ email: account.email, password: account.password }); setError('') }} className="flex items-center justify-between rounded-lg border border-blue-200 bg-white px-3 py-2 text-left text-xs font-semibold text-blue-800 hover:bg-blue-100">

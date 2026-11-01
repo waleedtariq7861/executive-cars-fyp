@@ -86,7 +86,7 @@ it('activates using the existing endpoint and confirms success through the saved
   expect(await screen.findByRole('heading', { name: 'Demo Auction Access Activated' })).toBeInTheDocument()
   expect(api.post).toHaveBeenCalledWith('/payments/demo-complete')
   expect(auth.refreshUser).toHaveBeenCalledTimes(1)
-  expect(screen.getByText(/No charge, receipt, or settlement/)).toBeInTheDocument()
+  expect(screen.queryByText(/No charge, receipt, or settlement|Financial status/)).not.toBeInTheDocument()
 })
 
 it('prevents repeat clicks while activation is pending', async () => {

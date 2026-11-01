@@ -42,7 +42,6 @@ export default function AdminDashboardPage() {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-xl font-bold mb-1">Welcome back, Admin</h2>
-            <p className="text-blue-100 text-sm">Here's what's happening on Executive Cars today.</p>
           </div>
           <div className="hidden sm:flex items-center gap-3">
             <Link to="/admin/upload-auction" className="bg-white text-blue-600 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-blue-50 transition-colors flex items-center gap-2">

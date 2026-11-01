@@ -105,7 +105,6 @@ export default function AdminLoginPage() {
           {demoAccountsEnabled && demoAccount && (
             <section className="mt-6 rounded-xl border border-blue-200 bg-blue-50 p-4" aria-label="Demo Accounts">
               <h3 className="text-sm font-black text-blue-950">Demo Administrator</h3>
-              <p className="mt-1 text-xs leading-5 text-blue-800">Local FYP demonstration only. This fills the form; Sign In remains required.</p>
               <button type="button" onClick={() => { setForm({ email: demoAccount.email, password: demoAccount.password }); setError('') }} className="mt-3 w-full rounded-lg border border-blue-200 bg-white px-3 py-2 text-left text-xs font-semibold text-blue-800 hover:bg-blue-100">Use admin demo account</button>
             </section>
           )}

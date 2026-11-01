@@ -136,5 +136,5 @@ export function Drawer({ open, onClose, title, description, children, side = 'ri
 }
 
 export function ConfirmationDialog({ open, onClose, onConfirm, title = 'Confirm action', description, confirmLabel = 'Confirm', dangerous = false, loading = false }) {
-  return <Modal open={open} onClose={onClose} title={title} description={description} size="sm" footer={<><Button variant="outline" onClick={onClose}>Cancel</Button><Button variant={dangerous ? 'danger' : 'primary'} loading={loading} onClick={onConfirm}>{confirmLabel}</Button></>}><p className="text-sm text-gray-600 leading-6">Please review this action before continuing.</p></Modal>
+  return <Modal open={open} onClose={onClose} title={title} description={description} size="sm" footer={<><Button variant="outline" onClick={onClose}>Cancel</Button><Button variant={dangerous ? 'danger' : 'primary'} loading={loading} onClick={onConfirm}>{confirmLabel}</Button></>}></Modal>
 }

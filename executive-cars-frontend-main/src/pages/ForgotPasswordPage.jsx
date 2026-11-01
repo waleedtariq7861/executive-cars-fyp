@@ -39,7 +39,7 @@ export default function ForgotPasswordPage() {
           {response ? (
             <div className="mt-6">
               <Alert tone="success" title="Check your email">{response.message}</Alert>
-              {response.developmentResetUrl && <Alert tone="warning" title="Development delivery" className="mt-3">Email delivery is simulated locally. <Link className="font-bold underline" to={response.developmentResetUrl.replace(/^https?:\/\/[^/]+/, '')}>Open the local reset link.</Link></Alert>}
+              {response.developmentResetUrl && <Alert tone="warning" title="Development delivery" className="mt-3"><Link className="font-bold underline" to={response.developmentResetUrl.replace(/^https?:\/\/[^/]+/, '')}>Open the reset link.</Link></Alert>}
               <Button as={Link} to="/login" variant="outline" className="w-full mt-5"><ArrowLeft className="w-4 h-4" /> Back to sign in</Button>
             </div>
           ) : (

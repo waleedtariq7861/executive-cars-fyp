@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import {
   ChevronLeft, Gavel, FileText, Download, Users, Timer,
   Settings, Fuel, Gauge, Calendar, Palette, CheckCircle,
-  TrendingUp, Zap, Bell
+  TrendingUp, Zap
 } from 'lucide-react'
 import { useAuth } from '../../context/authContext.js'
 import CountdownTimer from '../../components/CountdownTimer.jsx'
@@ -33,7 +33,6 @@ export default function AuctionCarDetailPage() {
   const [activeImg, setActiveImg] = useState(0)
   const [bidHistory, setBidHistory] = useState([])
   const [totalBidders, setTotalBidders] = useState(0)
-  const [myBidPlaced, setMyBidPlaced] = useState(false)
   const [bidSuccess, setBidSuccess] = useState(false)
   const [bidError, setBidError] = useState('')
   const [liveActivity, setLiveActivity] = useState(null)
@@ -139,7 +138,6 @@ export default function AuctionCarDetailPage() {
     setBidSubmitting(true)
     try {
       await api.post('/bids', { carId: id, amount })
-      setMyBidPlaced(true)
       setBidSuccess(true)
       setBidAmount('')
       setConfirmOpen(false)
@@ -374,13 +372,6 @@ export default function AuctionCarDetailPage() {
                     <Gavel className="w-4 h-4" /> Place Bid
                   </button>
                 </form>
-              )}
-
-              {myBidPlaced && (
-                <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-xl p-3 mb-4">
-                  <Bell className="w-4 h-4 text-blue-600 shrink-0" />
-                  <p className="text-blue-700 text-xs">Outbid updates appear here while this auction page is connected.</p>
-                </div>
               )}
 
               {/* Live bid history */}
