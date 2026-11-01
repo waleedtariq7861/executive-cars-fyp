@@ -25,7 +25,8 @@ api.interceptors.response.use(
   (err) => {
     if (err.response?.status === 401) {
       setCsrfToken('')
-      window.dispatchEvent(new Event('ec:unauthorized'))
+      // The server says why (SESSION_EXPIRED, SESSION_REVOKED, NOT_AUTHENTICATED) so the app can explain it.
+      window.dispatchEvent(new CustomEvent('ec:unauthorized', { detail: { code: err.response?.data?.code } }))
     }
     return Promise.reject(err)
   }

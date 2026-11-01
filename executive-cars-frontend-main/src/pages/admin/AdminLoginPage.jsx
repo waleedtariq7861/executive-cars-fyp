@@ -4,6 +4,7 @@ import { Eye, EyeOff, Shield, Lock, Car, Users, BarChart3, CheckCircle } from 'l
 import Logo from '../../components/Logo.jsx'
 import { useAuth } from '../../context/authContext.js'
 import api from '../../api/api.js'
+import SessionNotice from '../../components/auth/SessionNotice.jsx'
 
 const demoAccountsEnabled = (import.meta.env.DEV || import.meta.env.VITE_APP_MODE === 'demo') && import.meta.env.VITE_ENABLE_DEMO_ACCOUNTS === 'true'
 
@@ -86,6 +87,7 @@ export default function AdminLoginPage() {
             <p className="text-gray-500 text-sm mt-1">Authorized personnel only</p>
           </div>
 
+          <SessionNotice className="mb-5" />
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="admin-email" className="block text-sm font-medium text-gray-700 mb-1.5">Email Address</label>
