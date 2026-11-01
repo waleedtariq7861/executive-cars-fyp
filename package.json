@@ -6,7 +6,6 @@
   "scripts": {
     "dev": "npm --prefix executive-cars-frontend-main run dev",
     "server": "npm --prefix executive-cars-backend-main run dev",
-    "seed:test-users": "npm --prefix executive-cars-backend-main run seed:test-users",
     "seed:demo": "npm --prefix executive-cars-backend-main run seed:demo",
     "seed:demo:reset": "npm --prefix executive-cars-backend-main run seed:demo:reset",
     "ml": "ml-service/.venv/bin/python ml-service/run.py",

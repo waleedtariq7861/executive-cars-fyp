@@ -41,6 +41,19 @@ describe('PricePredictorPage', () => {
     { make: 'Toyota', model: 'Corolla', years: [2020], engines: [1600], transmissions: ['Manual'], fuels: ['Petrol'], bodyTypes: ['Sedan'], assemblies: ['Imported'] },
   ]
 
+  // What /predict-price/options returns: the lists the form is built from.
+  const serverCatalog = {
+    available: true,
+    inputCatalog: {
+      listingCities: ['Islamabad', 'Rawalpindi', 'Lahore', 'Karachi', 'Other'],
+      registrationCities: ['Islamabad', 'Rawalpindi', 'Lahore', 'Karachi', 'Other'],
+      bodyTypes: ['Hatchback', 'Sedan', 'SUV', 'Crossover', 'Pickup', 'Van', 'Unknown'],
+      transmissions: ['Auto', 'Manual'],
+      fuelTypes: ['Petrol', 'Diesel', 'CNG', 'Hybrid'],
+      assemblyTypes: ['Local', 'Imported', 'Unknown'],
+    },
+  }
+
   const optionsFor = params => {
     const make = params?.make
     const model = params?.model
@@ -60,7 +73,7 @@ describe('PricePredictorPage', () => {
   }
   beforeEach(() => {
     vi.clearAllMocks()
-    api.get.mockImplementation((url, config) => Promise.resolve({ data: url === '/vehicle-options' ? optionsFor(config?.params) : { available: false } }))
+    api.get.mockImplementation((url, config) => Promise.resolve({ data: url === '/vehicle-options' ? optionsFor(config?.params) : serverCatalog }))
   })
 
   const selectCultus = async (variant = 'VXR') => {
@@ -259,5 +272,30 @@ describe('PricePredictorPage', () => {
     expect(manualVariant).not.toBeDisabled()
     fireEvent.change(manualVariant, { target: { value: 'VXL' } })
     expect(manualVariant).toHaveValue('VXL')
+  })
+
+  it('says so and offers a retry when the vehicle options cannot be loaded, instead of guessing its own lists', async () => {
+    api.get.mockImplementation(url => (url === '/vehicle-options' ? Promise.resolve({ data: optionsFor({}) }) : Promise.reject(new Error('down'))))
+    render(<MemoryRouter><PricePredictorPage /></MemoryRouter>)
+    expect(await screen.findByText(/Vehicle options could not be loaded/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /generate valuation/i })).toBeDisabled()
+
+    api.get.mockImplementation((url, config) => Promise.resolve({ data: url === '/vehicle-options' ? optionsFor(config?.params) : serverCatalog }))
+    fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
+    await waitFor(() => expect(screen.queryByText(/Vehicle options could not be loaded/)).not.toBeInTheDocument())
+    expect(screen.getByRole('button', { name: /generate valuation/i })).toBeEnabled()
+  })
+
+  it('treats an options response that is not marked available as unavailable', async () => {
+    api.get.mockImplementation(url => Promise.resolve({ data: url === '/vehicle-options' ? optionsFor({}) : { available: false } }))
+    render(<MemoryRouter><PricePredictorPage /></MemoryRouter>)
+    expect(await screen.findByText(/Vehicle options could not be loaded/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /generate valuation/i })).toBeDisabled()
+  })
+
+  it('reports a failed vehicle list too', async () => {
+    api.get.mockImplementation(url => (url === '/vehicle-options' ? Promise.reject(new Error('down')) : Promise.resolve({ data: serverCatalog })))
+    render(<MemoryRouter><PricePredictorPage /></MemoryRouter>)
+    expect(await screen.findByText(/Vehicle options could not be loaded/)).toBeInTheDocument()
   })
 })

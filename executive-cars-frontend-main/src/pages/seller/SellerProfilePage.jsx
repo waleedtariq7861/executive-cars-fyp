@@ -22,7 +22,7 @@ export default function SellerProfilePage() {
   const [savedForm, setSavedForm] = useState(form)
 
   useEffect(() => {
-    api.get('/seller/profile').then(res => {
+    api.get('/member/profile').then(res => {
       const p = res.data
       const loaded = { name: sanitizePersonName(p.name), phone: sanitizePhone(p.phone || ''), cnic: sanitizeCnic(p.cnic || ''), address: p.address || '' }
       setForm(loaded)
@@ -40,7 +40,7 @@ export default function SellerProfilePage() {
     setSaving(true)
     try {
       setError('')
-      await api.put('/seller/profile', { name: form.name, phone: form.phone, cnic: form.cnic, address: form.address })
+      await api.put('/member/profile', { name: form.name, phone: form.phone, cnic: form.cnic, address: form.address })
       updateUser({ name: form.name })
       setSavedForm(form)
       setEditing(false)
