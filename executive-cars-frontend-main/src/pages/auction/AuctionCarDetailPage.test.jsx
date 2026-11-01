@@ -1,5 +1,5 @@
 import React from 'react'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { act } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -51,5 +51,16 @@ describe('AuctionCarDetailPage follows the auction clock', () => {
     expect(screen.getByText('Bidding is closed')).toBeInTheDocument()
     expect(screen.getByText('AUCTION ENDED')).toBeInTheDocument()
     expect(screen.queryByLabelText(/your bid/i)).not.toBeInTheDocument()
+  })
+
+  it('when a bid is refused because the email is not verified, links to the code page and returns here afterwards', async () => {
+    await renderDetail(car({ auctionStart: new Date(NOW - 60000).toISOString(), auctionEnd: new Date(NOW + 3600000).toISOString() }))
+    api.post.mockRejectedValue({ response: { status: 403, data: { code: 'EMAIL_NOT_VERIFIED', message: 'Verify your email address to continue.' } } })
+    fireEvent.change(screen.getByLabelText(/your bid/i), { target: { value: '3050000' } })
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: /Place Bid/ })) })
+    await act(async () => { fireEvent.click(screen.getAllByRole('button', { name: /Place bid/ }).at(-1)) })
+    await act(async () => { await vi.advanceTimersByTimeAsync(0) })
+    expect(screen.getByText(/Verify your email address to continue\./)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Verify your email' })).toHaveAttribute('href', '/verify-email')
   })
 })

@@ -7,6 +7,7 @@ import { useAuth } from '../../context/authContext.js'
 import { hasActiveMembership } from '../../utils/membership.js'
 import useMembershipCapabilities, { membershipPriceLabel } from '../../hooks/useMembershipCapabilities.js'
 import MembershipAvailability from '../../components/MembershipAvailability.jsx'
+import EmailVerificationBanner from '../../components/auth/EmailVerificationBanner.jsx'
 
 const benefits = [
   'Place bids on live member auctions',
@@ -20,6 +21,7 @@ export default function AuctionPaymentPage() {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [needsVerification, setNeedsVerification] = useState(false)
 
   if (hasActiveMembership(user)) return <Navigate to="/auction/dashboard" replace />
 
@@ -27,6 +29,7 @@ export default function AuctionPaymentPage() {
     if (!capability.available || loading) return
     setLoading(true)
     setError('')
+    setNeedsVerification(false)
     try {
       const { data } = await api.post('/payments/demo-complete')
       if (data?.subscriptionStatus !== 'active') throw new Error('Membership was not activated')
@@ -41,6 +44,7 @@ export default function AuctionPaymentPage() {
         }
       } catch { /* Keep the original error; a failed status check grants no access. */ }
       if (requestError.response?.status === 404 || requestError.response?.data?.code === 'MEMBERSHIP_UNAVAILABLE') capability.retry()
+      setNeedsVerification(requestError.response?.data?.code === 'EMAIL_NOT_VERIFIED')
       setError(requestError.response?.data?.message || requestError.message || 'Unable to activate the demo membership. Please try again.')
       setLoading(false)
     }
@@ -62,6 +66,7 @@ export default function AuctionPaymentPage() {
           <div className="flex justify-center gap-16 text-xs"><span className="text-blue-600 font-semibold">Account</span><span className="text-blue-600 font-semibold">Demo access</span></div>
         </div>
 
+        <EmailVerificationBanner className="mb-6" />
         <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_.9fr] gap-8">
           <section className="bg-white border border-gray-200 rounded-2xl p-8 shadow-sm">
             <h1 className="text-gray-900 font-black text-2xl">Annual Auction Membership</h1>
@@ -81,7 +86,7 @@ export default function AuctionPaymentPage() {
             <div className="w-14 h-14 bg-blue-50 rounded-xl flex items-center justify-center"><FlaskConical className="w-7 h-7 text-blue-600" /></div>
             <h2 className="text-xl font-black text-gray-900 mt-4">{capability.available ? 'Simulate Membership Activation' : 'Membership Activation'}</h2>
             <MembershipAvailability capability={capability} showDemoNote />
-            {error && <div role="alert" className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-600 mt-5">{error}</div>}
+            {error && <div role="alert" className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-600 mt-5">{error}{needsVerification && <> <Link to="/verify-email" state={{ next: '/auction/payment' }} className="font-bold underline">Verify your email</Link></>}</div>}
             {capability.available && <button type="button" onClick={activateDemoMembership} disabled={loading} className="btn-primary w-full py-4 text-sm gap-2 mt-6 disabled:opacity-60">
               {loading ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Lock className="w-4 h-4" />}
               {loading ? 'Activating demo access…' : 'Activate Demo Membership'}

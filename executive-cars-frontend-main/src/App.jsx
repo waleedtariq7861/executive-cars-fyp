@@ -12,6 +12,7 @@ const HomePage = lazy(() => import('./pages/HomePage.jsx'))
 const LoginPage = lazy(() => import('./pages/LoginPage.jsx'))
 const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage.jsx'))
 const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage.jsx'))
+const VerifyEmailPage = lazy(() => import('./pages/VerifyEmailPage.jsx'))
 const AccountSignupPage = lazy(() => import('./pages/AccountSignupPage.jsx'))
 const AccountPage = lazy(() => import('./pages/AccountPage.jsx'))
 const SellCarPage = lazy(() => import('./pages/SellCarPage.jsx'))
@@ -90,6 +91,7 @@ export default function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/verify-email" element={<ProtectedRoute role="user"><VerifyEmailPage /></ProtectedRoute>} />
           <Route path="/signup" element={<AccountSignupPage />} />
           <Route path="/account" element={<ProtectedRoute role="user"><AccountPage /></ProtectedRoute>} />
           <Route path="/sell-car" element={<SellCarPage />} />

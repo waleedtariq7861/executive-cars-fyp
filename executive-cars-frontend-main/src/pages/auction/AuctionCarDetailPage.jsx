@@ -35,6 +35,7 @@ export default function AuctionCarDetailPage() {
   const [totalBidders, setTotalBidders] = useState(0)
   const [bidSuccess, setBidSuccess] = useState(false)
   const [bidError, setBidError] = useState('')
+  const [bidNeedsVerification, setBidNeedsVerification] = useState(false)
   const [liveActivity, setLiveActivity] = useState(null)
   const [outbidAlert, setOutbidAlert] = useState(false)
   const [auctionEnded, setAuctionEnded] = useState(false)
@@ -127,6 +128,7 @@ export default function AuctionCarDetailPage() {
   const handleBid = async (e) => {
     e.preventDefault()
     setBidError('')
+    setBidNeedsVerification(false)
     const amount = Number(bidAmount)
     const validationError = bidValidationError({ amount, minimumBid: minBid, auctionEnded, auctionNotStarted })
     if (validationError) { setBidError(validationError); return }
@@ -143,6 +145,7 @@ export default function AuctionCarDetailPage() {
       setConfirmOpen(false)
       setTimeout(() => setBidSuccess(false), 3000)
     } catch (err) {
+      setBidNeedsVerification(err.response?.data?.code === 'EMAIL_NOT_VERIFIED')
       setBidError(err.response?.data?.message || 'Failed to place bid. Try again.')
       setConfirmOpen(false)
     } finally {
@@ -356,7 +359,7 @@ export default function AuctionCarDetailPage() {
                     <input id="auction-bid-amount" aria-invalid={Boolean(bidError)} aria-describedby={bidError ? 'auction-bid-error' : undefined} type="text" inputMode="numeric" pattern="[0-9]*" maxLength={10} value={bidAmount} onChange={e => setBidAmount(digitsOnly(e.target.value, 10))}
                       placeholder={`PKR ${formatPKR(minBid)}`}
                       className={`input-light ${bidError ? 'border-red-400' : ''}`} />
-                    {bidError && <p id="auction-bid-error" role="alert" className="text-red-600 text-xs mt-1">{bidError}</p>}
+                    {bidError && <p id="auction-bid-error" role="alert" className="text-red-600 text-xs mt-1">{bidError}{bidNeedsVerification && <> <Link to="/verify-email" state={{ next: `/auction/car/${id}` }} className="font-bold underline">Verify your email</Link></>}</p>}
                   </div>
                   <div className="flex gap-2">
                     {[minBid, minBid + 100000, minBid + 200000].map(amt => (

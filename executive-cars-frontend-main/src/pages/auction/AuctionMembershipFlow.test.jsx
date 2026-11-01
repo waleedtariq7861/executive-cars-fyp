@@ -197,3 +197,20 @@ it('a signed-in customer opening the sign-up page is told the account already ex
   expect(screen.queryByRole('button', { name: /Create Account/ })).not.toBeInTheDocument()
   expect(screen.getByRole('link', { name: /Auction Membership/ })).toHaveAttribute('href', '/auction/payment')
 })
+
+it('when activation is blocked because the email is not verified, the error links to the code page', async () => {
+  api.post.mockRejectedValue({ response: { status: 403, data: { code: 'EMAIL_NOT_VERIFIED', message: 'Verify your email address to continue.' } } })
+  payment()
+  fireEvent.click(await screen.findByRole('button', { name: 'Activate Demo Membership' }))
+  const alert = await screen.findByRole('alert')
+  expect(alert).toHaveTextContent('Verify your email address to continue.')
+  expect(screen.getByRole('link', { name: 'Verify your email' })).toHaveAttribute('href', '/verify-email')
+})
+
+it('shows the verification banner to an unverified customer on the membership page', async () => {
+  auth.user = { ...inactive, emailVerified: false }
+  payment()
+  await screen.findByRole('button', { name: 'Activate Demo Membership' })
+  expect(screen.getByRole('status', { name: '' })).toBeDefined()
+  expect(screen.getByRole('link', { name: 'Verify email' })).toHaveAttribute('href', '/verify-email')
+})

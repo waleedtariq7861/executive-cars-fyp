@@ -17,7 +17,12 @@ export default function AccountSignupPage() {
   const { user, registerAccount } = useAuth()
   const wantsAuction = searchParams.get('next') === 'auction'
   const capability = useMembershipCapabilities(wantsAuction && !hasActiveMembership(user))
-  const goNext = () => navigate(wantsAuction && capability.available ? '/auction/payment' : '/account', { replace: true })
+  // A new customer lands on the code screen first (when the server says a code was issued) and continues from there.
+  const goNext = result => {
+    const destination = wantsAuction && capability.available ? '/auction/payment' : '/account'
+    if (result?.verification) navigate('/verify-email', { replace: true, state: { next: destination, verification: result.verification } })
+    else navigate(destination, { replace: true })
+  }
 
   if (user?.role === 'user') {
     const active = hasActiveMembership(user)
