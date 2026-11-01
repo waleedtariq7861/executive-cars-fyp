@@ -1,12 +1,12 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Eye, EyeOff, CheckCircle, Crown, ArrowRight } from 'lucide-react'
+import { CheckCircle, Crown, ArrowRight } from 'lucide-react'
 import Logo from '../../components/Logo.jsx'
 import { useAuth } from '../../context/authContext.js'
 import { hasActiveMembership } from '../../utils/membership.js'
 import useMembershipCapabilities from '../../hooks/useMembershipCapabilities.js'
 import MembershipAvailability from '../../components/MembershipAvailability.jsx'
-import { isValidPersonName, isValidPhone, sanitizePersonName, sanitizePhone } from '../../utils/inputValidation.js'
+import SignupForm from '../../components/auth/SignupForm.jsx'
 
 const perks = [
   'Access to all live car auctions',
@@ -21,37 +21,7 @@ export default function AuctionSignupPage() {
   const navigate = useNavigate()
   const { user, registerMember } = useAuth()
   const capability = useMembershipCapabilities(!hasActiveMembership(user))
-  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirm: '', terms: false })
-  const [showPass, setShowPass] = useState(false)
-  const [showConfirm, setShowConfirm] = useState(false)
-  const [errors, setErrors] = useState({})
-  const [loading, setLoading] = useState(false)
-  const update = (k, v) => setForm(f => ({ ...f, [k]: v }))
-
-  const validate = () => {
-    const e = {}
-    if (!isValidPersonName(form.name)) e.name = 'Enter a valid full name using letters only.'
-    if (!form.email?.trim()) e.email = 'Email is required.'
-    if (!form.password || form.password.length < 8) e.password = 'Password must be at least 8 characters.'
-    if (form.password !== form.confirm) e.confirm = 'Passwords do not match.'
-    if (!isValidPhone(form.phone)) e.phone = 'Enter a valid phone number with 10 to 15 digits.'
-    return e
-  }
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    const errs = validate()
-    if (Object.keys(errs).length > 0) { setErrors(errs); return }
-    setErrors({})
-    setLoading(true)
-    const result = await registerMember(form.name, form.email, form.phone, form.password)
-    setLoading(false)
-    if (result.success) {
-      navigate(capability.available ? '/auction/payment' : '/account')
-    } else {
-      setErrors({ submit: result.message || 'Registration failed. Try a different email.' })
-    }
-  }
+  const goNext = () => navigate(capability.available ? '/auction/payment' : '/account')
 
   if (user?.role === 'user') {
     const active = hasActiveMembership(user)
@@ -123,57 +93,7 @@ export default function AuctionSignupPage() {
           <p className="text-sm text-gray-500 mb-6">This account also works for buying and selling cars.</p>
           <MembershipAvailability capability={capability} />
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {[
-              { label: 'Full Name', key: 'name', type: 'text', placeholder: 'Muhammad Hasnain Ali' },
-              { label: 'Email Address', key: 'email', type: 'email', placeholder: 'you@example.com' },
-              { label: 'Phone Number', key: 'phone', type: 'tel', placeholder: '+92 300 1234567' },
-            ].map(f => (
-              <div key={f.key}>
-                <label htmlFor={`auction-signup-${f.key}`} className="block text-sm font-medium text-gray-700 mb-1.5">{f.label}</label>
-                <input id={`auction-signup-${f.key}`} type={f.type} value={form[f.key]} onChange={e => update(f.key, f.key === 'name' ? sanitizePersonName(e.target.value) : f.key === 'phone' ? sanitizePhone(e.target.value) : e.target.value)}
-                  placeholder={f.placeholder} required inputMode={f.key === 'phone' ? 'tel' : undefined} maxLength={f.key === 'name' ? 80 : f.key === 'phone' ? 16 : undefined} className={`input-light ${errors[f.key] ? 'border-red-400' : ''}`} />
-                {errors[f.key] && <p className="text-red-600 text-xs mt-1">{errors[f.key]}</p>}
-              </div>
-            ))}
-
-            <div>
-              <label htmlFor="auction-signup-password" className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
-              <div className="relative">
-                <input id="auction-signup-password" type={showPass ? 'text' : 'password'} value={form.password} onChange={e => update('password', e.target.value)}
-                  placeholder="Min. 8 characters" required className={`input-light pr-10 ${errors.password ? 'border-red-400' : ''}`} />
-                <button type="button" onClick={() => setShowPass(!showPass)} aria-label={showPass ? 'Hide password' : 'Show password'} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
-                  {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-              {errors.password && <p className="text-red-600 text-xs mt-1">{errors.password}</p>}
-            </div>
-
-            <div>
-              <label htmlFor="auction-signup-confirm" className="block text-sm font-medium text-gray-700 mb-1.5">Confirm Password</label>
-              <div className="relative">
-                <input id="auction-signup-confirm" type={showConfirm ? 'text' : 'password'} value={form.confirm} onChange={e => update('confirm', e.target.value)}
-                  placeholder="Repeat password" required className={`input-light pr-10 ${errors.confirm ? 'border-red-400' : ''}`} />
-                <button type="button" onClick={() => setShowConfirm(!showConfirm)} aria-label={showConfirm ? 'Hide confirmation password' : 'Show confirmation password'} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
-                  {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-              {errors.confirm && <p className="text-red-600 text-xs mt-1">{errors.confirm}</p>}
-            </div>
-
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input type="checkbox" checked={form.terms} onChange={e => update('terms', e.target.checked)} required className="mt-0.5 accent-blue-600" />
-              <span className="text-gray-500 text-sm">
-                I agree to the <Link to="/terms" target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">Terms of Use</Link> and{' '}
-                <Link to="/privacy" target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">Privacy Notice</Link>
-              </span>
-            </label>
-
-            {errors.submit && <p role="alert" className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">{errors.submit}</p>}
-            <button type="submit" disabled={loading} className="btn-primary w-full py-3.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 mt-2 shadow-md shadow-blue-200">
-              {loading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <>{capability.available ? 'Create Account and Continue to Demo' : 'Create Account'} <ArrowRight className="w-4 h-4" /></>}
-            </button>
-          </form>
+          <SignupForm register={registerMember} onSuccess={goNext} submitLabel={capability.available ? 'Create Account and Continue to Demo' : 'Create Account'} idPrefix="auction-signup" />
 
           <p className="text-center text-gray-500 text-sm mt-6">
             Already have an Executive Cars account?{' '}

@@ -112,6 +112,8 @@ Only enable and use the demo seed in a local demonstration environment.
 
 - Browser authentication uses an HttpOnly, SameSite=Strict session cookie (`__Host-ec_session` in production) holding a random token; only its SHA-256 is stored server-side in the `Session` collection, so sessions can be ended individually or all at once.
 - Sessions expire after inactivity and after an absolute lifetime (customers 7 / 14 days, administrators 30 minutes / 8 hours; configurable with the `SESSION_*` variables in `.env.example`). Logging out, changing a password or resetting it revokes sessions on the server, not just in the browser.
+- Passwords are stored as Argon2id hashes (older bcrypt hashes still work and are upgraded at the owner's next sign-in). A password must be 8-128 characters, any characters allowed, not on the bundled common-password list, not built from the person's name/email or the site name, and (in production) not found in the Have I Been Pwned breach corpus. Only a 5-character hash prefix is sent to that service and an outage never blocks sign-up (`HIBP_ENABLED` overrides the default).
+- Failed sign-ins are throttled per account and address in MongoDB with a growing delay (no permanent lockout), and every sign-in attempt does the same hashing work whether or not the email exists.
 - State-changing browser requests require CSRF protection (token plus Origin check).
 - Auction inventory and bidding APIs enforce authenticated membership/role checks server-side.
 - Private documents are served through authorized API routes rather than a public static folder.

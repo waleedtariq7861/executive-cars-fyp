@@ -1,37 +1,45 @@
 import React, { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { CheckCircle2, Eye, EyeOff, KeyRound } from 'lucide-react'
+import { CheckCircle2, KeyRound } from 'lucide-react'
 import Logo from '../components/Logo.jsx'
 import api from '../api/api.js'
 import Button from '../components/ui/Button.jsx'
 import { Alert } from '../components/ui/Feedback.jsx'
-import { FormField, Input } from '../components/ui/FormControls.jsx'
+import PasswordField from '../components/auth/PasswordField.jsx'
+import { readApiError } from '../utils/apiError.js'
+import { passwordGuidance, passwordProblem } from '../utils/password.js'
 
 export default function ResetPasswordPage() {
   const [searchParams] = useSearchParams()
   const token = searchParams.get('token') || ''
   const [form, setForm] = useState({ password: '', confirm: '' })
-  const [show, setShow] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [fieldErrors, setFieldErrors] = useState({})
   const [complete, setComplete] = useState(false)
 
   const submit = async event => {
     event.preventDefault()
-    setError('')
+    setError(''); setFieldErrors({})
     if (!token) return setError('This reset link is incomplete.')
-    if (form.password.length < 8) return setError('Password must be at least 8 characters.')
-    if (form.password !== form.confirm) return setError('Passwords do not match.')
+    const problem = passwordProblem(form.password)
+    if (problem) return setFieldErrors({ password: problem.message })
+    if (form.password !== form.confirm) return setFieldErrors({ confirm: 'Passwords do not match.' })
     setLoading(true)
     try {
       await api.post('/auth/reset-password', { token, password: form.password })
       setComplete(true)
     } catch (requestError) {
-      setError(requestError.response?.data?.message || 'Could not reset password.')
+      const failure = readApiError(requestError, 'Could not reset password.')
+      // A rejected password keeps the link valid, so show it next to the field and let the person try again.
+      if (failure.fieldErrors.password) setFieldErrors({ password: failure.fieldErrors.password })
+      else setError(failure.message)
     } finally {
       setLoading(false)
     }
   }
+
+  const guidance = passwordGuidance(form.password)
 
   return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center p-5">
@@ -44,8 +52,9 @@ export default function ResetPasswordPage() {
             <><Alert tone="success" className="mt-5">Your password was reset. The reset link cannot be used again.</Alert><Button as={Link} to="/login" className="w-full mt-5">Sign in</Button></>
           ) : (
             <form onSubmit={submit} className="space-y-4 mt-6">
-              <FormField label="New password" htmlFor="new-password" error={error} required><div className="relative"><Input id="new-password" type={show ? 'text' : 'password'} autoComplete="new-password" value={form.password} onChange={event => setForm(current => ({ ...current, password: event.target.value }))} error={error} className="pr-11" /><button type="button" onClick={() => setShow(value => !value)} aria-label={show ? 'Hide password' : 'Show password'} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">{show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button></div></FormField>
-              <FormField label="Confirm new password" htmlFor="confirm-password" required><Input id="confirm-password" type={show ? 'text' : 'password'} autoComplete="new-password" value={form.confirm} onChange={event => setForm(current => ({ ...current, confirm: event.target.value }))} /></FormField>
+              {error && <Alert tone="error">{error}</Alert>}
+              <PasswordField id="new-password" label="New password" value={form.password} onChange={value => setForm(current => ({ ...current, password: value }))} error={fieldErrors.password} hint={guidance.text} hintTone={guidance.tone} maxLength={128} />
+              <PasswordField id="confirm-password" label="Confirm new password" value={form.confirm} onChange={value => setForm(current => ({ ...current, confirm: value }))} error={fieldErrors.confirm} maxLength={128} />
               <Button type="submit" loading={loading} className="w-full">Reset password</Button>
               <Link to="/forgot-password" className="block text-center text-sm font-bold text-blue-700">Request a new link</Link>
             </form>
