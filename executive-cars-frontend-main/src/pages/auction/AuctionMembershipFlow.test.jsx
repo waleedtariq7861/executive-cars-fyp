@@ -1,12 +1,12 @@
 import React from 'react'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { MemoryRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { beforeEach, expect, it, vi } from 'vitest'
 import api from '../../api/api.js'
 import AuctionPaymentPage from './AuctionPaymentPage.jsx'
 import AuctionPaymentSuccessPage from './AuctionPaymentSuccessPage.jsx'
 import AuctionGatePage from './AuctionGatePage.jsx'
-import AuctionSignupPage from './AuctionSignupPage.jsx'
+import AccountSignupPage from '../AccountSignupPage.jsx'
 import AccountPage from '../AccountPage.jsx'
 
 vi.mock('../../api/api.js', () => ({ default: { get: vi.fn(), post: vi.fn() } }))
@@ -17,7 +17,7 @@ vi.mock('../../components/Footer.jsx', () => ({ default: () => null }))
 const inactive = { id: 'member-1', name: 'Demo Customer', email: 'demo@example.com', role: 'user', subscriptionStatus: 'inactive' }
 const active = { ...inactive, subscriptionStatus: 'active', subscriptionExpiry: '2099-01-01T00:00:00Z', membershipSource: 'demo', capabilities: { auction: true } }
 const capabilities = { activationMode: 'demo', amount: 6200, currency: 'PKR', durationYears: 1, plan: 'annual_auction_membership' }
-const auth = { user: inactive, refreshUser: vi.fn(), registerMember: vi.fn(), logout: vi.fn() }
+const auth = { user: inactive, refreshUser: vi.fn(), registerAccount: vi.fn(), logout: vi.fn() }
 
 beforeEach(() => {
   vi.resetAllMocks()
@@ -119,10 +119,11 @@ it('shows an activation failure when a status check confirms the account is stil
 
 it.each(['demo', 'unavailable'])('new customer signup continues according to %s availability', async mode => {
   auth.user = null
-  auth.registerMember.mockResolvedValue({ success: true })
+  auth.registerAccount.mockResolvedValue({ success: true })
   api.get.mockResolvedValue({ data: { ...capabilities, activationMode: mode } })
   render(<MemoryRouter initialEntries={['/auction/signup']}><Routes>
-    <Route path="/auction/signup" element={<AuctionSignupPage />} />
+    <Route path="/auction/signup" element={<Navigate to="/signup?next=auction" replace />} />
+    <Route path="/signup" element={<AccountSignupPage />} />
     <Route path="/auction/payment" element={<p>Membership step</p>} />
     <Route path="/account" element={<p>Unified account</p>} />
   </Routes></MemoryRouter>)
@@ -135,7 +136,7 @@ it.each(['demo', 'unavailable'])('new customer signup continues according to %s 
   fireEvent.click(screen.getByRole('checkbox'))
   fireEvent.click(submit)
   await screen.findByText(mode === 'demo' ? 'Membership step' : 'Unified account')
-  expect(auth.registerMember).toHaveBeenCalledWith('New Customer', 'new@example.com', '+923001234567', 'test-pass-123')
+  expect(auth.registerAccount).toHaveBeenCalledWith('New Customer', 'new@example.com', '+923001234567', 'test-pass-123')
 })
 
 it('rechecks capabilities when activation becomes unavailable between load and click', async () => {
@@ -175,10 +176,25 @@ it('existing active customers retain auction access without waiting for activati
   expect(api.get).not.toHaveBeenCalled()
 })
 
-it.each([['account', AccountPage], ['gate', AuctionGatePage], ['signup', AuctionSignupPage]])('%s entry agrees with disabled capability', async (_name, Page) => {
+it.each([['account', AccountPage, '/'], ['gate', AuctionGatePage, '/'], ['signup', AccountSignupPage, '/?next=auction']])('%s entry agrees with disabled capability', async (_name, Page, entry) => {
   api.get.mockResolvedValue({ data: { ...capabilities, activationMode: 'unavailable' } })
-  render(<MemoryRouter><Page /></MemoryRouter>)
+  render(<MemoryRouter initialEntries={[entry]}><Page /></MemoryRouter>)
   await screen.findByText('Membership activation is currently unavailable.')
   expect(screen.queryByText('Secure Payments')).not.toBeInTheDocument()
   expect(screen.queryByRole('link', { name: /Activate demo membership|Continue to Demo Activation/i })).not.toBeInTheDocument()
+})
+
+it('there is one sign-up page: a plain visit asks nothing about auctions and never reads capabilities', () => {
+  auth.user = null
+  render(<MemoryRouter initialEntries={['/signup']}><AccountSignupPage /></MemoryRouter>)
+  expect(screen.getByRole('heading', { name: 'Create your account' })).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Create Account' })).toBeInTheDocument()
+  expect(api.get).not.toHaveBeenCalled()
+})
+
+it('a signed-in customer opening the sign-up page is told the account already exists', () => {
+  render(<MemoryRouter initialEntries={['/signup']}><AccountSignupPage /></MemoryRouter>)
+  expect(screen.getByRole('heading', { name: 'Your account is ready' })).toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: /Create Account/ })).not.toBeInTheDocument()
+  expect(screen.getByRole('link', { name: /Auction Membership/ })).toHaveAttribute('href', '/auction/payment')
 })

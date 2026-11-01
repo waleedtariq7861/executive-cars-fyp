@@ -154,7 +154,6 @@ export function AuthProvider({ children }) {
       loginAccount,
       loginAdmin,
       registerAccount,
-      registerMember: registerAccount,
       logout,
       logoutRedirect,
       clearLogoutRedirect,

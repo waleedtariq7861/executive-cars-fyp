@@ -24,7 +24,6 @@ const LegalPage = lazy(() => import('./pages/LegalPage.jsx'))
 const SavedCarsPage = lazy(() => import('./pages/SavedCarsPage.jsx'))
 
 const AuctionGatePage = lazy(() => import('./pages/auction/AuctionGatePage.jsx'))
-const AuctionSignupPage = lazy(() => import('./pages/auction/AuctionSignupPage.jsx'))
 const AuctionPaymentPage = lazy(() => import('./pages/auction/AuctionPaymentPage.jsx'))
 const AuctionPaymentSuccessPage = lazy(() => import('./pages/auction/AuctionPaymentSuccessPage.jsx'))
 const AuctionDashboardPage = lazy(() => import('./pages/auction/AuctionDashboardPage.jsx'))
@@ -108,7 +107,8 @@ export default function App() {
 
           {/* Auction */}
           <Route path="/auction" element={<AuctionGatePage />} />
-          <Route path="/auction/signup" element={<AuctionSignupPage />} />
+          {/* There is one sign-up page; this old address keeps working and just remembers the auction intent. */}
+          <Route path="/auction/signup" element={<Navigate to="/signup?next=auction" replace />} />
           <Route path="/auction/payment" element={<ProtectedRoute role="user"><AuctionPaymentPage /></ProtectedRoute>} />
           <Route path="/auction/payment-success" element={<ProtectedRoute role="user"><AuctionPaymentSuccessPage /></ProtectedRoute>} />
           <Route path="/auction/dashboard" element={<ProtectedRoute role="user" capability="auction"><AuctionDashboardPage /></ProtectedRoute>} />
