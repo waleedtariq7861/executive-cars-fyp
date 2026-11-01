@@ -104,3 +104,45 @@ describe('failed sign-in feedback', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('Invalid credentials')
   })
 })
+
+describe('administrator sign-in feedback', () => {
+  beforeEach(() => vi.useFakeTimers({ shouldAdvanceTime: true }))
+  afterEach(() => vi.useRealTimers())
+
+  const fillAndSubmit = async () => {
+    fireEvent.change(screen.getByLabelText('Email Address'), { target: { value: 'admin@example.com' } })
+    fireEvent.change(screen.getByLabelText('Password', { exact: true }), { target: { value: 'wrong-password-1' } })
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: /Sign In to Admin Portal|Try again in/ })) })
+  }
+
+  it('offers a way to reset an administrator password and names the show/hide button', () => {
+    renderWith(<AdminLoginPage />, null)
+    expect(screen.getByRole('link', { name: 'Forgot password?' })).toHaveAttribute('href', '/forgot-password')
+    expect(screen.getByRole('button', { name: 'Show password' })).toBeInTheDocument()
+  })
+
+  it('links a failed sign-in message to both fields without saying which one was wrong', async () => {
+    const loginAdmin = vi.fn().mockResolvedValue({ success: false, message: 'Invalid credentials' })
+    renderWith(<AdminLoginPage />, null, { loginAdmin })
+    await fillAndSubmit()
+    expect(screen.getByRole('alert')).toHaveTextContent('Invalid credentials')
+    for (const field of [screen.getByLabelText('Email Address'), screen.getByLabelText('Password', { exact: true })]) {
+      expect(field).toHaveAttribute('aria-invalid', 'true')
+      expect(field).toHaveAttribute('aria-describedby', 'admin-login-error')
+    }
+  })
+
+  it('disables the button with a countdown when the server asks for a pause, then lets the administrator retry', async () => {
+    const loginAdmin = vi.fn().mockResolvedValue({ success: false, message: 'Too many failed sign-in attempts. Try again in 2 seconds.', retryAfterSeconds: 2 })
+    renderWith(<AdminLoginPage />, null, { loginAdmin })
+    await fillAndSubmit()
+    const waiting = screen.getByRole('button', { name: 'Try again in 2 seconds' })
+    expect(waiting).toBeDisabled()
+    fireEvent.submit(waiting.closest('form'))
+    expect(loginAdmin).toHaveBeenCalledTimes(1)
+    await act(async () => { vi.advanceTimersByTime(1000) })
+    await act(async () => { vi.advanceTimersByTime(1000) })
+    expect(screen.getByRole('button', { name: /Sign In to Admin Portal/ })).toBeEnabled()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+})

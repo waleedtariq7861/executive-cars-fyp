@@ -55,6 +55,20 @@ describe('ResetPasswordPage', () => {
     expect(screen.getByLabelText('New password', { exact: true })).not.toHaveAttribute('aria-invalid')
   })
 
+  it('removes the token from the address bar, keeps it for the request, and asks browsers not to send a Referer', async () => {
+    window.history.pushState({}, '', `/reset-password?token=${token}`)
+    api.post.mockResolvedValueOnce({ data: {} })
+    const { unmount } = renderPage()
+    expect(window.location.search).toBe('')
+    expect(window.location.href).not.toContain(token)
+    expect(document.head.querySelector('meta[name="referrer"]')?.content).toBe('no-referrer')
+    fill('amber-meadow-58'); submit()
+    expect(await screen.findByText('Password updated')).toBeInTheDocument()
+    expect(api.post).toHaveBeenCalledWith('/auth/reset-password', { token, password: 'amber-meadow-58' })
+    unmount()
+    expect(document.head.querySelector('meta[name="referrer"]')).toBeNull()
+  })
+
   it('refuses to submit without a token', () => {
     renderPage('')
     fill('amber-meadow-58'); submit()
