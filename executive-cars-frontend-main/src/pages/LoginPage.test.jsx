@@ -21,6 +21,12 @@ describe('session notice on the sign-in screens', () => {
     expect(screen.getByText(/inactivity/i)).toBeInTheDocument()
   })
 
+  it('points non-administrators to the one customer sign-in, with no separate seller login', () => {
+    renderWith(<AdminLoginPage />, null)
+    expect(screen.getByRole('link', { name: /Customer sign in/ })).toHaveAttribute('href', '/login')
+    expect(screen.queryByText(/seller login/i)).not.toBeInTheDocument()
+  })
+
   it('explains a revoked session on the administrator sign-in page', () => {
     renderWith(<AdminLoginPage />, 'revoked')
     expect(screen.getByText('You were signed out')).toBeInTheDocument()
