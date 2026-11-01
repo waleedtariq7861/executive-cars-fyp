@@ -1,6 +1,6 @@
 import React from 'react'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { MemoryRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, expect, it, vi } from 'vitest'
 import api from '../../api/api.js'
 import AuctionPaymentPage from './AuctionPaymentPage.jsx'
@@ -121,8 +121,7 @@ it.each(['demo', 'unavailable'])('new customer signup continues according to %s 
   auth.user = null
   auth.registerAccount.mockResolvedValue({ success: true })
   api.get.mockResolvedValue({ data: { ...capabilities, activationMode: mode } })
-  render(<MemoryRouter initialEntries={['/auction/signup']}><Routes>
-    <Route path="/auction/signup" element={<Navigate to="/signup?next=auction" replace />} />
+  render(<MemoryRouter initialEntries={['/signup?next=auction']}><Routes>
     <Route path="/signup" element={<AccountSignupPage />} />
     <Route path="/auction/payment" element={<p>Membership step</p>} />
     <Route path="/account" element={<p>Unified account</p>} />

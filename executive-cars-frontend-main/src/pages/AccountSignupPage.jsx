@@ -9,8 +9,8 @@ import useMembershipCapabilities from '../hooks/useMembershipCapabilities.js'
 import { hasActiveMembership } from '../utils/membership.js'
 
 // The only sign-up page. One account covers buying, selling and auction membership, so there is no
-// separate "auction sign-up": /auction/signup redirects here with ?next=auction, which only changes
-// where a new customer lands afterwards (the membership step, when activation is available).
+// separate "auction sign-up" route. ?next=auction only changes where a new customer lands afterwards
+// (the membership step, when activation is available).
 export default function AccountSignupPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
