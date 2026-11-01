@@ -25,9 +25,6 @@ services:
         sync: false
       - key: RESEND_FROM_EMAIL
         sync: false
-      # Customers created before this moment count as email-verified. Enter the time this release goes live (ISO date).
-      - key: AUTH_VERIFICATION_CUTOFF
-        sync: false
       - key: JWT_SECRET
         generateValue: true
       - key: MONGO_URI
