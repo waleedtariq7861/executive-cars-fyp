@@ -95,6 +95,8 @@ Open <http://localhost:5173>.
 
 `APP_MODE=demo` and `PAYMENT_MODE=demo` support the local FYP demonstration flow. This payment flow records an internal simulated membership payment; it does not process a financial transaction. Stripe is not part of the current implementation.
 
+The local demo seed (`npm run seed:demo`, `seed:demo:reset`) creates its accounts from the `DEMO_*` variables in `.env.example` (defaults in `executive-cars-backend-main/src/config/demoAccounts.js`); there is no demo-account shortcut on the sign-in pages. The seed records what it created in its own `demoseedentries` collection, so a reset removes only that and never touches real accounts.
+
 For a real deployment, set `APP_MODE=production`, `NODE_ENV=production`, and `PAYMENT_MODE=disabled`; use HTTPS client origins, production email delivery, a strong secret, and keep `ENABLE_DEMO_SEED=false`. The backend validates these boundaries at startup.
 
 For the GitHub + Vercel + Render Free setup, follow [DEPLOYMENT_FREE_TIER.md](DEPLOYMENT_FREE_TIER.md). It lists dashboard steps, required secrets, verification, and features that cannot run on the free hosting plan.

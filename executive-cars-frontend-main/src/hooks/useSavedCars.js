@@ -58,14 +58,14 @@ export function useSavedCars() {
       return cars
     } catch (requestError) {
       setError(requestError.response?.data?.message || 'Saved cars could not be synchronised.')
-      throw requestError
+      return null
     } finally {
       setSyncing(false)
     }
   }, [serverBacked])
 
   useEffect(() => {
-    reload().catch(() => {})
+    reload()
   }, [reload])
 
   const toggleSaved = useCallback(async (id) => {

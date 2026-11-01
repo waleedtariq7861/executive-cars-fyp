@@ -41,11 +41,13 @@ export function AuthProvider({ children }) {
         setCsrfToken('')
         setUser(null)
       } else if (data?.type === 'signed-in') {
-        refreshUser().catch(() => {})
+        refreshUser().catch(() => {
+          toast?.showToast({ tone: 'error', title: 'Could not update your sign-in', message: 'You signed in in another tab. Reload this page to continue.' })
+        })
       }
     }
     return () => { channel.close(); channelRef.current = null }
-  }, [refreshUser])
+  }, [refreshUser, toast])
 
   useEffect(() => {
     const handleUnauthorized = event => {

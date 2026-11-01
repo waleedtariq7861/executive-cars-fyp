@@ -66,4 +66,13 @@ describe('useSavedCars guest merge', () => {
     expect(api.post).not.toHaveBeenCalled()
     expect(localStorage.getItem('ec_wishlist')).not.toBeNull()
   })
+
+  it('records a failed load as an error the page can show, without throwing', async () => {
+    api.get.mockRejectedValue({ response: { status: 500, data: { message: 'Saved cars could not be loaded.' } } })
+    let hook
+    function Capture() { hook = useSavedCars(); return <p>{hook.error || 'no error'}</p> }
+    render(<AuthContext.Provider value={{ user: { id: 'm1', role: 'user' } }}><Capture /></AuthContext.Provider>)
+    expect(await screen.findByText('Saved cars could not be loaded.')).toBeInTheDocument()
+    await expect(hook.reload()).resolves.toBeNull()
+  })
 })

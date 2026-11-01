@@ -153,6 +153,16 @@ describe('AuthProvider cookie session lifecycle', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Login' }))
       await waitFor(() => expect(heard).toEqual([{ type: 'signed-in' }]))
     })
+
+    it('tells the person to reload when this tab cannot pick up a sign-in from another tab', async () => {
+      const showToast = vi.fn()
+      api.get.mockRejectedValueOnce({ response: { status: 401 } })
+      render(<ToastContext.Provider value={{ showToast, dismiss: vi.fn() }}><AuthProvider><NoticeProbe /></AuthProvider></ToastContext.Provider>)
+      await screen.findByText('out')
+      api.get.mockRejectedValueOnce(new Error('Network Error'))
+      act(() => new FakeChannel('ec-auth').postMessage({ type: 'signed-in' }))
+      await waitFor(() => expect(showToast).toHaveBeenCalledWith(expect.objectContaining({ tone: 'error', title: 'Could not update your sign-in' })))
+    })
   })
 
   describe('logout failures', () => {

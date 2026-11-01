@@ -63,4 +63,12 @@ describe('AuctionCarDetailPage follows the auction clock', () => {
     expect(screen.getByText(/Verify your email address to continue\./)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Verify your email' })).toHaveAttribute('href', '/verify-email')
   })
+
+  it('says so when the final price cannot be refreshed after the auction ends', async () => {
+    await renderDetail(car({ auctionStart: new Date(NOW - 60000).toISOString(), auctionEnd: new Date(NOW + 2000).toISOString() }))
+    api.get.mockRejectedValue(new Error('Network Error'))
+    await act(async () => { await vi.advanceTimersByTimeAsync(2100) })
+    expect(screen.getByText('Bidding is closed')).toBeInTheDocument()
+    expect(screen.getByRole('alert')).toHaveTextContent('The final price could not be refreshed')
+  })
 })

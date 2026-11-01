@@ -36,6 +36,7 @@ export default function AuctionCarDetailPage() {
   const [bidSuccess, setBidSuccess] = useState(false)
   const [bidError, setBidError] = useState('')
   const [bidNeedsVerification, setBidNeedsVerification] = useState(false)
+  const [finalPriceFailed, setFinalPriceFailed] = useState(false)
   const [liveActivity, setLiveActivity] = useState(null)
   const [outbidAlert, setOutbidAlert] = useState(false)
   const [auctionEnded, setAuctionEnded] = useState(false)
@@ -122,7 +123,9 @@ export default function AuctionCarDetailPage() {
     if (auctionNotStarted) { setAuctionNotStarted(false); return }
     if (auctionEnded) return
     setAuctionEnded(true)
-    api.get(`/cars/${id}`).then(({ data }) => setCurrentBid(data.currentBid || data.basePrice)).catch(() => {})
+    api.get(`/cars/${id}`)
+      .then(({ data }) => { setCurrentBid(data.currentBid || data.basePrice); setFinalPriceFailed(false) })
+      .catch(() => setFinalPriceFailed(true))
   }
 
   const handleBid = async (e) => {
@@ -338,6 +341,7 @@ export default function AuctionCarDetailPage() {
                 <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-center mb-4">
                   <p className="text-gray-700 font-bold text-sm">Bidding is closed</p>
                   <p className="text-gray-500 text-xs mt-1">This auction has ended.</p>
+                  {finalPriceFailed && <p role="alert" className="text-red-600 text-xs mt-2">The final price could not be refreshed. Reload the page to see the result.</p>}
                 </div>
               ) : auctionNotStarted ? (
                 <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 text-center mb-4">

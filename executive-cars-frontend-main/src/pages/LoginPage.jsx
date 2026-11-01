@@ -1,14 +1,11 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Car, CheckCircle2, Eye, EyeOff, Gavel, Lock, Search, UserRound } from 'lucide-react'
 import Logo from '../components/Logo.jsx'
 import { useAuth } from '../context/authContext.js'
-import api from '../api/api.js'
 import { waitLabel } from '../utils/apiError.js'
 import useRetryCountdown from '../hooks/useRetryCountdown.js'
 import SessionNotice from '../components/auth/SessionNotice.jsx'
-
-const demoAccountsEnabled = (import.meta.env.DEV || import.meta.env.VITE_APP_MODE === 'demo') && import.meta.env.VITE_ENABLE_DEMO_ACCOUNTS === 'true'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -21,14 +18,8 @@ export default function LoginPage() {
   // The server asks for a pause after too many failed attempts; it never locks the account for good.
   const [pauseMessage, setPauseMessage] = useState('')
   const retry = useRetryCountdown()
-  const [demoAccounts, setDemoAccounts] = useState([])
   const redirectMessage = location.state?.message
   const shownError = error || (retry.waiting ? pauseMessage : '')
-
-  useEffect(() => {
-    if (!demoAccountsEnabled) return
-    api.get('/demo/accounts').then(response => setDemoAccounts(response.data?.members || [])).catch(() => setDemoAccounts([]))
-  }, [])
 
   const handleSubmit = async (event) => {
     event.preventDefault()
@@ -85,19 +76,6 @@ export default function LoginPage() {
             {shownError && <div id="login-error" role="alert" className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-600 text-sm">{shownError}</div>}
             <button type="submit" disabled={loading || retry.waiting} className="btn-primary w-full py-3.5 text-sm gap-2 disabled:opacity-60">{loading ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Lock className="w-4 h-4" />}{loading ? 'Signing in…' : retry.waiting ? `Try again in ${waitLabel(retry.seconds)}` : 'Sign In'}</button>
           </form>
-
-          {demoAccountsEnabled && demoAccounts.length > 0 && (
-            <section className="mt-6 rounded-xl border border-blue-200 bg-blue-50 p-4" aria-label="Demo Accounts">
-              <h3 className="text-sm font-black text-blue-950">Demo Accounts</h3>
-              <div className="mt-3 grid gap-2">
-                {demoAccounts.map(account => (
-                  <button key={account.email} type="button" onClick={() => { setForm({ email: account.email, password: account.password }); setError('') }} className="flex items-center justify-between rounded-lg border border-blue-200 bg-white px-3 py-2 text-left text-xs font-semibold text-blue-800 hover:bg-blue-100">
-                    <span>{account.label}</span><span>Use account</span>
-                  </button>
-                ))}
-              </div>
-            </section>
-          )}
 
           <div className="mt-7 pt-6 border-t border-gray-200">
             <p className="text-sm text-gray-500 text-center">New to Executive Cars? <Link to="/signup" className="font-bold text-blue-600 hover:underline">Create one account</Link></p>
