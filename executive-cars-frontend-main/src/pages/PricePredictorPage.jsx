@@ -36,7 +36,12 @@ const optionValues = (items, fallback) => {
   return values.length ? values : fallback
 }
 
-const factorLabelFor = factor => (typeof factor === 'string' ? factor : `${factor.label}: ${factor.value}`)
+// The model measures a car's age from the year its training data ends, not from today, so "Vehicle age: 1 years"
+// would read wrongly to a customer. The factor is really driven by the model year, so say that instead.
+const factorLabelFor = (factor, modelYear) => {
+  const label = typeof factor === 'string' ? factor : `${factor.label}: ${factor.value}`
+  return modelYear && /^Vehicle age:/i.test(label) ? `Model year: ${modelYear}` : label
+}
 
 const clientValidate = (form, requiresVerifiedVariant = false) => {
   const errors = {}
@@ -64,6 +69,7 @@ const focusFirstInvalidField = errors => {
 export default function PricePredictorPage() {
   const [form, setForm] = useState(initialForm)
   const [result, setResult] = useState(null)
+  const [valuedYear, setValuedYear] = useState(null)
   const [error, setError] = useState('')
   const [fieldErrors, setFieldErrors] = useState({})
   const [loading, setLoading] = useState(false)
@@ -171,6 +177,7 @@ export default function PricePredictorPage() {
         engineCapacity: Number(form.engineCapacity),
       }, { timeout: 12_000 })
       setResult(data)
+      setValuedYear(Number(form.year))
     } catch (requestError) {
       const responseErrors = requestError.response?.data?.errors || {}
       setFieldErrors(responseErrors)
@@ -330,7 +337,7 @@ export default function PricePredictorPage() {
                   {factors.length > 0 && <div className="mt-5">
                     <p className="text-xs font-bold uppercase tracking-[0.12em] text-gray-500">Important Price Factors</p>
                     <ul className="space-y-2 mt-2">{factors.slice(0, 5).map((factor, index) => {
-                      const label = factorLabelFor(factor)
+                      const label = factorLabelFor(factor, valuedYear)
                       return <li key={`${typeof factor === 'string' ? factor : factor.feature}-${index}`} className="flex gap-2 text-xs text-gray-600 leading-5"><CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />{label}</li>
                     })}</ul>
                   </div>}
