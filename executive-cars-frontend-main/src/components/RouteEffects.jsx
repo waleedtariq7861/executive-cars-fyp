@@ -10,6 +10,7 @@ const titles = {
   '/login': 'Sign In — Executive Cars',
   '/forgot-password': 'Reset Password — Executive Cars',
   '/reset-password': 'Choose New Password — Executive Cars',
+  '/verify-email': 'Verify Email — Executive Cars',
   '/seller/book-inspection': 'Book a Vehicle Inspection — Executive Cars',
   '/signup': 'Create Account — Executive Cars',
   '/privacy': 'Privacy Notice — Executive Cars',

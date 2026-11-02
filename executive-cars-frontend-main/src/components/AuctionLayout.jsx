@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { LayoutDashboard, Gavel, TrendingUp, Trophy, User, LogOut, Menu, X } from 'lucide-react'
 import Logo from './Logo.jsx'
 import { useAuth } from '../context/authContext.js'
+import EmailVerificationBanner from './auth/EmailVerificationBanner.jsx'
 
 const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard',     to: '/auction/dashboard' },
@@ -104,6 +105,7 @@ export default function AuctionLayout({ children, title }) {
         </header>
 
         <main className="flex-1 p-4 sm:p-6 overflow-y-auto">
+          <EmailVerificationBanner className="mb-5" />
           {children}
         </main>
       </div>

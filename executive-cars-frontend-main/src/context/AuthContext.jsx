@@ -100,7 +100,7 @@ export function AuthProvider({ children }) {
     try {
       const { data } = await api.post('/auth/register', { name, email, phone, password })
       persist(data.user, data.csrfToken)
-      return { success: true, user: data.user }
+      return { success: true, user: data.user, verification: data.verification }
     } catch (error) {
       return { success: false, ...readApiError(error, 'Registration failed') }
     }

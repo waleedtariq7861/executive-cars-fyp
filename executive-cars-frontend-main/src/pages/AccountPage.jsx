@@ -7,6 +7,7 @@ import { useAuth } from '../context/authContext.js'
 import { hasActiveMembership } from '../utils/membership.js'
 import useMembershipCapabilities from '../hooks/useMembershipCapabilities.js'
 import MembershipAvailability from '../components/MembershipAvailability.jsx'
+import EmailVerificationBanner from '../components/auth/EmailVerificationBanner.jsx'
 
 export default function AccountPage() {
   const { user, logout } = useAuth()
@@ -23,6 +24,7 @@ export default function AccountPage() {
         </section>
 
         <div className="market-shell py-10">
+          <EmailVerificationBanner className="mb-6" />
           <div className="grid md:grid-cols-3 gap-5">
             <AccountAction icon={Search} title="Buy a Car" description="Search verified used cars and view inspection-led listings." to="/used-cars" action="Browse cars" />
             <AccountAction icon={Car} title="Sell a Car" description="Submit a car, track verification bookings, listings, and auction status." to="/seller/dashboard" action="Selling dashboard" />
