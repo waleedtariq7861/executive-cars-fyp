@@ -5,14 +5,14 @@ import Navbar from '../../components/Navbar.jsx'
 import Footer from '../../components/Footer.jsx'
 import { useAuth } from '../../context/authContext.js'
 import { hasActiveMembership } from '../../utils/membership.js'
-import useMembershipCapabilities from '../../hooks/useMembershipCapabilities.js'
-import MembershipAvailability from '../../components/MembershipAvailability.jsx'
+import useMembershipPlan from '../../hooks/useMembershipPlan.js'
+import { formatMoney } from '../../utils/payment.js'
 
 
 export default function AuctionGatePage() {
   const { user } = useAuth()
   const active = user?.role === 'user' && hasActiveMembership(user)
-  const capability = useMembershipCapabilities(!active)
+  const membershipPlan = useMembershipPlan(!active)
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
@@ -70,9 +70,9 @@ export default function AuctionGatePage() {
               </ul>
               <Link to={active ? '/auction/dashboard' : user?.role === 'user' ? '/auction/payment' : '/login'} state={!user ? { from: '/auction/payment', message: 'Please sign in to activate auction access.' } : undefined}
                 className="btn-primary w-full py-3 rounded-xl font-semibold text-sm block text-center shadow-md shadow-blue-200">
-                {active ? 'Open Auction Dashboard' : capability.available ? 'Activate Demo Membership' : 'Membership Details'}
+                {active ? 'Open Auction Dashboard' : 'Get Membership'}
               </Link>
-              {!active && <><MembershipAvailability capability={capability} /></>}
+              {!active && membershipPlan.plan && <p className="text-xs text-gray-500 mt-3 text-center">{membershipPlan.plan.name}: {formatMoney(membershipPlan.plan.amount, membershipPlan.plan.currency)} for {membershipPlan.plan.durationYears} year</p>}
             </div>
           </div>
 

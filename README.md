@@ -93,11 +93,11 @@ Open <http://localhost:5173>.
 
 ## Application modes and payments
 
-`APP_MODE=demo` and `PAYMENT_MODE=demo` support the local FYP demonstration flow. This payment flow records an internal simulated membership payment; it does not process a financial transaction. Stripe is not part of the current implementation.
+`APP_MODE=demo` selects the local FYP demonstration setup (the demo seed and development email delivery). Payments do not depend on it: auction membership is bought through a complete payment flow whose provider is the **sandbox** (`PAYMENT_PROVIDER=sandbox`). It offers three methods (card, JazzCash/Easypaisa wallet, bank transfer confirmed by an administrator), stores every attempt as a `Payment` record, activates the membership and issues a numbered invoice (`EC-INV-<year>-<number>`, printable, also emailed), and has a payments page for customers and one for administrators. It moves no money: the sandbox accepts only published test credentials (card `4242 4242 4242 4242`, wallet `03000000001`) and refuses any real card or wallet number before reading it; card numbers, CVCs and wallet numbers are never stored, only the card brand and last four digits (the wallet number masked). Every payment screen and invoice says it is a sandbox. A real provider would replace `src/services/sandboxGateway.js` behind the same payment records.
 
 The local demo seed (`npm run seed:demo`, `seed:demo:reset`) creates its accounts from the `DEMO_*` variables in `.env.example` (defaults in `executive-cars-backend-main/src/config/demoAccounts.js`); there is no demo-account shortcut on the sign-in pages. The seed records what it created in its own `demoseedentries` collection, so a reset removes only that and never touches real accounts.
 
-For a real deployment, set `APP_MODE=production`, `NODE_ENV=production`, and `PAYMENT_MODE=disabled`; use HTTPS client origins, production email delivery, a strong secret, and keep `ENABLE_DEMO_SEED=false`. The backend validates these boundaries at startup.
+For a real deployment, set `APP_MODE=production` and `NODE_ENV=production`; use HTTPS client origins, production email delivery, a strong secret, and keep `ENABLE_DEMO_SEED=false`. The backend validates these boundaries at startup.
 
 For the GitHub + Vercel + Render Free setup, follow [DEPLOYMENT_FREE_TIER.md](DEPLOYMENT_FREE_TIER.md). It lists dashboard steps, required secrets, verification, and features that cannot run on the free hosting plan.
 

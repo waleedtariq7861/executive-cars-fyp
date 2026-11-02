@@ -1,18 +1,15 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, Car, Gavel, LogOut, Search, UserRound } from 'lucide-react'
+import { ArrowRight, Car, Gavel, LogOut, Receipt, Search, UserRound } from 'lucide-react'
 import Navbar from '../components/Navbar.jsx'
 import Footer from '../components/Footer.jsx'
 import { useAuth } from '../context/authContext.js'
 import { hasActiveMembership } from '../utils/membership.js'
-import useMembershipCapabilities from '../hooks/useMembershipCapabilities.js'
-import MembershipAvailability from '../components/MembershipAvailability.jsx'
 import EmailVerificationBanner from '../components/auth/EmailVerificationBanner.jsx'
 
 export default function AccountPage() {
   const { user, logout } = useAuth()
   const auctionActive = hasActiveMembership(user)
-  const capability = useMembershipCapabilities(!auctionActive)
   const signOut = () => logout('/')
 
   return (
@@ -25,10 +22,11 @@ export default function AccountPage() {
 
         <div className="market-shell py-10">
           <EmailVerificationBanner className="mb-6" />
-          <div className="grid md:grid-cols-3 gap-5">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
             <AccountAction icon={Search} title="Buy a Car" description="Search verified used cars and view inspection-led listings." to="/used-cars" action="Browse cars" />
             <AccountAction icon={Car} title="Sell a Car" description="Submit a car, track verification bookings, listings, and auction status." to="/seller/dashboard" action="Selling dashboard" />
-            <AccountAction icon={Gavel} title="Car Auctions" description={auctionActive ? 'Your auction membership is active. View live cars and your bids.' : 'Annual membership provides access to auction listings and live bidding.'} to={auctionActive ? '/auction/dashboard' : '/auction/payment'} action={auctionActive ? 'Open auctions' : capability.available ? 'Activate demo membership' : 'Membership details'} status={auctionActive ? 'Active' : 'Not active'} notice={!auctionActive && <MembershipAvailability capability={capability} />} />
+            <AccountAction icon={Gavel} title="Car Auctions" description={auctionActive ? 'Your auction membership is active. View live cars and your bids.' : 'Annual membership provides access to auction listings and live bidding.'} to={auctionActive ? '/auction/dashboard' : '/auction/payment'} action={auctionActive ? 'Open auctions' : 'Get membership'} status={auctionActive ? 'Active' : 'Not active'} />
+            <AccountAction icon={Receipt} title="Payments & invoices" description="See your payments, track a bank transfer and open or print your invoices." to="/account/payments" action="My payments" />
           </div>
 
           <div className="grid lg:grid-cols-[1fr_340px] gap-6 mt-8">
