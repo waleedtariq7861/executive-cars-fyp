@@ -6,6 +6,8 @@ const api = axios.create({
   withCredentials: true,
 })
 
+const SESSION_ENDED = new Set(['NOT_AUTHENTICATED', 'SESSION_EXPIRED', 'SESSION_REVOKED'])
+
 let csrfToken = ''
 
 export const setCsrfToken = token => {
@@ -23,10 +25,12 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (res) => res,
   (err) => {
-    if (err.response?.status === 401) {
+    // Only a 401 that says the session is gone signs the browser out; a failed sign-in is also a 401 but carries no code.
+    const code = err.response?.data?.code
+    if (err.response?.status === 401 && SESSION_ENDED.has(code)) {
       setCsrfToken('')
-      // The server says why (SESSION_EXPIRED, SESSION_REVOKED, NOT_AUTHENTICATED) so the app can explain it.
-      window.dispatchEvent(new CustomEvent('ec:unauthorized', { detail: { code: err.response?.data?.code } }))
+      // The code lets the app explain why (expired, revoked, never signed in).
+      window.dispatchEvent(new CustomEvent('ec:unauthorized', { detail: { code } }))
     }
     return Promise.reject(err)
   }

@@ -12,8 +12,6 @@ import { formatMarketPkr, formatPkr } from '../utils/format.js'
 import { digitsOnly, numericInputProps } from '../utils/inputValidation.js'
 import api from '../api/api.js'
 
-const fallbackCities = ['Islamabad', 'Rawalpindi', 'Lahore', 'Karachi', 'Faisalabad', 'Peshawar', 'Multan', 'Other']
-const fallbackBodyTypes = ['Hatchback', 'Sedan', 'SUV', 'Crossover', 'Pickup', 'Van', 'Unknown']
 const currentYear = new Date().getFullYear()
 const initialForm = {
   make: '',
@@ -31,10 +29,7 @@ const initialForm = {
   bodyType: '',
 }
 
-const optionValues = (items, fallback) => {
-  const values = (items || []).map(item => typeof item === 'string' ? item : item.value).filter(Boolean)
-  return values.length ? values : fallback
-}
+const optionValues = items => (items || []).map(item => typeof item === 'string' ? item : item.value).filter(Boolean)
 
 // The model measures a car's age from the year its training data ends, not from today, so "Vehicle age: 1 years"
 // would read wrongly to a customer. The factor is really driven by the model year, so say that instead.
@@ -76,18 +71,23 @@ export default function PricePredictorPage() {
   const resultRef = useRef(null)
   const [metadata, setMetadata] = useState(null)
   const [optionResponse, setOptionResponse] = useState(null)
-  const [metadataLoading, setMetadataLoading] = useState(true)
+  // 'loading' | 'ready' | 'unavailable': the form is built from what the server offers, so when that cannot be
+  // loaded the page says so and offers a retry instead of guessing a list of its own.
+  const [metadataStatus, setMetadataStatus] = useState('loading')
+  const [optionsFailed, setOptionsFailed] = useState(false)
+  const [loadAttempt, setLoadAttempt] = useState(0)
 
   useEffect(() => {
     let active = true
+    setMetadataStatus('loading')
     api.get('/predict-price/options')
       .then(({ data }) => {
-        if (active && data?.available) setMetadata(data)
+        if (!active) return
+        if (data?.available) { setMetadata(data); setMetadataStatus('ready') } else setMetadataStatus('unavailable')
       })
-      .catch(() => {})
-      .finally(() => { if (active) setMetadataLoading(false) })
+      .catch(() => { if (active) setMetadataStatus('unavailable') })
     return () => { active = false }
-  }, [])
+  }, [loadAttempt])
   // On narrow screens the result sits below the form: bring it into view and announce it.
   useEffect(() => {
     if (!result || !resultRef.current) return
@@ -102,10 +102,10 @@ export default function PricePredictorPage() {
     if (form.model) params.model = form.model
     if (form.year) params.year = form.year
     api.get('/vehicle-options', { params })
-      .then(({ data }) => { if (active) setOptionResponse({ key: optionKey, data }) })
-      .catch(() => {})
+      .then(({ data }) => { if (active) { setOptionResponse({ key: optionKey, data }); setOptionsFailed(false) } })
+      .catch(() => { if (active) setOptionsFailed(true) })
     return () => { active = false }
-  }, [form.make, form.model, form.year, optionKey])
+  }, [form.make, form.model, form.year, optionKey, loadAttempt])
 
   const vehicleOptions = optionResponse?.key === optionKey ? optionResponse.data : null
   const catalog = metadata?.inputCatalog
@@ -117,12 +117,12 @@ export default function PricePredictorPage() {
   const identityReady = Boolean(form.make && form.model && form.year)
   const verifiedVehicle = vehicleOptions?.coverageLevel === 'verified'
   const variantRequired = verifiedVehicle && variants.length > 0
-  const cities = optionValues(catalog?.listingCities, fallbackCities)
-  const registrationCities = optionValues(catalog?.registrationCities, fallbackCities)
-  const bodyTypes = optionValues(catalog?.bodyTypes, fallbackBodyTypes)
-  const transmissions = optionValues(catalog?.transmissions, ['Auto', 'Manual'])
-  const fuels = optionValues(catalog?.fuelTypes, ['Petrol', 'Diesel', 'CNG', 'Hybrid'])
-  const assemblies = optionValues(catalog?.assemblyTypes, ['Local', 'Imported', 'Unknown'])
+  const cities = optionValues(catalog?.listingCities)
+  const registrationCities = optionValues(catalog?.registrationCities)
+  const bodyTypes = optionValues(catalog?.bodyTypes)
+  const transmissions = optionValues(catalog?.transmissions)
+  const fuels = optionValues(catalog?.fuelTypes)
+  const assemblies = optionValues(catalog?.assemblyTypes)
   const engineOptions = variant?.engineCapacity ? [variant.engineCapacity] : (vehicleOptions?.engines || [])
   const transmissionOptions = variant?.transmissions?.length ? variant.transmissions : (vehicleOptions?.transmissions?.length ? vehicleOptions.transmissions : transmissions)
   const fuelOptions = variant?.fuelTypes?.length ? variant.fuelTypes : (vehicleOptions?.fuels?.length ? vehicleOptions.fuels : fuels)
@@ -230,7 +230,8 @@ export default function PricePredictorPage() {
 
             <form onSubmit={handlePredict} className="p-5 sm:p-7 space-y-7" noValidate>
               {error && <Alert tone="error">{error}</Alert>}
-              {metadataLoading && <div className="grid sm:grid-cols-2 gap-5"><Skeleton className="h-20" /><Skeleton className="h-20" /></div>}
+              {(metadataStatus === 'unavailable' || optionsFailed) && <Alert tone="error">Vehicle options could not be loaded. <button type="button" onClick={() => { setOptionsFailed(false); setLoadAttempt(value => value + 1) }} className="font-bold underline">Try again</button></Alert>}
+              {metadataStatus === 'loading' && <div className="grid sm:grid-cols-2 gap-5"><Skeleton className="h-20" /><Skeleton className="h-20" /></div>}
 
               <fieldset>
                 <legend className="text-xs font-black uppercase tracking-[0.12em] text-gray-500 mb-4">Vehicle identity</legend>
@@ -316,7 +317,7 @@ export default function PricePredictorPage() {
 
               <div className="flex flex-col-reverse sm:flex-row gap-3">
                 <Button type="button" variant="outline" onClick={reset} disabled={loading}><RotateCcw className="w-4 h-4" /> Reset</Button>
-                <Button type="submit" loading={loading} className="flex-1">{loading ? 'Generating valuation…' : <><Sparkles className="w-4 h-4" /> Generate valuation</>}</Button>
+                <Button type="submit" loading={loading} disabled={metadataStatus !== 'ready'} className="flex-1">{loading ? 'Generating valuation…' : <><Sparkles className="w-4 h-4" /> Generate valuation</>}</Button>
               </div>
             </form>
           </section>

@@ -95,7 +95,7 @@ export default function AIAssistantWidget() {
     api.get('/chat/health')
       .then(({ data }) => {
         if (!active) return
-        setServiceStatus(data?.status === 'available' ? (data.demoFallback ? 'demo' : 'available') : 'unavailable')
+        setServiceStatus(data?.status === 'available' ? 'available' : 'unavailable')
       })
       .catch(() => { if (active) setServiceStatus('unavailable') })
     return () => { active = false }
@@ -162,7 +162,7 @@ export default function AIAssistantWidget() {
               </div>
               <div>
                 <p id="ai-assistant-title" className="text-white font-semibold text-sm leading-tight">Executive Cars AI</p>
-                <p className="text-blue-200 text-xs mt-0.5" role="status">{{ unknown: 'Checking availability...', available: 'Available', demo: 'Demo assistance', unavailable: 'Temporarily unavailable' }[serviceStatus]}</p>
+                <p className="text-blue-200 text-xs mt-0.5" role="status">{{ unknown: 'Checking availability...', available: 'Available', unavailable: 'Temporarily unavailable' }[serviceStatus]}</p>
               </div>
             </div>
             <button

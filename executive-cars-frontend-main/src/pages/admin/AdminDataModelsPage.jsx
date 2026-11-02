@@ -14,7 +14,7 @@ const shortVersion = value => {
   return version.length > 24 ? `${version.slice(0, 16)}…${version.slice(-7)}` : version
 }
 
-const displayDate = value => value ? new Date(value).toLocaleString('en-PK') : 'Legacy metadata unavailable'
+const displayDate = value => value ? new Date(value).toLocaleString('en-PK') : null
 
 function ProvenanceGrid({ version }) {
   const provenance = version?.provenance || {}
@@ -27,7 +27,7 @@ function ProvenanceGrid({ version }) {
     ['Training date', displayDate(provenance.trainingDate || version?.trainingDate)],
   ]
   return <dl className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3 mt-4">
-    {items.map(([label, value]) => <div key={label} className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 min-w-0"><dt className="text-[11px] font-bold uppercase tracking-wide text-gray-500">{label}</dt><dd className="text-sm font-semibold text-gray-900 mt-1 break-words" title={String(value || '')}>{value || 'Legacy metadata unavailable'}</dd></div>)}
+    {items.map(([label, value]) => <div key={label} className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 min-w-0"><dt className="text-[11px] font-bold uppercase tracking-wide text-gray-500">{label}</dt><dd className="text-sm font-semibold text-gray-900 mt-1 break-words" title={String(value || '')}>{value ?? 'Not recorded'}</dd></div>)}
   </dl>
 }
 
@@ -141,7 +141,7 @@ export default function AdminDataModelsPage() {
         { label: 'Admin-imported training rows', value: summary?.rowCount ?? 0, icon: Database },
         { label: 'Import batches', value: imports.length, icon: FileUp },
         { label: 'Prediction service', value: health?.reachable ? (health.modelLoaded ? 'Model ready' : 'No model') : 'Unavailable', icon: Activity },
-        { label: 'Active version', value: registry?.activeVersion || 'Fallback only', icon: Sparkles, version: true },
+        { label: 'Active version', value: registry?.activeVersion || 'None', icon: Sparkles, version: true },
       ].map(item => <div key={item.label} className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm min-w-0"><item.icon className="w-5 h-5 text-blue-700" /><p className="text-xs text-gray-500 mt-4">{item.label}</p><p className="font-black text-gray-950 mt-1 break-words" title={item.version ? String(item.value) : undefined}>{item.version ? shortVersion(item.value) : item.value}</p></div>)}
     </div>
 

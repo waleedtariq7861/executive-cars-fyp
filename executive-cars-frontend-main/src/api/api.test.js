@@ -26,6 +26,20 @@ describe('api interceptors', () => {
     expect(listener.mock.calls[0][0].detail).toEqual({ code: 'SESSION_REVOKED' })
   })
 
+  it('does not treat a failed sign-in (a 401 without a session code) as the session ending', async () => {
+    const listener = vi.fn()
+    window.addEventListener('ec:unauthorized', listener)
+    setCsrfToken('csrf-1')
+    api.defaults.adapter = failWith(401, { message: 'Invalid credentials' })
+    await expect(api.post('/auth/login')).rejects.toThrow()
+    window.removeEventListener('ec:unauthorized', listener)
+    expect(listener).not.toHaveBeenCalled()
+    const seen = []
+    api.defaults.adapter = async config => { seen.push(config.headers['X-CSRF-Token']); return { data: {}, status: 200, statusText: 'OK', headers: {}, config } }
+    await api.post('/auth/logout')
+    expect(seen).toEqual(['csrf-1'])
+  })
+
   it('does not treat other failures as a sign-out', async () => {
     const listener = vi.fn()
     window.addEventListener('ec:unauthorized', listener)

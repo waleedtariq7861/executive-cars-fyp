@@ -1,14 +1,11 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Eye, EyeOff, Shield, Lock } from 'lucide-react'
 import Logo from '../../components/Logo.jsx'
 import { useAuth } from '../../context/authContext.js'
-import api from '../../api/api.js'
 import SessionNotice from '../../components/auth/SessionNotice.jsx'
 import useRetryCountdown from '../../hooks/useRetryCountdown.js'
 import { waitLabel } from '../../utils/apiError.js'
-
-const demoAccountsEnabled = (import.meta.env.DEV || import.meta.env.VITE_APP_MODE === 'demo') && import.meta.env.VITE_ENABLE_DEMO_ACCOUNTS === 'true'
 
 export default function AdminLoginPage() {
   const navigate = useNavigate()
@@ -21,13 +18,7 @@ export default function AdminLoginPage() {
   const [pauseMessage, setPauseMessage] = useState('')
   const retry = useRetryCountdown()
   const shownError = error || (retry.waiting ? pauseMessage : '')
-  const [demoAccount, setDemoAccount] = useState(null)
   const update = (k, v) => setForm(f => ({ ...f, [k]: v }))
-
-  useEffect(() => {
-    if (!demoAccountsEnabled) return
-    api.get('/demo/accounts').then(response => setDemoAccount(response.data?.admin || null)).catch(() => setDemoAccount(null))
-  }, [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -119,13 +110,6 @@ export default function AdminLoginPage() {
               }
             </button>
           </form>
-
-          {demoAccountsEnabled && demoAccount && (
-            <section className="mt-6 rounded-xl border border-blue-200 bg-blue-50 p-4" aria-label="Demo Accounts">
-              <h3 className="text-sm font-black text-blue-950">Demo Administrator</h3>
-              <button type="button" onClick={() => { setForm({ email: demoAccount.email, password: demoAccount.password }); setError('') }} className="mt-3 w-full rounded-lg border border-blue-200 bg-white px-3 py-2 text-left text-xs font-semibold text-blue-800 hover:bg-blue-100">Use admin demo account</button>
-            </section>
-          )}
         </div>
       </div>
     </div>
