@@ -14,8 +14,10 @@ const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage.jsx'))
 const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage.jsx'))
 const VerifyEmailPage = lazy(() => import('./pages/VerifyEmailPage.jsx'))
 const PaymentsPage = lazy(() => import('./pages/PaymentsPage.jsx'))
+const SecurityPage = lazy(() => import('./pages/SecurityPage.jsx'))
 const InvoicePage = lazy(() => import('./pages/InvoicePage.jsx'))
 const AdminPaymentsPage = lazy(() => import('./pages/admin/AdminPaymentsPage.jsx'))
+const AdminSecurityPage = lazy(() => import('./pages/admin/AdminSecurityPage.jsx'))
 const AccountSignupPage = lazy(() => import('./pages/AccountSignupPage.jsx'))
 const AccountPage = lazy(() => import('./pages/AccountPage.jsx'))
 const SellCarPage = lazy(() => import('./pages/SellCarPage.jsx'))
@@ -97,6 +99,7 @@ export default function App() {
           <Route path="/verify-email" element={<ProtectedRoute role="user"><VerifyEmailPage /></ProtectedRoute>} />
           <Route path="/signup" element={<AccountSignupPage />} />
           <Route path="/account" element={<ProtectedRoute role="user"><AccountPage /></ProtectedRoute>} />
+          <Route path="/account/security" element={<ProtectedRoute role="user"><SecurityPage /></ProtectedRoute>} />
           <Route path="/account/payments" element={<ProtectedRoute role="user"><PaymentsPage /></ProtectedRoute>} />
           <Route path="/account/payments/:id/invoice" element={<ProtectedRoute role="user"><InvoicePage /></ProtectedRoute>} />
           <Route path="/sell-car" element={<SellCarPage />} />
@@ -129,6 +132,7 @@ export default function App() {
           <Route path="/admin/dashboard"       element={<ProtectedRoute role="admin"><AdminDashboardPage /></ProtectedRoute>} />
           <Route path="/admin/users"           element={<ProtectedRoute role="admin"><AdminUsersPage /></ProtectedRoute>} />
           <Route path="/admin/payments"        element={<ProtectedRoute role="admin"><AdminPaymentsPage /></ProtectedRoute>} />
+          <Route path="/admin/security"        element={<ProtectedRoute role="admin"><AdminSecurityPage /></ProtectedRoute>} />
           <Route path="/admin/bookings"        element={<ProtectedRoute role="admin"><AdminBookingsPage /></ProtectedRoute>} />
           <Route path="/admin/data-models"     element={<ProtectedRoute role="admin"><AdminDataModelsPage /></ProtectedRoute>} />
           <Route path="/admin/auction-list"    element={<ProtectedRoute role="admin"><AdminAuctionListPage /></ProtectedRoute>} />

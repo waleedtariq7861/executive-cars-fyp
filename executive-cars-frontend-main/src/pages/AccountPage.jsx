@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, Car, Gavel, LogOut, Receipt, Search, UserRound } from 'lucide-react'
+import { ArrowRight, Car, Gavel, LogOut, Receipt, Search, ShieldCheck, UserRound } from 'lucide-react'
 import Navbar from '../components/Navbar.jsx'
 import Footer from '../components/Footer.jsx'
 import { useAuth } from '../context/authContext.js'
@@ -31,7 +31,7 @@ export default function AccountPage() {
 
           <div className="grid lg:grid-cols-[1fr_340px] gap-6 mt-8">
             <section className="bg-white border border-gray-200 rounded-xl p-6 shadow-card"><div className="grid sm:grid-cols-3 gap-3">{[{ label: 'Marketplace', value: 'Available' }, { label: 'Selling tools', value: 'Available' }, { label: 'Auction bidding', value: auctionActive ? 'Active' : 'Requires membership' }].map(item => <div key={item.label} className="bg-gray-50 border border-gray-100 rounded-lg p-4"><p className="text-xs text-gray-400">{item.label}</p><p className="text-sm font-bold text-gray-900 mt-1">{item.value}</p></div>)}</div></section>
-            <section className="bg-white border border-gray-200 rounded-xl p-6 shadow-card"><div className="flex items-center gap-3"><UserRound className="w-5 h-5 text-blue-600" /><h2 className="font-black text-gray-900">Account details</h2></div><dl className="space-y-3 mt-5 text-sm"><div><dt className="text-xs text-gray-400">Name</dt><dd className="font-semibold text-gray-900 mt-0.5">{user.name}</dd></div><div><dt className="text-xs text-gray-400">Email</dt><dd className="font-semibold text-gray-900 mt-0.5 break-all">{user.email}</dd></div><div><dt className="text-xs text-gray-400">Seller verification</dt><dd className="font-semibold text-gray-900 mt-0.5">{user.sellerApproved ? 'Approved' : 'Pending'}</dd></div></dl></section>
+            <section className="bg-white border border-gray-200 rounded-xl p-6 shadow-card"><div className="flex items-center gap-3"><UserRound className="w-5 h-5 text-blue-600" /><h2 className="font-black text-gray-900">Account details</h2></div><dl className="space-y-3 mt-5 text-sm"><div><dt className="text-xs text-gray-400">Name</dt><dd className="font-semibold text-gray-900 mt-0.5">{user.name}</dd></div><div><dt className="text-xs text-gray-400">Email</dt><dd className="font-semibold text-gray-900 mt-0.5 break-all">{user.email}</dd></div><div><dt className="text-xs text-gray-400">Seller verification</dt><dd className="font-semibold text-gray-900 mt-0.5">{user.sellerApproved ? 'Approved' : 'Pending'}</dd></div></dl><Link to="/account/security" className="btn-ghost mt-5 py-2.5 text-sm gap-2 w-full"><ShieldCheck className="w-4 h-4" /> Security &amp; sessions</Link></section>
           </div>
         </div>
       </main>
