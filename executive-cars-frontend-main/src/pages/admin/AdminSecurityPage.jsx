@@ -3,6 +3,7 @@ import AdminLayout from '../../components/AdminLayout.jsx'
 import api from '../../api/api.js'
 import ActivityList from '../../components/auth/ActivityList.jsx'
 import ChangePasswordForm from '../../components/auth/ChangePasswordForm.jsx'
+import MfaPanel from '../../components/auth/MfaPanel.jsx'
 import SessionsPanel from '../../components/auth/SessionsPanel.jsx'
 import { Alert } from '../../components/ui/Feedback.jsx'
 import { FormField, Select } from '../../components/ui/FormControls.jsx'
@@ -80,6 +81,8 @@ export default function AdminSecurityPage() {
             </div>
           )}
         </Section>
+
+        <Section title="Two-step sign-in" description="Protects the administrator account even if the password leaks."><MfaPanel /></Section>
 
         <div className="grid xl:grid-cols-2 gap-6">
           <Section title="Change your password" description="Changing it signs your other devices out."><ChangePasswordForm idPrefix="admin-password" /></Section>
