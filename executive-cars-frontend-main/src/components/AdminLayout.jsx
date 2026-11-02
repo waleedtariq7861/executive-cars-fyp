@@ -9,6 +9,7 @@ const navItems = [
   { icon: Users, label: 'Customer Accounts', to: '/admin/users' },
   { icon: Calendar, label: 'Bookings', to: '/admin/bookings' },
   { icon: Receipt, label: 'Payments', to: '/admin/payments' },
+  { icon: Shield, label: 'Security', to: '/admin/security' },
   { icon: Gavel, label: 'Auction List', to: '/admin/auction-list' },
   { icon: List, label: 'Used Cars List', to: '/admin/used-cars-list' },
   { icon: Upload, label: 'Upload Auction Car', to: '/admin/upload-auction' },

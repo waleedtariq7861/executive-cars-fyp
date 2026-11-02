@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { User, Mail, Phone, Calendar, Shield, Edit3, Save, X, Key, CheckCircle, LogOut } from 'lucide-react'
 import AuctionLayout from '../../components/AuctionLayout.jsx'
+import ChangePasswordForm from '../../components/auth/ChangePasswordForm.jsx'
 import { useAuth } from '../../context/authContext.js'
 import api from '../../api/api.js'
 import {
@@ -29,13 +30,9 @@ export default function AuctionProfilePage() {
     cnic: '',
     city: '',
   })
-  const [passForm, setPassForm] = useState({ current: '', newPass: '', confirm: '' })
   const [showPassSection, setShowPassSection] = useState(false)
-  const [passError, setPassError] = useState('')
-  const [passSaved, setPassSaved] = useState(false)
   const [profileError, setProfileError] = useState('')
   const [saving, setSaving] = useState(false)
-  const [changingPassword, setChangingPassword] = useState(false)
 
   useEffect(() => {
     api.get('/member/profile').then(res => {
@@ -82,25 +79,6 @@ export default function AuctionProfilePage() {
     if (profile) setForm(profileToForm(profile))
     setProfileError('')
     setEditing(false)
-  }
-
-  const handleChangePassword = async () => {
-    setPassError('')
-    if (changingPassword) return
-    if (!passForm.current) { setPassError('Enter your current password.'); return }
-    if (passForm.newPass.length < 8) { setPassError('New password must be at least 8 characters.'); return }
-    if (passForm.newPass !== passForm.confirm) { setPassError('Passwords do not match.'); return }
-    setChangingPassword(true)
-    try {
-      await api.post('/auth/change-password', { current: passForm.current, newPassword: passForm.newPass })
-      setPassSaved(true)
-      setPassForm({ current: '', newPass: '', confirm: '' })
-      setTimeout(() => setPassSaved(false), 3000)
-    } catch (err) {
-      setPassError(err.response?.data?.message || 'Failed to update password.')
-    } finally {
-      setChangingPassword(false)
-    }
   }
 
   const handleLogout = () => logout('/auction')
@@ -232,24 +210,8 @@ export default function AuctionProfilePage() {
           </button>
 
           {showPassSection && (
-            <div id="auction-password-section" className="px-6 pb-6 border-t border-gray-100 pt-4 space-y-4">
-              {[
-                { label: 'Current Password', key: 'current', autoComplete: 'current-password' },
-                { label: 'New Password',     key: 'newPass', autoComplete: 'new-password' },
-                { label: 'Confirm Password', key: 'confirm', autoComplete: 'new-password' },
-              ].map(f => (
-                <div key={f.key}>
-                  <label htmlFor={`auction-password-${f.key}`} className="block text-sm font-medium text-gray-700 mb-1.5">{f.label}</label>
-                  <input id={`auction-password-${f.key}`} type="password" autoComplete={f.autoComplete} value={passForm[f.key]}
-                    onChange={e => setPassForm(p => ({ ...p, [f.key]: e.target.value }))}
-                    className="input-light" placeholder="••••••••" />
-                </div>
-              ))}
-              {passError && <p role="alert" className="text-red-600 text-xs">{passError}</p>}
-              {passSaved && <p className="text-green-600 text-xs flex items-center gap-1"><CheckCircle className="w-3 h-3" /> Password updated!</p>}
-              <button type="button" onClick={handleChangePassword} disabled={changingPassword} className="btn-primary px-6 py-2.5 rounded-xl font-semibold text-sm">
-                {changingPassword ? 'Updating…' : 'Update Password'}
-              </button>
+            <div id="auction-password-section" className="px-6 pb-6 border-t border-gray-100 pt-4">
+              <ChangePasswordForm idPrefix="auction-password" />
             </div>
           )}
         </div>
