@@ -1,18 +1,18 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "vite",
-  "headers": [
-    {
-      "source": "/reset-password",
-      "headers": [
-        { "key": "Referrer-Policy", "value": "no-referrer" },
-        { "key": "Cache-Control", "value": "no-store" }
-      ]
-    }
-  ],
   "rewrites": [
-    { "source": "/api/:path*", "destination": "https://executive-cars-backend.onrender.com/api/:path*" },
-    { "source": "/socket.io/:path*", "destination": "https://executive-cars-backend.onrender.com/socket.io/:path*" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    {
+      "source": "/api/:path*",
+      "destination": "https://executive-cars-backend.onrender.com/api/:path*"
+    },
+    {
+      "source": "/socket.io/:path*",
+      "destination": "https://executive-cars-backend.onrender.com/socket.io/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
   ]
 }
