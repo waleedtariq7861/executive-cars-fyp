@@ -15,12 +15,12 @@ vi.mock('../components/Footer.jsx', () => ({ default: () => <footer /> }))
 vi.mock('../components/VehicleImage.jsx', () => ({ default: ({ alt }) => <div role="img" aria-label={alt} /> }))
 
 const car = {
-  _id: 'car-1', make: 'Toyota', model: 'Corolla', year: 2020, km: 45000,
+  _id: '5f1c0a9b8e7d6c5b4a392817', make: 'Toyota', model: 'Corolla', year: 2020, km: 45000,
   price: 5250000, images: [], verificationStatus: 'verified', inspectionStatus: 'not_available',
 }
 
 const renderPage = () => render(
-  <MemoryRouter initialEntries={['/used-cars/car-1']}>
+  <MemoryRouter initialEntries={['/used-cars/5f1c0a9b8e7d6c5b4a392817']}>
     <Routes><Route path="/used-cars/:id" element={<UsedCarDetailPage />} /></Routes>
   </MemoryRouter>,
 )
@@ -31,7 +31,7 @@ describe('UsedCarDetailPage saved cars', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    api.get.mockImplementation(url => Promise.resolve({ data: url === '/products/car-1' ? car : [] }))
+    api.get.mockImplementation(url => Promise.resolve({ data: url === '/products/5f1c0a9b8e7d6c5b4a392817' ? car : [] }))
     useToast.mockReturnValue({ showToast })
     useSavedCars.mockReturnValue({
       savedIds: [], syncing: false, serverBacked: true, toggleSaved,
@@ -44,7 +44,7 @@ describe('UsedCarDetailPage saved cars', () => {
 
     fireEvent.click(await screen.findByRole('button', { name: 'Save car' }))
 
-    await waitFor(() => expect(toggleSaved).toHaveBeenCalledWith('car-1'))
+    await waitFor(() => expect(toggleSaved).toHaveBeenCalledWith('5f1c0a9b8e7d6c5b4a392817'))
     expect(showToast).toHaveBeenCalledWith(expect.objectContaining({
       tone: 'success', title: 'Car saved', message: 'Added to your account shortlist.',
     }))
@@ -60,5 +60,21 @@ describe('UsedCarDetailPage saved cars', () => {
       tone: 'error', title: 'Could not update saved cars', message: 'Saved car could not be updated.',
     }))
     expect(showToast).not.toHaveBeenCalledWith(expect.objectContaining({ tone: 'success' }))
+  })
+})
+
+describe('UsedCarDetailPage contact', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    useToast.mockReturnValue({ showToast: vi.fn() })
+    useSavedCars.mockReturnValue({ savedIds: [], syncing: false, serverBacked: false, toggleSaved: vi.fn() })
+  })
+
+  it('shows no mail link at all when the showroom has no address configured', async () => {
+    api.get.mockImplementation(url => Promise.resolve({ data: url === '/products/5f1c0a9b8e7d6c5b4a392817' ? { ...car, sellerEmail: 'private-seller@example.test' } : [] }))
+    renderPage()
+    await screen.findByRole('heading', { name: /Toyota Corolla/ })
+    expect(document.querySelectorAll('a[href^="mailto:"]').length).toBe(0)
+    expect(screen.queryByText('Message showroom')).not.toBeInTheDocument()
   })
 })

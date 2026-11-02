@@ -29,8 +29,8 @@ function AuctionCard({ car, phase: listedPhase }) {
   const advancePhase = () => setClockPhase(phase === 'upcoming' ? 'live' : phase === 'live' ? 'ended' : phase)
   const isHot = phase === 'live' && car.bidCount > 3
   const countTo = phase === 'upcoming' ? car.auctionStart : car.auctionEnd
-  const reserveText = phase !== 'upcoming' && car.reservePrice
-    ? (car.currentBid >= car.reservePrice ? 'Reserve met' : 'Reserve not met')
+  const reserveText = phase !== 'upcoming' && car.hasReserve
+    ? (car.reserveMet ? 'Reserve met' : 'Reserve not met')
     : null
 
   return (

@@ -17,6 +17,8 @@ export default defineConfig(({ mode }) => {
       proxy: {
         '/api': { target: backendTarget, changeOrigin: true },
         '/socket.io': { target: backendTarget, changeOrigin: true, ws: true },
+        // Vehicle images stored by the local-disk upload mode are addressed by a path on this site.
+        '/uploads': { target: backendTarget, changeOrigin: true },
       },
     },
   }

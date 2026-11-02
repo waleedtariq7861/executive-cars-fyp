@@ -3,11 +3,13 @@ import api from '../api/api.js'
 import { useAuth } from '../context/authContext.js'
 
 const STORAGE_KEY = 'ec_wishlist'
+// Saved ids come back out of browser storage and are put into request paths, so only 24-character record ids are accepted.
+const OBJECT_ID = /^[a-f0-9]{24}$/i
 
 function readLocalIds() {
   try {
     const value = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]')
-    return Array.isArray(value) ? value.filter(Boolean) : []
+    return Array.isArray(value) ? value.filter(id => typeof id === 'string' && OBJECT_ID.test(id)) : []
   } catch {
     return []
   }
