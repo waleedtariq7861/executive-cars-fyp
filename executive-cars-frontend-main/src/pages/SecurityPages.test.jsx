@@ -21,6 +21,7 @@ beforeEach(() => {
   vi.resetAllMocks()
   api.get.mockImplementation(async url => {
     if (url === '/auth/sessions') return { data: { sessions: [{ id: 's1', current: true, device: 'Chrome on Windows', signedInAt: '2026-11-10T08:00:00Z', lastSeenAt: '2026-11-10T09:00:00Z' }] } }
+    if (url === '/auth/mfa') return { data: { enabled: false, recoveryCodesRemaining: 0 } }
     if (url === '/auth/activity') return { data: { events: [{ id: 'a1', type: 'password_changed', at: '2026-11-10T07:00:00Z', device: 'Chrome on Windows' }] } }
     if (url === '/admin/auth-events') return { data: { summary: { loginFailures24h: 3, mailFailures24h: 2, resetRequests24h: 1 }, events } }
     throw new Error(`unexpected request ${url}`)
@@ -92,6 +93,8 @@ describe('AdminSecurityPage', () => {
   it('also hosts the administrator\'s own password form, sessions and activity', async () => {
     renderPage()
     await screen.findByText('Some Customer')
+    expect(screen.getByRole('heading', { name: 'Two-step sign-in' })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: 'Turn on two-step sign-in' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Change your password' })).toBeInTheDocument()
     expect(screen.getByLabelText('Current password', { exact: true })).toBeInTheDocument()
     expect(await screen.findByText('This device')).toBeInTheDocument()

@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Eye, EyeOff, Shield, Lock } from 'lucide-react'
+import { Eye, EyeOff, Shield, Lock, KeyRound } from 'lucide-react'
 import Logo from '../../components/Logo.jsx'
 import { useAuth } from '../../context/authContext.js'
 import SessionNotice from '../../components/auth/SessionNotice.jsx'
@@ -9,11 +9,14 @@ import { waitLabel } from '../../utils/apiError.js'
 
 export default function AdminLoginPage() {
   const navigate = useNavigate()
-  const { loginAdmin } = useAuth()
+  const { loginAdmin, completeAdminMfa } = useAuth()
   const [form, setForm] = useState({ email: '', password: '' })
   const [showPass, setShowPass] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  // Set once the password was right but the account also needs a code from the authenticator app.
+  const [challenge, setChallenge] = useState(null)
+  const [code, setCode] = useState('')
   // The server asks for a pause after too many failed attempts; it never locks the account for good.
   const [pauseMessage, setPauseMessage] = useState('')
   const retry = useRetryCountdown()
@@ -25,6 +28,11 @@ export default function AdminLoginPage() {
     if (loading || retry.waiting) return
     setLoading(true); setError(''); setPauseMessage('')
     const result = await loginAdmin(form.email, form.password)
+    if (result.mfaRequired) {
+      setChallenge(result.challenge)
+      setLoading(false)
+      return
+    }
     if (result.success && result.role === 'admin') {
       navigate('/admin/dashboard')
     } else if (result.retryAfterSeconds) {
@@ -35,6 +43,32 @@ export default function AdminLoginPage() {
     }
     setLoading(false)
   }
+
+  const handleCode = async (e) => {
+    e.preventDefault()
+    if (loading || retry.waiting) return
+    if (!code.trim()) { setError('Enter the code from your authenticator app.'); return }
+    setLoading(true); setError(''); setPauseMessage('')
+    const result = await completeAdminMfa(challenge, code)
+    if (result.success && result.role === 'admin') {
+      navigate('/admin/dashboard')
+      return
+    }
+    if (result.code === 'MFA_CHALLENGE_INVALID') {
+      // The sign-in expired or used up its guesses: start again from the password.
+      setChallenge(null); setCode(''); setForm(f => ({ ...f, password: '' }))
+      setError(result.message)
+    } else if (result.retryAfterSeconds) {
+      setPauseMessage(result.message)
+      retry.start(result.retryAfterSeconds)
+    } else {
+      setCode('')
+      setError(result.fieldErrors?.code || result.message || 'That code did not work. Please try again.')
+    }
+    setLoading(false)
+  }
+
+  const backToPassword = () => { setChallenge(null); setCode(''); setError(''); setPauseMessage(''); setForm(f => ({ ...f, password: '' })) }
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -67,11 +101,34 @@ export default function AdminLoginPage() {
             <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-200">
               <Shield className="w-8 h-8 text-white" />
             </div>
-            <h2 className="text-2xl font-black text-gray-900">Admin Login</h2>
-            <p className="text-gray-500 text-sm mt-1">Authorized personnel only</p>
+            <h2 className="text-2xl font-black text-gray-900">{challenge ? 'Two-step sign-in' : 'Admin Login'}</h2>
+            <p className="text-gray-500 text-sm mt-1">{challenge ? 'Enter the code from your authenticator app' : 'Authorized personnel only'}</p>
           </div>
 
           <SessionNotice className="mb-5" />
+          {challenge ? (
+            <form onSubmit={handleCode} className="space-y-4" noValidate>
+              <div>
+                <label htmlFor="admin-code" className="block text-sm font-medium text-gray-700 mb-1.5">Authenticator code</label>
+                <input id="admin-code" value={code} onChange={e => setCode(e.target.value)} autoComplete="one-time-code" inputMode="text" maxLength={14}
+                  placeholder="123456" aria-invalid={shownError ? 'true' : undefined} aria-describedby={shownError ? 'admin-login-error' : 'admin-code-hint'}
+                  className={`input-light text-center text-lg font-bold tracking-[0.3em] ${shownError ? 'border-red-400' : ''}`} />
+                <p id="admin-code-hint" className="text-xs text-gray-500 mt-1.5">The 6-digit code changes every 30 seconds. Lost your phone? Type one of your recovery codes instead.</p>
+              </div>
+              {shownError && (
+                <div id="admin-login-error" role="alert" className="bg-red-50 border border-red-200 rounded-xl p-3 text-red-600 text-sm text-center">
+                  {shownError}
+                </div>
+              )}
+              <button type="submit" disabled={loading || retry.waiting}
+                className="btn-primary w-full py-3.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 shadow-md shadow-blue-200 disabled:opacity-60">
+                {loading
+                  ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  : retry.waiting ? <>Try again in {waitLabel(retry.seconds)}</> : <><KeyRound className="w-4 h-4" /> Verify and sign in</>}
+              </button>
+              <button type="button" onClick={backToPassword} className="block w-full text-center text-sm font-bold text-blue-700">Use a different account</button>
+            </form>
+          ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="admin-email" className="block text-sm font-medium text-gray-700 mb-1.5">Email Address</label>
@@ -110,6 +167,7 @@ export default function AdminLoginPage() {
               }
             </button>
           </form>
+          )}
         </div>
       </div>
     </div>

@@ -88,13 +88,26 @@ export function AuthProvider({ children }) {
     }
   }
 
+  // Step one of the administrator sign-in. With two-step sign-in on, the password alone is not a sign-in: the
+  // answer is a short-lived challenge that completeAdminMfa turns into a session once the code is given.
   const loginAdmin = async (email, password) => {
     try {
       const { data } = await api.post('/auth/admin/login', { email, password })
+      if (data.mfaRequired) return { success: false, mfaRequired: true, challenge: data.challenge, expiresInSeconds: data.expiresInSeconds }
       persist(data.user, data.csrfToken)
       return { success: true, role: data.user.role }
     } catch (error) {
       return { success: false, ...readApiError(error, 'Admin sign in failed') }
+    }
+  }
+
+  const completeAdminMfa = async (challenge, code) => {
+    try {
+      const { data } = await api.post('/auth/admin/login/mfa', { challenge, code })
+      persist(data.user, data.csrfToken)
+      return { success: true, role: data.user.role }
+    } catch (error) {
+      return { success: false, ...readApiError(error, 'Could not finish signing in') }
     }
   }
 
@@ -155,6 +168,7 @@ export function AuthProvider({ children }) {
       initializing,
       loginAccount,
       loginAdmin,
+      completeAdminMfa,
       registerAccount,
       logout,
       logoutRedirect,
