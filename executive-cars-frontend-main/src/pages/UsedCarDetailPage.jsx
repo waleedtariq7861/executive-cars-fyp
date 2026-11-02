@@ -62,7 +62,7 @@ export default function UsedCarDetailPage() {
   )
 
   const engine = String(car.engine || '').toLowerCase().includes('cc') ? car.engine : car.engine ? `${car.engine} cc` : '—'
-  const sellerEmail = car.sellerEmail || siteConfig.email
+  const contactEmail = siteConfig.email
   const verified = car.verificationStatus === 'verified'
   const hasReport = hasInspectionReport(car)
   const saved = savedIds.includes(id)
@@ -192,9 +192,9 @@ export default function UsedCarDetailPage() {
                 <p className="text-sm text-gray-500 leading-6 my-4">Ask about availability, the inspection report, or book a showroom viewing.</p>
                 <div className="space-y-2.5">
                   {siteConfig.phone && <a href={`tel:${siteConfig.phone}`} className="btn-primary w-full py-3 text-sm gap-2"><Phone className="w-4 h-4" /> Call {siteConfig.phoneLabel || siteConfig.phone}</a>}
-                  <a href={`mailto:${sellerEmail}?subject=${encodeURIComponent(`${car.make} ${car.model} ${car.year} enquiry`)}`} className="btn-brand w-full py-3 text-sm gap-2"><MessageSquare className="w-4 h-4" /> Message showroom</a>
+                  {contactEmail && <a href={`mailto:${contactEmail}?subject=${encodeURIComponent(`${car.make} ${car.model} ${car.year} enquiry`)}`} className="btn-brand w-full py-3 text-sm gap-2"><MessageSquare className="w-4 h-4" /> Message showroom</a>}
                 </div>
-                <p className="flex items-center justify-center gap-1.5 text-[11px] text-gray-400 mt-4"><Mail className="w-3.5 h-3.5" /> {sellerEmail}</p>
+                {contactEmail && <p className="flex items-center justify-center gap-1.5 text-[11px] text-gray-400 mt-4"><Mail className="w-3.5 h-3.5" /> {contactEmail}</p>}
                 <Link to="/seller/book-inspection" className="btn-ghost w-full py-3 text-sm gap-2 mt-3"><ClipboardCheck className="w-4 h-4" /> Book inspection</Link>
               </div>
 
@@ -203,7 +203,7 @@ export default function UsedCarDetailPage() {
               <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-card">
                 <div className="flex items-center gap-2"><FileText className="w-5 h-5 text-blue-700" /><h3 className="font-bold text-gray-900">Inspection report</h3></div>
                 <p className="text-xs text-gray-500 leading-5 mt-2">{hasReport ? 'A private report file is attached to this listing.' : 'No inspection report is attached to this listing.'}</p>
-                {hasReport ? <button type="button" onClick={viewReport} disabled={reportOpening} className="btn-ghost w-full py-2.5 text-xs mt-4 disabled:opacity-60">{reportOpening ? 'Opening…' : 'View report'}</button> : <a href={`mailto:${sellerEmail}?subject=Inspection report enquiry`} className="btn-ghost w-full py-2.5 text-xs mt-4">Ask about inspection</a>}
+                {hasReport ? <button type="button" onClick={viewReport} disabled={reportOpening} className="btn-ghost w-full py-2.5 text-xs mt-4 disabled:opacity-60">{reportOpening ? 'Opening…' : 'View report'}</button> : (contactEmail ? <a href={`mailto:${contactEmail}?subject=Inspection report enquiry`} className="btn-ghost w-full py-2.5 text-xs mt-4">Ask about inspection</a> : null)}
               </div>
 
               <div className="bg-amber-50 border border-amber-200 rounded-xl p-4"><div className="flex gap-3"><AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" /><div><p className="text-sm font-bold text-amber-900">Safety reminder</p><p className="text-xs text-amber-800/75 leading-5 mt-1">Never send advance payment before inspecting the car and verifying its documents.</p></div></div></div>

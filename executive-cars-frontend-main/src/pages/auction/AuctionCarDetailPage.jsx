@@ -77,11 +77,12 @@ export default function AuctionCarDetailPage() {
       if (carId !== id) return
       setCurrentBid(newBid)
       setTotalBidders(bidCount)
-      const isMe = highestBidder?._id === user?.id
-      const displayName = isMe ? 'You' : (highestBidder?.name ? highestBidder.name.slice(0, 2) + '***' : 'Someone')
+      // The server already says which bidder this is for this browser ("isMe") and sends other bidders as a masked name.
+      const isMe = highestBidder?.isMe === true
+      const displayName = isMe ? 'You' : (highestBidder?.name || 'Someone')
       const entry = {
         user: displayName,
-        avatar: initials(highestBidder?.name || '??'),
+        avatar: initials(displayName),
         amount: newBid,
         time: 'Just now',
         isMe,
@@ -100,7 +101,7 @@ export default function AuctionCarDetailPage() {
       if (carId !== id) return
       setAuctionEnded(true)
       setCurrentBid(finalBid)
-      setWonResult(winner && winner._id === user?.id ? winner : null)
+      setWonResult(winner?.isMe === true ? winner : null)
     })
 
     return () => {
